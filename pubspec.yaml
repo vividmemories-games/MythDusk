@@ -23,6 +23,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/levels/
+    - assets/boards/
     - assets/heroes/
     - assets/enemies/
     - assets/images/style_board/

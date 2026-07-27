@@ -93,7 +93,8 @@ class PuzzleBoard {
       last = board;
       if (PuzzleEngine.hasColorMove(board, random: rng)) return board;
     }
-    return last ?? PuzzleBoard.squareNoMatches(size: size, random: rng, ids: idGen);
+    return last ??
+        PuzzleBoard.squareNoMatches(size: size, random: rng, ids: idGen);
   }
 
   /// Legacy random fill (may contain matches). Prefer [squareNoMatches].

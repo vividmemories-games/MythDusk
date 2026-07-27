@@ -27,7 +27,7 @@ Generate in priority order: **P0 → P1 → P2 → P3 → P4**.
 | **P1**   | M2–M3 prep + home + HUD   | 8 / 8        |
 | **P2**   | M4–M6 Ch1 vertical slice  | 9 / 9        |
 | **P3**   | First hero unlock polish  | 0 / 1        |
-| **P4**   | Post-launch Ch2–10        | 0 / 90       |
+| **P4**   | Post-launch Ch2–10        | 90 / 90       |
 
 
 
@@ -669,7 +669,7 @@ no UI, no health bar
 
 ### `hero_ranger.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/heroes/hero_ranger.png`
 - **Size:** 1024 × 1024
@@ -688,7 +688,7 @@ dusk adventure, no UI, no health bar
 
 ### `hero_priest.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/heroes/hero_priest.png`
 - **Size:** 1024 × 1024
@@ -707,7 +707,7 @@ no UI, no health bar
 
 ### `hero_ninja.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/heroes/hero_ninja.png`
 - **Size:** 1024 × 1024
@@ -732,7 +732,7 @@ no UI, no health bar
 
 ### `enemy_shaman.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/enemy_shaman.png`
 - **Size:** 1024 × 1024
@@ -749,7 +749,7 @@ solid flat background deep teal #123A44, thick clean outlines, soft cel shading,
 
 ### `enemy_brute.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/enemy_brute.png`
 - **Size:** 1024 × 1024
@@ -766,7 +766,7 @@ solid flat background deep teal #123A44, thick clean outlines, soft cel shading,
 
 ### `enemy_mire_spawn.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/enemy_mire_spawn.png`
 - **Size:** 1024 × 1024
@@ -783,7 +783,7 @@ solid flat background deep teal #123A44, thick clean outlines, soft cel shading,
 
 ### `enemy_ridge_hawk.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/enemy_ridge_hawk.png`
 - **Size:** 1024 × 1024
@@ -800,7 +800,7 @@ solid flat background deep teal #123A44, thick clean outlines, soft cel shading,
 
 ### `enemy_crypt_skel.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/enemy_crypt_skel.png`
 - **Size:** 1024 × 1024
@@ -817,7 +817,7 @@ solid flat background deep teal #123A44, thick clean outlines, soft cel shading,
 
 ### `enemy_forge_imp.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/enemy_forge_imp.png`
 - **Size:** 1024 × 1024
@@ -840,7 +840,7 @@ solid flat background deep teal #123A44, thick clean outlines, soft cel shading,
 
 ### `boss_mirelord_f1.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_mirelord_f1.png`
 - **Size:** 1024 × 1024
@@ -857,7 +857,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Mistfen Marshes, no g
 
 ### `boss_mirelord_f2.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_mirelord_f2.png`
 - **Size:** 1024 × 1024
@@ -874,7 +874,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Mistfen Marshes, no g
 
 ### `boss_mirelord_f3.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_mirelord_f3.png`
 - **Size:** 1024 × 1024
@@ -891,7 +891,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Mistfen Marshes, no g
 
 ### `boss_mirelord_f4.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_mirelord_f4.png`
 - **Size:** 1024 × 1024
@@ -914,7 +914,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Mistfen Marshes, no g
 
 ### `boss_pack_alpha_f1.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_pack_alpha_f1.png`
 - **Size:** 1024 × 1024
@@ -931,7 +931,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Howling Ridge, no gor
 
 ### `boss_pack_alpha_f2.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_pack_alpha_f2.png`
 - **Size:** 1024 × 1024
@@ -948,7 +948,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Howling Ridge, no gor
 
 ### `boss_pack_alpha_f3.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_pack_alpha_f3.png`
 - **Size:** 1024 × 1024
@@ -965,7 +965,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Howling Ridge, no gor
 
 ### `boss_pack_alpha_f4.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_pack_alpha_f4.png`
 - **Size:** 1024 × 1024
@@ -988,7 +988,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Howling Ridge, no gor
 
 ### `boss_quarry_overseer_f1.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_quarry_overseer_f1.png`
 - **Size:** 1024 × 1024
@@ -1005,7 +1005,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Ashen Quarries, no go
 
 ### `boss_quarry_overseer_f2.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_quarry_overseer_f2.png`
 - **Size:** 1024 × 1024
@@ -1022,7 +1022,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Ashen Quarries, no go
 
 ### `boss_quarry_overseer_f3.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_quarry_overseer_f3.png`
 - **Size:** 1024 × 1024
@@ -1039,7 +1039,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Ashen Quarries, no go
 
 ### `boss_quarry_overseer_f4.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_quarry_overseer_f4.png`
 - **Size:** 1024 × 1024
@@ -1062,7 +1062,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Ashen Quarries, no go
 
 ### `boss_bone_seer_f1.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_bone_seer_f1.png`
 - **Size:** 1024 × 1024
@@ -1079,7 +1079,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Candlecrypt, no gore,
 
 ### `boss_bone_seer_f2.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_bone_seer_f2.png`
 - **Size:** 1024 × 1024
@@ -1096,7 +1096,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Candlecrypt, no gore,
 
 ### `boss_bone_seer_f3.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_bone_seer_f3.png`
 - **Size:** 1024 × 1024
@@ -1113,7 +1113,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Candlecrypt, no gore,
 
 ### `boss_bone_seer_f4.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_bone_seer_f4.png`
 - **Size:** 1024 × 1024
@@ -1136,7 +1136,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Candlecrypt, no gore,
 
 ### `boss_lake_wraith_f1.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_lake_wraith_f1.png`
 - **Size:** 1024 × 1024
@@ -1153,7 +1153,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Mirror Lake, no gore,
 
 ### `boss_lake_wraith_f2.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_lake_wraith_f2.png`
 - **Size:** 1024 × 1024
@@ -1170,7 +1170,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Mirror Lake, no gore,
 
 ### `boss_lake_wraith_f3.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_lake_wraith_f3.png`
 - **Size:** 1024 × 1024
@@ -1187,7 +1187,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Mirror Lake, no gore,
 
 ### `boss_lake_wraith_f4.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_lake_wraith_f4.png`
 - **Size:** 1024 × 1024
@@ -1210,7 +1210,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Mirror Lake, no gore,
 
 ### `boss_gilded_fence_f1.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_gilded_fence_f1.png`
 - **Size:** 1024 × 1024
@@ -1227,7 +1227,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Thornmarket, no gore,
 
 ### `boss_gilded_fence_f2.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_gilded_fence_f2.png`
 - **Size:** 1024 × 1024
@@ -1244,7 +1244,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Thornmarket, no gore,
 
 ### `boss_gilded_fence_f3.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_gilded_fence_f3.png`
 - **Size:** 1024 × 1024
@@ -1261,7 +1261,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Thornmarket, no gore,
 
 ### `boss_gilded_fence_f4.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_gilded_fence_f4.png`
 - **Size:** 1024 × 1024
@@ -1284,7 +1284,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Thornmarket, no gore,
 
 ### `boss_siege_captain_f1.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_siege_captain_f1.png`
 - **Size:** 1024 × 1024
@@ -1301,7 +1301,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Skybridge Siege, no g
 
 ### `boss_siege_captain_f2.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_siege_captain_f2.png`
 - **Size:** 1024 × 1024
@@ -1318,7 +1318,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Skybridge Siege, no g
 
 ### `boss_siege_captain_f3.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_siege_captain_f3.png`
 - **Size:** 1024 × 1024
@@ -1335,7 +1335,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Skybridge Siege, no g
 
 ### `boss_siege_captain_f4.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_siege_captain_f4.png`
 - **Size:** 1024 × 1024
@@ -1358,7 +1358,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Skybridge Siege, no g
 
 ### `boss_ember_smith_f1.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_ember_smith_f1.png`
 - **Size:** 1024 × 1024
@@ -1375,7 +1375,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Eclipse Forge, no gor
 
 ### `boss_ember_smith_f2.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_ember_smith_f2.png`
 - **Size:** 1024 × 1024
@@ -1392,7 +1392,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Eclipse Forge, no gor
 
 ### `boss_ember_smith_f3.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_ember_smith_f3.png`
 - **Size:** 1024 × 1024
@@ -1409,7 +1409,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Eclipse Forge, no gor
 
 ### `boss_ember_smith_f4.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_ember_smith_f4.png`
 - **Size:** 1024 × 1024
@@ -1432,7 +1432,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Eclipse Forge, no gor
 
 ### `boss_mythspire_tyrant_f1.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_mythspire_tyrant_f1.png`
 - **Size:** 1024 × 1024
@@ -1449,7 +1449,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Mythspire Gate, no go
 
 ### `boss_mythspire_tyrant_f2.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_mythspire_tyrant_f2.png`
 - **Size:** 1024 × 1024
@@ -1466,7 +1466,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Mythspire Gate, no go
 
 ### `boss_mythspire_tyrant_f3.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_mythspire_tyrant_f3.png`
 - **Size:** 1024 × 1024
@@ -1483,7 +1483,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Mythspire Gate, no go
 
 ### `boss_mythspire_tyrant_f4.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/enemies/bosses/boss_mythspire_tyrant_f4.png`
 - **Size:** 1024 × 1024
@@ -1506,7 +1506,7 @@ thick clean outlines, soft cel shading, glossy toy finish, Mythspire Gate, no go
 
 ### `bg_battle_mistfen_marshes.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/images/backgrounds/battle/bg_battle_mistfen_marshes.png`
 - **Size:** 1024 × 1536
@@ -1522,7 +1522,7 @@ empty clear lower third for characters, painterly 2D casual fantasy, Mistfen Mar
 
 ### `bg_battle_howling_ridge.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/images/backgrounds/battle/bg_battle_howling_ridge.png`
 - **Size:** 1024 × 1536
@@ -1538,7 +1538,7 @@ empty clear lower third for characters, painterly 2D casual fantasy, Howling Rid
 
 ### `bg_battle_ashen_quarries.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/images/backgrounds/battle/bg_battle_ashen_quarries.png`
 - **Size:** 1024 × 1536
@@ -1554,7 +1554,7 @@ empty clear lower third for characters, painterly 2D casual fantasy, Ashen Quarr
 
 ### `bg_battle_candlecrypt.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/images/backgrounds/battle/bg_battle_candlecrypt.png`
 - **Size:** 1024 × 1536
@@ -1570,7 +1570,7 @@ empty clear lower third for characters, painterly 2D casual fantasy, Candlecrypt
 
 ### `bg_battle_mirror_lake.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/images/backgrounds/battle/bg_battle_mirror_lake.png`
 - **Size:** 1024 × 1536
@@ -1586,7 +1586,7 @@ empty clear lower third for characters, painterly 2D casual fantasy, Mirror Lake
 
 ### `bg_battle_thornmarket.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/images/backgrounds/battle/bg_battle_thornmarket.png`
 - **Size:** 1024 × 1536
@@ -1602,7 +1602,7 @@ empty clear lower third for characters, painterly 2D casual fantasy, Thornmarket
 
 ### `bg_battle_skybridge_siege.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/images/backgrounds/battle/bg_battle_skybridge_siege.png`
 - **Size:** 1024 × 1536
@@ -1618,7 +1618,7 @@ empty clear lower third for characters, painterly 2D casual fantasy, Skybridge S
 
 ### `bg_battle_eclipse_forge.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/images/backgrounds/battle/bg_battle_eclipse_forge.png`
 - **Size:** 1024 × 1536
@@ -1634,7 +1634,7 @@ empty clear lower third for characters, painterly 2D casual fantasy, Eclipse For
 
 ### `bg_battle_mythspire_gate.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/images/backgrounds/battle/bg_battle_mythspire_gate.png`
 - **Size:** 1024 × 1536
@@ -1658,28 +1658,49 @@ Each chapter mirrors Ch1: **`map_ch_{slug}_a1.png` … `_a4.png`** — one 1024�
 
 **Inventory:** 9 chapters × 4 acts = **36** map arts (Ch1’s 4 already under P2 → **40** campaign maps total).
 
+**Path-only act maps (final layout approach):**
+- Paint a **natural walkable path** only (stone road, boardwalk, cliff switchback, etc.) that zig-zags bottom → top.
+- **Do not** paint circular stone/dirt pads, gold rings, empty discs, or numbered markers.
+- Pin positions are placed in-app (QA pin editor) onto the path — art must leave a clear walkable ribbon, not pre-baked pad slots.
+- **Never** draw UI polylines, dashed connectors, or diagram lines on the path.
+- No characters, no UI chrome, no text, no watermarks.
+
+Composition reference for older pad experiments: `assets/images/style_board/map_pin_pad_template.png` (optional; not required for path-only gens).
+
+Legacy locked pad percentages (only if compositing pads via `scripts/stamp_map_pads.py`):
+
+| Pad | mapX | mapY |
+|-----|------|------|
+| 1 (bottom) | 0.48 | 0.88 |
+| 2 | 0.58 | 0.72 |
+| 3 | 0.42 | 0.56 |
+| 4 | 0.56 | 0.38 |
+| 5 (top / boss) | 0.50 | 0.28 |
+
 
 
 ### `map_ch_mistfen_marshes_a1.png` … `_a4.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/images/maps/map_ch_mistfen_marshes_a1.png` (…`_a4.png`)
 - **Size:** 1024 × 1536 each
-- **Notes:** Mistfen Marshes; 4 acts × 5 nodes; denser fog per act
+- **Notes:** Mistfen Marshes; 4 acts × 5 nodes; denser fog per act; **locked pad layout**
 - **Negative:** environment
 
 ```text
-Tall portrait mobile campaign map, winding boardwalk path through foggy teal swamp,
-empty path for five level markers, Act N darker denser fog than previous,
-painterly fantasy, Mistfen Marshes, no text, no UI, no characters
+Tall portrait mobile campaign map, foggy teal swamp boardwalk,
+ONE continuous walkable path zig-zag bottom to top (path only),
+NO circular pads, NO round platforms, NO discs, NO gold rings,
+Act N denser fog than previous, painterly fantasy, Mistfen Marshes,
+no text, no UI, no characters
 ```
 
 
 
 ### `map_ch_howling_ridge_a1.png` … `_a4.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/images/maps/map_ch_howling_ridge_a1.png` (…`_a4.png`)
 - **Size:** 1024 × 1536 each
@@ -1696,7 +1717,7 @@ painterly fantasy, Howling Ridge, no text, no UI, no characters
 
 ### `map_ch_ashen_quarries_a1.png` … `_a4.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/images/maps/map_ch_ashen_quarries_a1.png` (…`_a4.png`)
 - **Size:** 1024 × 1536 each
@@ -1713,7 +1734,7 @@ painterly fantasy, Ashen Quarries, no text, no UI, no characters
 
 ### `map_ch_candlecrypt_a1.png` … `_a4.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/images/maps/map_ch_candlecrypt_a1.png` (…`_a4.png`)
 - **Size:** 1024 × 1536 each
@@ -1730,7 +1751,7 @@ painterly fantasy, Candlecrypt, no text, no UI, no characters
 
 ### `map_ch_mirror_lake_a1.png` … `_a4.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/images/maps/map_ch_mirror_lake_a1.png` (…`_a4.png`)
 - **Size:** 1024 × 1536 each
@@ -1747,7 +1768,7 @@ painterly fantasy, Mirror Lake, no text, no UI, no characters
 
 ### `map_ch_thornmarket_a1.png` … `_a4.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/images/maps/map_ch_thornmarket_a1.png` (…`_a4.png`)
 - **Size:** 1024 × 1536 each
@@ -1764,7 +1785,7 @@ painterly fantasy, Thornmarket, no text, no UI, no characters
 
 ### `map_ch_skybridge_siege_a1.png` … `_a4.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/images/maps/map_ch_skybridge_siege_a1.png` (…`_a4.png`)
 - **Size:** 1024 × 1536 each
@@ -1781,7 +1802,7 @@ painterly fantasy, Skybridge Siege, no text, no UI, no characters
 
 ### `map_ch_eclipse_forge_a1.png` … `_a4.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/images/maps/map_ch_eclipse_forge_a1.png` (…`_a4.png`)
 - **Size:** 1024 × 1536 each
@@ -1798,7 +1819,7 @@ painterly fantasy, Eclipse Forge, no text, no UI, no characters
 
 ### `map_ch_mythspire_gate_a1.png` … `_a4.png` — **P4**
 
-- [ ] Created
+- [x] Created
 
 - **Path:** `assets/images/maps/map_ch_mythspire_gate_a1.png` (…`_a4.png`)
 - **Size:** 1024 × 1536 each

@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": 1,
+  "chapters": [
+    {
+      "id": "twilight_road",
+      "title": "Twilight Road",
+      "asset": "assets/levels/twilight_road.json",
+      "order": 1,
+      "subtitle": "Four acts on the dusk path."
+    },
+    {
+      "id": "ch_mistfen",
+      "title": "Mistfen Marshes",
+      "asset": "assets/levels/mistfen_marshes.json",
+      "order": 2,
+      "requiresNodeId": "node_20",
+      "subtitle": "Fog and sticky footing."
+    },
+    {
+      "id": "ch_howling",
+      "title": "Howling Ridge",
+      "asset": "assets/levels/howling_ridge.json",
+      "order": 3,
+      "requiresNodeId": "ch_mistfen_n20",
+      "subtitle": "Wind shoves the board."
+    },
+    {
+      "id": "ch_ashen",
+      "title": "Ashen Quarries",
+      "asset": "assets/levels/ashen_quarries.json",
+      "order": 4,
+      "requiresNodeId": "ch_howling_n20",
+      "subtitle": "Rock layers and embers."
+    },
+    {
+      "id": "ch_candlecrypt",
+      "title": "Candlecrypt",
+      "asset": "assets/levels/candlecrypt.json",
+      "order": 5,
+      "requiresNodeId": "ch_ashen_n20",
+      "subtitle": "Holes in the crypt floor."
+    },
+    {
+      "id": "ch_mirror",
+      "title": "Mirror Lake",
+      "asset": "assets/levels/mirror_lake.json",
+      "order": 6,
+      "requiresNodeId": "ch_candlecrypt_n20",
+      "subtitle": "Reflections twist the match."
+    },
+    {
+      "id": "ch_thornmarket",
+      "title": "Thornmarket",
+      "asset": "assets/levels/thornmarket.json",
+      "order": 7,
+      "requiresNodeId": "ch_mirror_n20",
+      "subtitle": "Every match has a cost."
+    },
+    {
+      "id": "ch_skybridge",
+      "title": "Skybridge Siege",
+      "asset": "assets/levels/skybridge_siege.json",
+      "order": 8,
+      "requiresNodeId": "ch_thornmarket_n20",
+      "subtitle": "Narrow spans over the abyss."
+    },
+    {
+      "id": "ch_eclipse",
+      "title": "Eclipse Forge",
+      "asset": "assets/levels/eclipse_forge.json",
+      "order": 9,
+      "requiresNodeId": "ch_skybridge_n20",
+      "subtitle": "Ember hazards in the foundry."
+    },
+    {
+      "id": "ch_mythspire",
+      "title": "Mythspire Gate",
+      "asset": "assets/levels/mythspire_gate.json",
+      "order": 10,
+      "requiresNodeId": "ch_eclipse_n20",
+      "subtitle": "Every lesson at once."
+    }
+  ]
+}

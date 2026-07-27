@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/assets/game_assets.dart';
 import '../../campaign/data/campaign_repository.dart';
 import '../../prep/presentation/prep_picker_sheet.dart';
 import '../../profile/providers/mock_profile_provider.dart';
@@ -14,9 +15,11 @@ class BattleResultArgs {
     required this.nodeName,
     required this.enemyName,
     required this.coinReward,
+    this.bossFled = false,
   });
 
   final bool won;
+  final bool bossFled;
   final String nodeId;
   final String nodeName;
   final String enemyName;
@@ -50,10 +53,12 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
     }
     final chapter = ref.read(campaignChapterProvider).valueOrNull;
     final node = chapter?.nodeById(widget.args.nodeId);
+    final actIndex = chapter?.actForNode(widget.args.nodeId)?.index ?? 0;
     await ref.read(profileProvider.notifier).applyVictory(
           nodeId: widget.args.nodeId,
           coinReward: widget.args.coinReward,
           isBoss: node?.isBoss ?? false,
+          actIndex: actIndex,
         );
   }
 
@@ -79,8 +84,23 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(),
+              if (args.won && args.bossFled) ...[
+                Center(
+                  child: Image.asset(
+                    GameAssets.fxBossFlee,
+                    width: 96,
+                    height: 96,
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
               Text(
-                args.won ? 'Victory' : 'Defeat',
+                !args.won
+                    ? 'Defeat'
+                    : args.bossFled
+                        ? 'Boss fled'
+                        : 'Victory',
                 textAlign: TextAlign.center,
                 style: textTheme.displayLarge?.copyWith(
                   fontSize: 40,
@@ -89,9 +109,11 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                args.won
-                    ? 'You defeated ${args.enemyName} at ${args.nodeName}.'
-                    : '${args.enemyName} bested you. Try a different match plan.',
+                !args.won
+                    ? '${args.enemyName} bested you. Try a different match plan.'
+                    : args.bossFled
+                        ? '${args.enemyName} escapes from ${args.nodeName} — stronger next time.'
+                        : 'You defeated ${args.enemyName} at ${args.nodeName}.',
                 textAlign: TextAlign.center,
                 style: textTheme.bodyMedium,
               ),

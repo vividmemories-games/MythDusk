@@ -223,7 +223,7 @@ f1 = sighting (small/weak), f2 = elite, f3 = oversized intimidation, f4 = final 
 | **C — Meta prep stub** | Inventory model + pre-boss picker UI | Prep icons |
 | **D — Home hub** | Lives chip, Enter Campaign CTA, hero spotlight | `bg_home_dusk` optional |
 | **E — Vertical map** | Candy Crush path for Ch1 (20 nodes) | Map strip Ch1 |
-| **F — JSON expand** | Stub 200 levels from chapter template | Schema |
+| **F — JSON expand** | Stub 200 levels from chapter template | Done — `campaign_index.json` + Ch1–10 |
 | **G — Boss pipeline** | Ch1 boss f1–f4 + flee/death flow | Boss prompts |
 | **H — Weekly shell** | Objectives + weekend boss + energy | Lives system |
 | **I — Remaining chapters** | Art + JSON fill chapters 2–10 | Master Prompts batch |
@@ -251,13 +251,24 @@ Each level node should eventually support:
   "enemyId": "boss_warchief_ruk",
   "bossForm": 1,
   "backgroundId": "bg_battle_twilight_road",
-  "boardRuleId": null,
+  "board": {
+    "templateId": "board_open_6x6",
+    "spawnWeights": { "purple": 1.2 },
+    "movers": [
+      { "type": "row_shove", "rows": [2], "direction": "left", "everyNTurns": 1 }
+    ]
+  },
+  "minMoves": 2,
+  "enrageAfterTurns": 8,
   "coinReward": 40,
   "prepDrops": ["prep_vanguard_tonic"]
 }
 ```
 
-Full schema + generators → later PR; Twilight Road’s 5 nodes remain until E/F.
+Chapter files may set `boardDefaults` (merged under node `board`).  
+Board geometry lives in `assets/boards/templates.json` + `overlays.json` — see [Decisions](../00_Project/Decisions.md) 2026-07-23.
+
+Full 200-level stub generator → later PR; Twilight Road uses `boardDefaults.templateId = board_open_6x6`.
 
 ---
 

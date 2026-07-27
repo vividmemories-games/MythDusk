@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import '../../../core/assets/game_assets.dart';
+import '../../profile/domain/economy_balance.dart';
 
 /// Meta prep items carried into boss battles (Content Architecture §3).
 enum PrepItemId {
@@ -40,15 +43,24 @@ extension PrepItemIdX on PrepItemId {
   }
 }
 
-/// Stub balance — Balancing Bible owns final numbers.
+/// Prep combat hooks — numbers owned by docs/01_Game_Design/Balancing_Bible.md.
 abstract final class PrepBalance {
   static const maxEquipped = 3;
   static const aegisShield = 15;
   static const vanguardBonusMoves = 1;
   static const secondWindHpFraction = 0.3;
   static const defaultMinMoves = 2;
-  static const startingLives = 5;
-  static const maxLives = 5;
+
+  /// Back-compat aliases → [EconomyBalance].
+  static const startingLives = EconomyBalance.startingLives;
+  static const maxLives = EconomyBalance.maxLives;
+
+  /// Coin prices for prep shop stubs (Balancing Bible §5.2).
+  static const shopCoinCost = {
+    PrepItemId.vanguardTonic: 40,
+    PrepItemId.aegisFlask: 60,
+    PrepItemId.secondWind: 150,
+  };
 
   /// Effective moves for a battle turn budget.
   static int movesThisTurn({
@@ -63,11 +75,28 @@ abstract final class PrepBalance {
   }
 }
 
-/// Tiny non-boss clear drop table (stub).
+/// Non-boss clear drop table (Balancing Bible §3.1).
 abstract final class PrepDrops {
   static const nonBossGrant = {
     PrepItemId.vanguardTonic: 1,
   };
 
-  static Map<PrepItemId, int> forNonBossClear() => Map.of(nonBossGrant);
+  /// Act index is 0-based within the chapter (0 = Act I).
+  static const aegisAct2PlusChance = 0.25;
+  static const secondWindAct3PlusChance = 0.08;
+
+  static Map<PrepItemId, int> forNonBossClear({
+    int actIndex = 0,
+    Random? random,
+  }) {
+    final rng = random ?? Random();
+    final drops = Map<PrepItemId, int>.of(nonBossGrant);
+    if (actIndex >= 1 && rng.nextDouble() < aegisAct2PlusChance) {
+      drops[PrepItemId.aegisFlask] = (drops[PrepItemId.aegisFlask] ?? 0) + 1;
+    }
+    if (actIndex >= 2 && rng.nextDouble() < secondWindAct3PlusChance) {
+      drops[PrepItemId.secondWind] = (drops[PrepItemId.secondWind] ?? 0) + 1;
+    }
+    return drops;
+  }
 }

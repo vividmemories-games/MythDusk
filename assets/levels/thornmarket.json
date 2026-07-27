@@ -1,0 +1,243 @@
+{
+  "id": "ch_thornmarket",
+  "title": "Thornmarket",
+  "subtitle": "Every match has a cost.",
+  "backgroundId": "bg_battle_thornmarket",
+  "boardDefaults": {
+    "templateId": "board_open_6x6"
+  },
+  "acts": [
+    {
+      "id": "ch_thornmarket_act1",
+      "title": "Act I",
+      "mapAsset": "assets/images/maps/map_ch_thornmarket_a1.png",
+      "nodes": [
+        {
+          "id": "ch_thornmarket_n01",
+          "name": "Reed Path",
+          "enemyId": "goblin",
+          "coinReward": 51,
+          "order": 0,
+          "mapX": 0.669,
+          "mapY": 0.839
+        },
+        {
+          "id": "ch_thornmarket_n02",
+          "name": "Stone Gate",
+          "enemyId": "brute",
+          "coinReward": 53,
+          "order": 1,
+          "mapX": 0.503,
+          "mapY": 0.682
+        },
+        {
+          "id": "ch_thornmarket_n03",
+          "name": "Bone Circle",
+          "enemyId": "shaman",
+          "coinReward": 55,
+          "order": 2,
+          "mapX": 0.389,
+          "mapY": 0.541,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_thornmarket_n04",
+          "name": "Mud Crossing",
+          "enemyId": "goblin",
+          "coinReward": 57,
+          "order": 3,
+          "mapX": 0.478,
+          "mapY": 0.383
+        },
+        {
+          "id": "ch_thornmarket_n05",
+          "name": "Gilded Fence \u2014 Form 1",
+          "enemyId": "gilded_fence",
+          "coinReward": 105,
+          "order": 4,
+          "kind": "boss_sighting",
+          "bossForm": 1,
+          "mapX": 0.649,
+          "mapY": 0.214,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_thornmarket_act2",
+      "title": "Act II",
+      "mapAsset": "assets/images/maps/map_ch_thornmarket_a2.png",
+      "nodes": [
+        {
+          "id": "ch_thornmarket_n06",
+          "name": "Scout Trail",
+          "enemyId": "goblin",
+          "coinReward": 61,
+          "order": 5,
+          "mapX": 0.482,
+          "mapY": 0.869
+        },
+        {
+          "id": "ch_thornmarket_n07",
+          "name": "Crush Lane",
+          "enemyId": "brute",
+          "coinReward": 63,
+          "order": 6,
+          "mapX": 0.655,
+          "mapY": 0.71
+        },
+        {
+          "id": "ch_thornmarket_n08",
+          "name": "Mire Chant",
+          "enemyId": "shaman",
+          "coinReward": 65,
+          "order": 7,
+          "mapX": 0.455,
+          "mapY": 0.52,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_thornmarket_n09",
+          "name": "Reed Path",
+          "enemyId": "goblin",
+          "coinReward": 67,
+          "order": 8,
+          "mapX": 0.502,
+          "mapY": 0.36
+        },
+        {
+          "id": "ch_thornmarket_n10",
+          "name": "Gilded Fence \u2014 Form 2",
+          "enemyId": "gilded_fence",
+          "coinReward": 115,
+          "order": 9,
+          "kind": "boss_sighting",
+          "bossForm": 2,
+          "mapX": 0.691,
+          "mapY": 0.181,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_thornmarket_act3",
+      "title": "Act III",
+      "mapAsset": "assets/images/maps/map_ch_thornmarket_a3.png",
+      "nodes": [
+        {
+          "id": "ch_thornmarket_n11",
+          "name": "Brush Ambush",
+          "enemyId": "goblin",
+          "coinReward": 71,
+          "order": 10,
+          "mapX": 0.507,
+          "mapY": 0.864
+        },
+        {
+          "id": "ch_thornmarket_n12",
+          "name": "Ore Wall",
+          "enemyId": "brute",
+          "coinReward": 73,
+          "order": 11,
+          "mapX": 0.486,
+          "mapY": 0.689
+        },
+        {
+          "id": "ch_thornmarket_n13",
+          "name": "Candle Hex",
+          "enemyId": "shaman",
+          "coinReward": 75,
+          "order": 12,
+          "mapX": 0.455,
+          "mapY": 0.504,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_thornmarket_n14",
+          "name": "Scout Trail",
+          "enemyId": "goblin",
+          "coinReward": 77,
+          "order": 13,
+          "mapX": 0.438,
+          "mapY": 0.356
+        },
+        {
+          "id": "ch_thornmarket_n15",
+          "name": "Gilded Fence \u2014 Form 3",
+          "enemyId": "gilded_fence",
+          "coinReward": 125,
+          "order": 14,
+          "kind": "boss_sighting",
+          "bossForm": 3,
+          "mapX": 0.63,
+          "mapY": 0.193,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_thornmarket_act4",
+      "title": "Act IV",
+      "mapAsset": "assets/images/maps/map_ch_thornmarket_a4.png",
+      "nodes": [
+        {
+          "id": "ch_thornmarket_n16",
+          "name": "Mud Crossing",
+          "enemyId": "goblin",
+          "coinReward": 81,
+          "order": 15,
+          "mapX": 0.517,
+          "mapY": 0.846
+        },
+        {
+          "id": "ch_thornmarket_n17",
+          "name": "Span Guard",
+          "enemyId": "brute",
+          "coinReward": 83,
+          "order": 16,
+          "mapX": 0.6,
+          "mapY": 0.662
+        },
+        {
+          "id": "ch_thornmarket_n18",
+          "name": "Hex Pool",
+          "enemyId": "shaman",
+          "coinReward": 85,
+          "order": 17,
+          "mapX": 0.5,
+          "mapY": 0.478,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_thornmarket_n19",
+          "name": "Brush Ambush",
+          "enemyId": "goblin",
+          "coinReward": 87,
+          "order": 18,
+          "mapX": 0.498,
+          "mapY": 0.347
+        },
+        {
+          "id": "ch_thornmarket_n20",
+          "name": "Gilded Fence \u2014 Form 4",
+          "enemyId": "gilded_fence",
+          "coinReward": 135,
+          "order": 19,
+          "kind": "boss_sighting",
+          "bossForm": 4,
+          "mapX": 0.587,
+          "mapY": 0.173,
+          "enrageAfterTurns": 8
+        }
+      ]
+    }
+  ]
+}

@@ -45,19 +45,21 @@ void main() {
       expect(controller.state.lastEnemySkillName, intent.name);
     });
 
-    test('applyEnemySkill re-rolls intent for the next player turn', () {
+    test('startPlayerTurn re-rolls intent after enemy skill', () {
       final controller = makeController();
       controller.rollEnemyIntent();
 
       controller.applyEnemySkill(controller.enemyAction);
+      controller.startPlayerTurn(applyInline: true);
 
       expect(controller.state.phase, BattlePhase.playerTurn);
       expect(controller.state.enemyIntent, isNotNull);
       expect(
           EnemyCatalog.goblin.skills, contains(controller.state.enemyIntent));
+      expect(controller.state.playerTurnNumber, 1);
     });
 
-    test('second wind revive also re-rolls intent', () {
+    test('second wind revive then startPlayerTurn keeps a fresh intent', () {
       final controller = BattleController(
         BattleState.initial(
           hero: HeroCatalog.mage,
@@ -75,6 +77,7 @@ void main() {
         weight: 1,
       );
       controller.applyEnemySkill(lethal);
+      controller.startPlayerTurn(applyInline: true);
 
       expect(controller.state.phase, BattlePhase.playerTurn);
       expect(controller.state.secondWindArmed, isFalse);

@@ -1,0 +1,253 @@
+{
+  "id": "ch_howling",
+  "title": "Howling Ridge",
+  "subtitle": "Wind shoves the board.",
+  "backgroundId": "bg_battle_howling_ridge",
+  "boardDefaults": {
+    "templateId": "board_open_6x6",
+    "movers": [
+      {
+        "type": "row_shove",
+        "rows": [
+          2
+        ],
+        "direction": "left",
+        "everyNTurns": 1
+      }
+    ]
+  },
+  "acts": [
+    {
+      "id": "ch_howling_act1",
+      "title": "Act I",
+      "mapAsset": "assets/images/maps/map_ch_howling_ridge_a1.png",
+      "nodes": [
+        {
+          "id": "ch_howling_n01",
+          "name": "Ridge Pace",
+          "enemyId": "ridge_hawk",
+          "coinReward": 39,
+          "order": 0,
+          "mapX": 0.383,
+          "mapY": 0.858
+        },
+        {
+          "id": "ch_howling_n02",
+          "name": "Scout Trail",
+          "enemyId": "goblin",
+          "coinReward": 41,
+          "order": 1,
+          "mapX": 0.312,
+          "mapY": 0.686
+        },
+        {
+          "id": "ch_howling_n03",
+          "name": "Fang Rise",
+          "enemyId": "wolf",
+          "coinReward": 43,
+          "order": 2,
+          "mapX": 0.638,
+          "mapY": 0.551,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_howling_n04",
+          "name": "Ore Wall",
+          "enemyId": "brute",
+          "coinReward": 45,
+          "order": 3,
+          "mapX": 0.459,
+          "mapY": 0.317
+        },
+        {
+          "id": "ch_howling_n05",
+          "name": "Pack Alpha \u2014 Form 1",
+          "enemyId": "pack_alpha",
+          "coinReward": 85,
+          "order": 4,
+          "kind": "boss_sighting",
+          "bossForm": 1,
+          "mapX": 0.707,
+          "mapY": 0.152,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_howling_act2",
+      "title": "Act II",
+      "mapAsset": "assets/images/maps/map_ch_howling_ridge_a2.png",
+      "nodes": [
+        {
+          "id": "ch_howling_n06",
+          "name": "Howl Bend",
+          "enemyId": "ridge_hawk",
+          "coinReward": 49,
+          "order": 5,
+          "mapX": 0.392,
+          "mapY": 0.804
+        },
+        {
+          "id": "ch_howling_n07",
+          "name": "Brush Ambush",
+          "enemyId": "goblin",
+          "coinReward": 51,
+          "order": 6,
+          "mapX": 0.625,
+          "mapY": 0.668
+        },
+        {
+          "id": "ch_howling_n08",
+          "name": "Night Hunt",
+          "enemyId": "wolf",
+          "coinReward": 53,
+          "order": 7,
+          "mapX": 0.603,
+          "mapY": 0.516,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_howling_n09",
+          "name": "Span Guard",
+          "enemyId": "brute",
+          "coinReward": 55,
+          "order": 8,
+          "mapX": 0.68,
+          "mapY": 0.344
+        },
+        {
+          "id": "ch_howling_n10",
+          "name": "Pack Alpha \u2014 Form 2",
+          "enemyId": "pack_alpha",
+          "coinReward": 95,
+          "order": 9,
+          "kind": "boss_sighting",
+          "bossForm": 2,
+          "mapX": 0.792,
+          "mapY": 0.158,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_howling_act3",
+      "title": "Act III",
+      "mapAsset": "assets/images/maps/map_ch_howling_ridge_a3.png",
+      "nodes": [
+        {
+          "id": "ch_howling_n11",
+          "name": "Fang Rise",
+          "enemyId": "ridge_hawk",
+          "coinReward": 59,
+          "order": 10,
+          "mapX": 0.28,
+          "mapY": 0.855
+        },
+        {
+          "id": "ch_howling_n12",
+          "name": "Mud Crossing",
+          "enemyId": "goblin",
+          "coinReward": 61,
+          "order": 11,
+          "mapX": 0.769,
+          "mapY": 0.651
+        },
+        {
+          "id": "ch_howling_n13",
+          "name": "Ridge Pace",
+          "enemyId": "wolf",
+          "coinReward": 63,
+          "order": 12,
+          "mapX": 0.413,
+          "mapY": 0.534,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_howling_n14",
+          "name": "Stone Gate",
+          "enemyId": "brute",
+          "coinReward": 65,
+          "order": 13,
+          "mapX": 0.631,
+          "mapY": 0.351
+        },
+        {
+          "id": "ch_howling_n15",
+          "name": "Pack Alpha \u2014 Form 3",
+          "enemyId": "pack_alpha",
+          "coinReward": 105,
+          "order": 14,
+          "kind": "boss_sighting",
+          "bossForm": 3,
+          "mapX": 0.517,
+          "mapY": 0.194,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_howling_act4",
+      "title": "Act IV",
+      "mapAsset": "assets/images/maps/map_ch_howling_ridge_a4.png",
+      "nodes": [
+        {
+          "id": "ch_howling_n16",
+          "name": "Night Hunt",
+          "enemyId": "ridge_hawk",
+          "coinReward": 69,
+          "order": 15,
+          "mapX": 0.366,
+          "mapY": 0.872
+        },
+        {
+          "id": "ch_howling_n17",
+          "name": "Reed Path",
+          "enemyId": "goblin",
+          "coinReward": 71,
+          "order": 16,
+          "mapX": 0.681,
+          "mapY": 0.713
+        },
+        {
+          "id": "ch_howling_n18",
+          "name": "Howl Bend",
+          "enemyId": "wolf",
+          "coinReward": 73,
+          "order": 17,
+          "mapX": 0.469,
+          "mapY": 0.615,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_howling_n19",
+          "name": "Crush Lane",
+          "enemyId": "brute",
+          "coinReward": 75,
+          "order": 18,
+          "mapX": 0.644,
+          "mapY": 0.445
+        },
+        {
+          "id": "ch_howling_n20",
+          "name": "Pack Alpha \u2014 Form 4",
+          "enemyId": "pack_alpha",
+          "coinReward": 115,
+          "order": 19,
+          "kind": "boss_sighting",
+          "bossForm": 4,
+          "mapX": 0.598,
+          "mapY": 0.223,
+          "enrageAfterTurns": 8
+        }
+      ]
+    }
+  ]
+}

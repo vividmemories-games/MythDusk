@@ -25,11 +25,12 @@ class AnimatedPuzzleBoard extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         // Bottom breathing room lifts the board off the skill dock.
+        // Cap so gems don't dwarf the fighters (~85% + 5% bump).
         const bottomGap = 18.0;
-        final boardSize = math.min(
-          constraints.maxWidth,
-          math.max(0.0, constraints.maxHeight - bottomGap),
-        );
+        const boardScale = 0.89;
+        final available = math.max(0.0, constraints.maxHeight - bottomGap);
+        final boardSize =
+            math.min(constraints.maxWidth, available) * boardScale;
 
         return Align(
           alignment: Alignment.bottomCenter,

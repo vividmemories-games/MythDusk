@@ -1,0 +1,248 @@
+{
+  "id": "ch_mistfen",
+  "title": "Mistfen Marshes",
+  "subtitle": "Fog and sticky footing.",
+  "backgroundId": "bg_battle_mistfen_marshes",
+  "boardDefaults": {
+    "templateId": "board_vine_corners_01",
+    "hazardSpawn": {
+      "overlayId": "ovl_poison",
+      "chancePerTurn": 0.15,
+      "maxOnBoard": 4
+    }
+  },
+  "acts": [
+    {
+      "id": "ch_mistfen_act1",
+      "title": "Act I",
+      "mapAsset": "assets/images/maps/map_ch_mistfen_marshes_a1.png",
+      "nodes": [
+        {
+          "id": "ch_mistfen_n01",
+          "name": "Reed Drip",
+          "enemyId": "mire_spawn",
+          "coinReward": 36,
+          "order": 0,
+          "mapX": 0.467,
+          "mapY": 0.889
+        },
+        {
+          "id": "ch_mistfen_n02",
+          "name": "Ridge Pace",
+          "enemyId": "wolf",
+          "coinReward": 38,
+          "order": 1,
+          "mapX": 0.652,
+          "mapY": 0.737
+        },
+        {
+          "id": "ch_mistfen_n03",
+          "name": "Hex Pool",
+          "enemyId": "shaman",
+          "coinReward": 40,
+          "order": 2,
+          "mapX": 0.409,
+          "mapY": 0.599,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_mistfen_n04",
+          "name": "Brush Ambush",
+          "enemyId": "goblin",
+          "coinReward": 42,
+          "order": 3,
+          "mapX": 0.452,
+          "mapY": 0.377
+        },
+        {
+          "id": "ch_mistfen_n05",
+          "name": "Mirelord \u2014 Form 1",
+          "enemyId": "mirelord",
+          "coinReward": 80,
+          "order": 4,
+          "kind": "boss_sighting",
+          "bossForm": 1,
+          "mapX": 0.525,
+          "mapY": 0.19,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_mistfen_act2",
+      "title": "Act II",
+      "mapAsset": "assets/images/maps/map_ch_mistfen_marshes_a2.png",
+      "nodes": [
+        {
+          "id": "ch_mistfen_n06",
+          "name": "Reed Drip",
+          "enemyId": "mire_spawn",
+          "coinReward": 46,
+          "order": 5,
+          "mapX": 0.532,
+          "mapY": 0.854
+        },
+        {
+          "id": "ch_mistfen_n07",
+          "name": "Howl Bend",
+          "enemyId": "wolf",
+          "coinReward": 48,
+          "order": 6,
+          "mapX": 0.659,
+          "mapY": 0.707
+        },
+        {
+          "id": "ch_mistfen_n08",
+          "name": "Bone Circle",
+          "enemyId": "shaman",
+          "coinReward": 50,
+          "order": 7,
+          "mapX": 0.675,
+          "mapY": 0.505,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_mistfen_n09",
+          "name": "Mud Crossing",
+          "enemyId": "goblin",
+          "coinReward": 52,
+          "order": 8,
+          "mapX": 0.417,
+          "mapY": 0.378
+        },
+        {
+          "id": "ch_mistfen_n10",
+          "name": "Mirelord \u2014 Form 2",
+          "enemyId": "mirelord",
+          "coinReward": 90,
+          "order": 9,
+          "kind": "boss_sighting",
+          "bossForm": 2,
+          "mapX": 0.553,
+          "mapY": 0.196,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_mistfen_act3",
+      "title": "Act III",
+      "mapAsset": "assets/images/maps/map_ch_mistfen_marshes_a3.png",
+      "nodes": [
+        {
+          "id": "ch_mistfen_n11",
+          "name": "Reed Drip",
+          "enemyId": "mire_spawn",
+          "coinReward": 56,
+          "order": 10,
+          "mapX": 0.499,
+          "mapY": 0.875
+        },
+        {
+          "id": "ch_mistfen_n12",
+          "name": "Fang Rise",
+          "enemyId": "wolf",
+          "coinReward": 58,
+          "order": 11,
+          "mapX": 0.293,
+          "mapY": 0.727
+        },
+        {
+          "id": "ch_mistfen_n13",
+          "name": "Mire Chant",
+          "enemyId": "shaman",
+          "coinReward": 60,
+          "order": 12,
+          "mapX": 0.703,
+          "mapY": 0.568,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_mistfen_n14",
+          "name": "Reed Path",
+          "enemyId": "goblin",
+          "coinReward": 62,
+          "order": 13,
+          "mapX": 0.496,
+          "mapY": 0.462
+        },
+        {
+          "id": "ch_mistfen_n15",
+          "name": "Mirelord \u2014 Form 3",
+          "enemyId": "mirelord",
+          "coinReward": 100,
+          "order": 14,
+          "kind": "boss_sighting",
+          "bossForm": 3,
+          "mapX": 0.607,
+          "mapY": 0.199,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_mistfen_act4",
+      "title": "Act IV",
+      "mapAsset": "assets/images/maps/map_ch_mistfen_marshes_a4.png",
+      "nodes": [
+        {
+          "id": "ch_mistfen_n16",
+          "name": "Reed Drip",
+          "enemyId": "mire_spawn",
+          "coinReward": 66,
+          "order": 15,
+          "mapX": 0.472,
+          "mapY": 0.88
+        },
+        {
+          "id": "ch_mistfen_n17",
+          "name": "Night Hunt",
+          "enemyId": "wolf",
+          "coinReward": 68,
+          "order": 16,
+          "mapX": 0.603,
+          "mapY": 0.705
+        },
+        {
+          "id": "ch_mistfen_n18",
+          "name": "Candle Hex",
+          "enemyId": "shaman",
+          "coinReward": 70,
+          "order": 17,
+          "mapX": 0.675,
+          "mapY": 0.543,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_mistfen_n19",
+          "name": "Scout Trail",
+          "enemyId": "goblin",
+          "coinReward": 72,
+          "order": 18,
+          "mapX": 0.808,
+          "mapY": 0.428
+        },
+        {
+          "id": "ch_mistfen_n20",
+          "name": "Mirelord \u2014 Form 4",
+          "enemyId": "mirelord",
+          "coinReward": 110,
+          "order": 19,
+          "kind": "boss_sighting",
+          "bossForm": 4,
+          "mapX": 0.764,
+          "mapY": 0.304,
+          "enrageAfterTurns": 8
+        }
+      ]
+    }
+  ]
+}

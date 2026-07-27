@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../heroes/domain/hero_def.dart';
 import '../../prep/domain/prep_item.dart';
+import '../domain/economy_balance.dart';
 
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError('Override sharedPreferencesProvider in main()');
@@ -16,7 +17,15 @@ class PlayerProfile {
     this.displayName = 'Wanderer',
     this.coins = 500,
     this.gems = 50,
-    this.lives = PrepBalance.startingLives,
+    this.lives = EconomyBalance.startingLives,
+    this.lastLifeRegenAt,
+    this.gemLifeRefillDay = '',
+    this.gemLifeRefillCount = 0,
+    this.upgradeLevels = const {
+      EconomyBalance.upgradeStatHp: 0,
+      EconomyBalance.upgradeStatDamage: 0,
+      EconomyBalance.upgradeStatShield: 0,
+    },
     this.selectedHeroId = 'mage',
     this.completedNodeIds = const {},
     this.prepInventory = const {
@@ -34,6 +43,17 @@ class PlayerProfile {
   final int coins;
   final int gems;
   final int lives;
+
+  /// When the current regen interval started. Null when at max lives.
+  final DateTime? lastLifeRegenAt;
+
+  /// `yyyy-MM-dd` for gem life refill counter.
+  final String gemLifeRefillDay;
+  final int gemLifeRefillCount;
+
+  /// Stat line → tier 0–[EconomyBalance.upgradeMaxTiers].
+  final Map<String, int> upgradeLevels;
+
   final String selectedHeroId;
   final Set<String> completedNodeIds;
   final Map<PrepItemId, int> prepInventory;
@@ -49,9 +69,42 @@ class PlayerProfile {
 
   int prepCount(PrepItemId id) => prepInventory[id] ?? 0;
 
+  int upgradeLevel(String stat) => upgradeLevels[stat] ?? 0;
+
   bool get secondWindAvailableToday {
     final today = _todayKey();
     return secondWindUsedDay != today && prepCount(PrepItemId.secondWind) > 0;
+  }
+
+  int get gemLifeRefillsRemainingToday {
+    final today = _todayKey();
+    if (gemLifeRefillDay != today) return EconomyBalance.gemLifeRefillsPerDay;
+    return (EconomyBalance.gemLifeRefillsPerDay - gemLifeRefillCount)
+        .clamp(0, EconomyBalance.gemLifeRefillsPerDay);
+  }
+
+  Duration? timeUntilNextLife([DateTime? now]) {
+    return LifeRegenMath.timeUntilNextLife(
+      lives: lives,
+      lastLifeRegenAt: lastLifeRegenAt,
+      now: now ?? DateTime.now(),
+    );
+  }
+
+  /// Hero with coin-upgrade multipliers applied (battle entry).
+  HeroDef combatHero([String? heroId]) {
+    final base = HeroCatalog.byId(heroId ?? selectedHeroId);
+    return base.withCombatMultipliers(
+      hpMult: EconomyBalance.multiplierFor(
+        upgradeLevel(EconomyBalance.upgradeStatHp),
+      ),
+      damageMult: EconomyBalance.multiplierFor(
+        upgradeLevel(EconomyBalance.upgradeStatDamage),
+      ),
+      shieldMult: EconomyBalance.multiplierFor(
+        upgradeLevel(EconomyBalance.upgradeStatShield),
+      ),
+    );
   }
 
   PlayerProfile copyWith({
@@ -59,6 +112,11 @@ class PlayerProfile {
     int? coins,
     int? gems,
     int? lives,
+    DateTime? lastLifeRegenAt,
+    bool clearLastLifeRegenAt = false,
+    String? gemLifeRefillDay,
+    int? gemLifeRefillCount,
+    Map<String, int>? upgradeLevels,
     String? selectedHeroId,
     Set<String>? completedNodeIds,
     Map<PrepItemId, int>? prepInventory,
@@ -72,6 +130,12 @@ class PlayerProfile {
       coins: coins ?? this.coins,
       gems: gems ?? this.gems,
       lives: lives ?? this.lives,
+      lastLifeRegenAt: clearLastLifeRegenAt
+          ? null
+          : (lastLifeRegenAt ?? this.lastLifeRegenAt),
+      gemLifeRefillDay: gemLifeRefillDay ?? this.gemLifeRefillDay,
+      gemLifeRefillCount: gemLifeRefillCount ?? this.gemLifeRefillCount,
+      upgradeLevels: upgradeLevels ?? this.upgradeLevels,
       selectedHeroId: selectedHeroId ?? this.selectedHeroId,
       completedNodeIds: completedNodeIds ?? this.completedNodeIds,
       prepInventory: prepInventory ?? this.prepInventory,
@@ -85,7 +149,7 @@ class PlayerProfile {
   /// Bump when the persisted shape changes; readers stay tolerant of older
   /// payloads. Mirrors the planned Firestore `users` doc (see
   /// docs/04_Technical/Firestore_Schema.md).
-  static const schemaVersion = 4;
+  static const schemaVersion = 5;
 
   Map<String, dynamic> toJson() => {
         'schemaVersion': schemaVersion,
@@ -93,6 +157,10 @@ class PlayerProfile {
         'coins': coins,
         'gems': gems,
         'lives': lives,
+        'lastLifeRegenAt': lastLifeRegenAt?.toIso8601String(),
+        'gemLifeRefillDay': gemLifeRefillDay,
+        'gemLifeRefillCount': gemLifeRefillCount,
+        'upgradeLevels': upgradeLevels,
         'selectedHeroId': selectedHeroId,
         'completedNodeIds': completedNodeIds.toList(),
         'prepInventory': {
@@ -124,11 +192,35 @@ class PlayerProfile {
       prep[PrepItemId.aegisFlask] = 1;
       prep[PrepItemId.secondWind] = 1;
     }
+
+    final rawUpgrades = json['upgradeLevels'] as Map<String, dynamic>?;
+    final upgrades = <String, int>{
+      for (final k in EconomyBalance.upgradeStatKeys) k: 0,
+    };
+    if (rawUpgrades != null) {
+      for (final e in rawUpgrades.entries) {
+        if (EconomyBalance.upgradeStatKeys.contains(e.key)) {
+          upgrades[e.key] =
+              (e.value as num).toInt().clamp(0, EconomyBalance.upgradeMaxTiers);
+        }
+      }
+    }
+
+    DateTime? regenAt;
+    final rawRegen = json['lastLifeRegenAt'] as String?;
+    if (rawRegen != null && rawRegen.isNotEmpty) {
+      regenAt = DateTime.tryParse(rawRegen);
+    }
+
     return PlayerProfile(
       displayName: json['displayName'] as String? ?? 'Wanderer',
       coins: json['coins'] as int? ?? 500,
       gems: json['gems'] as int? ?? 50,
-      lives: json['lives'] as int? ?? PrepBalance.startingLives,
+      lives: json['lives'] as int? ?? EconomyBalance.startingLives,
+      lastLifeRegenAt: regenAt,
+      gemLifeRefillDay: json['gemLifeRefillDay'] as String? ?? '',
+      gemLifeRefillCount: json['gemLifeRefillCount'] as int? ?? 0,
+      upgradeLevels: upgrades,
       selectedHeroId: json['selectedHeroId'] as String? ?? 'mage',
       completedNodeIds: ids,
       prepInventory: prep,
@@ -139,8 +231,8 @@ class PlayerProfile {
     );
   }
 
-  static String _todayKey() {
-    final n = DateTime.now();
+  static String _todayKey([DateTime? now]) {
+    final n = now ?? DateTime.now();
     final m = n.month.toString().padLeft(2, '0');
     final d = n.day.toString().padLeft(2, '0');
     return '${n.year}-$m-$d';
@@ -148,7 +240,9 @@ class PlayerProfile {
 }
 
 class ProfileNotifier extends StateNotifier<PlayerProfile> {
-  ProfileNotifier(this._prefs) : super(_load(_prefs));
+  ProfileNotifier(this._prefs) : super(_load(_prefs)) {
+    tickLifeRegen();
+  }
 
   final SharedPreferences _prefs;
 
@@ -167,6 +261,26 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
 
   Future<void> _persist() async {
     await _prefs.setString(_key, jsonEncode(state.toJson()));
+  }
+
+  /// Apply offline life regen. Safe to call on resume / home build.
+  void tickLifeRegen([DateTime? now]) {
+    final t = now ?? DateTime.now();
+    final next = LifeRegenMath.apply(
+      lives: state.lives,
+      lastLifeRegenAt: state.lastLifeRegenAt,
+      now: t,
+    );
+    if (next.lives == state.lives &&
+        next.lastLifeRegenAt == state.lastLifeRegenAt) {
+      return;
+    }
+    state = state.copyWith(
+      lives: next.lives,
+      lastLifeRegenAt: next.lastLifeRegenAt,
+      clearLastLifeRegenAt: next.lastLifeRegenAt == null,
+    );
+    _persist();
   }
 
   void selectHero(String heroId) {
@@ -207,18 +321,75 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
     _persist();
   }
 
+  /// Purchase next upgrade tier for [stat]. Returns false if capped / broke.
+  bool purchaseUpgrade(String stat, [DateTime? now]) {
+    if (!EconomyBalance.upgradeStatKeys.contains(stat)) return false;
+    final current = state.upgradeLevel(stat);
+    final cost = EconomyBalance.coinCostForNextTier(current);
+    if (cost < 0 || state.coins < cost) return false;
+    final levels = Map<String, int>.from(state.upgradeLevels);
+    levels[stat] = current + 1;
+    state = state.copyWith(
+      coins: state.coins - cost,
+      upgradeLevels: levels,
+    );
+    _persist();
+    return true;
+  }
+
+  /// Buy a prep item with coins. Returns false if broke.
+  bool purchasePrepItem(PrepItemId id) {
+    final cost = PrepBalance.shopCoinCost[id];
+    if (cost == null || state.coins < cost) return false;
+    final inv = Map<PrepItemId, int>.from(state.prepInventory);
+    inv[id] = (inv[id] ?? 0) + 1;
+    state = state.copyWith(
+      coins: state.coins - cost,
+      prepInventory: inv,
+    );
+    _persist();
+    return true;
+  }
+
+  /// Gem partial life refill (Balancing Bible §4).
+  bool purchaseGemLifeRefill([DateTime? now]) {
+    final t = now ?? DateTime.now();
+    tickLifeRegen(t);
+    if (state.lives >= EconomyBalance.maxLives) return false;
+    if (state.gems < EconomyBalance.gemLifeRefillCost) return false;
+
+    final today = PlayerProfile._todayKey(t);
+    var count = state.gemLifeRefillCount;
+    if (state.gemLifeRefillDay != today) count = 0;
+    if (count >= EconomyBalance.gemLifeRefillsPerDay) return false;
+
+    final newLives = (state.lives + EconomyBalance.gemLifeRefillAmount)
+        .clamp(0, EconomyBalance.maxLives);
+    state = state.copyWith(
+      gems: state.gems - EconomyBalance.gemLifeRefillCost,
+      lives: newLives,
+      gemLifeRefillDay: today,
+      gemLifeRefillCount: count + 1,
+      clearLastLifeRegenAt: newLives >= EconomyBalance.maxLives,
+      lastLifeRegenAt: newLives >= EconomyBalance.maxLives
+          ? null
+          : (state.lastLifeRegenAt ?? t),
+    );
+    _persist();
+    return true;
+  }
+
   Future<void> applyVictory({
     required String nodeId,
     required int coinReward,
     bool isBoss = false,
+    int actIndex = 0,
   }) async {
     final completed = {...state.completedNodeIds, nodeId};
     var inv = Map<PrepItemId, int>.from(state.prepInventory);
-    final drops = <String>[];
     if (!isBoss) {
-      for (final e in PrepDrops.forNonBossClear().entries) {
+      for (final e in PrepDrops.forNonBossClear(actIndex: actIndex).entries) {
         inv[e.key] = (inv[e.key] ?? 0) + e.value;
-        drops.add('+${e.value} ${e.key.displayName}');
       }
     }
     state = state.copyWith(
@@ -229,13 +400,30 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
     await _persist();
   }
 
-  Future<void> applyDefeat() async {
-    // Campaign HP-loss does not spend lives (weekly will). Keep hook for later.
+  /// Campaign defeat spends one life (Balancing Bible §4).
+  Future<void> applyDefeat([DateTime? now]) async {
+    final t = now ?? DateTime.now();
+    tickLifeRegen(t);
+    final newLives = (state.lives - 1).clamp(0, EconomyBalance.maxLives);
+    state = state.copyWith(
+      lives: newLives,
+      lastLifeRegenAt: newLives >= EconomyBalance.maxLives
+          ? null
+          : (state.lastLifeRegenAt ?? t),
+      clearLastLifeRegenAt: newLives >= EconomyBalance.maxLives,
+    );
     await _persist();
   }
 
   Future<void> resetProgress() async {
     state = const PlayerProfile();
+    await _persist();
+  }
+
+  /// Marks the given nodes complete so every chapter / act / pin unlocks.
+  /// Used for art & content QA without playing the full spine.
+  Future<void> unlockAllNodes(Set<String> nodeIds) async {
+    state = state.copyWith(completedNodeIds: {...nodeIds});
     await _persist();
   }
 }

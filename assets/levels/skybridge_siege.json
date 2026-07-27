@@ -1,0 +1,243 @@
+{
+  "id": "ch_skybridge",
+  "title": "Skybridge Siege",
+  "subtitle": "Narrow spans over the abyss.",
+  "backgroundId": "bg_battle_skybridge_siege",
+  "boardDefaults": {
+    "templateId": "board_bridge_narrow_01"
+  },
+  "acts": [
+    {
+      "id": "ch_skybridge_act1",
+      "title": "Act I",
+      "mapAsset": "assets/images/maps/map_ch_skybridge_siege_a1.png",
+      "nodes": [
+        {
+          "id": "ch_skybridge_n01",
+          "name": "Stone Gate",
+          "enemyId": "brute",
+          "coinReward": 54,
+          "order": 0,
+          "mapX": 0.454,
+          "mapY": 0.841
+        },
+        {
+          "id": "ch_skybridge_n02",
+          "name": "Fang Rise",
+          "enemyId": "wolf",
+          "coinReward": 56,
+          "order": 1,
+          "mapX": 0.434,
+          "mapY": 0.665
+        },
+        {
+          "id": "ch_skybridge_n03",
+          "name": "Mud Crossing",
+          "enemyId": "goblin",
+          "coinReward": 58,
+          "order": 2,
+          "mapX": 0.399,
+          "mapY": 0.508,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_skybridge_n04",
+          "name": "Span Guard",
+          "enemyId": "brute",
+          "coinReward": 60,
+          "order": 3,
+          "mapX": 0.478,
+          "mapY": 0.369
+        },
+        {
+          "id": "ch_skybridge_n05",
+          "name": "Siege Captain \u2014 Form 1",
+          "enemyId": "siege_captain",
+          "coinReward": 110,
+          "order": 4,
+          "kind": "boss_sighting",
+          "bossForm": 1,
+          "mapX": 0.483,
+          "mapY": 0.197,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_skybridge_act2",
+      "title": "Act II",
+      "mapAsset": "assets/images/maps/map_ch_skybridge_siege_a2.png",
+      "nodes": [
+        {
+          "id": "ch_skybridge_n06",
+          "name": "Crush Lane",
+          "enemyId": "brute",
+          "coinReward": 64,
+          "order": 5,
+          "mapX": 0.148,
+          "mapY": 0.849
+        },
+        {
+          "id": "ch_skybridge_n07",
+          "name": "Night Hunt",
+          "enemyId": "wolf",
+          "coinReward": 66,
+          "order": 6,
+          "mapX": 0.496,
+          "mapY": 0.674
+        },
+        {
+          "id": "ch_skybridge_n08",
+          "name": "Reed Path",
+          "enemyId": "goblin",
+          "coinReward": 68,
+          "order": 7,
+          "mapX": 0.388,
+          "mapY": 0.507,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_skybridge_n09",
+          "name": "Stone Gate",
+          "enemyId": "brute",
+          "coinReward": 70,
+          "order": 8,
+          "mapX": 0.773,
+          "mapY": 0.353
+        },
+        {
+          "id": "ch_skybridge_n10",
+          "name": "Siege Captain \u2014 Form 2",
+          "enemyId": "siege_captain",
+          "coinReward": 120,
+          "order": 9,
+          "kind": "boss_sighting",
+          "bossForm": 2,
+          "mapX": 0.781,
+          "mapY": 0.157,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_skybridge_act3",
+      "title": "Act III",
+      "mapAsset": "assets/images/maps/map_ch_skybridge_siege_a3.png",
+      "nodes": [
+        {
+          "id": "ch_skybridge_n11",
+          "name": "Ore Wall",
+          "enemyId": "brute",
+          "coinReward": 74,
+          "order": 10,
+          "mapX": 0.461,
+          "mapY": 0.859
+        },
+        {
+          "id": "ch_skybridge_n12",
+          "name": "Ridge Pace",
+          "enemyId": "wolf",
+          "coinReward": 76,
+          "order": 11,
+          "mapX": 0.2,
+          "mapY": 0.696
+        },
+        {
+          "id": "ch_skybridge_n13",
+          "name": "Scout Trail",
+          "enemyId": "goblin",
+          "coinReward": 78,
+          "order": 12,
+          "mapX": 0.657,
+          "mapY": 0.535,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_skybridge_n14",
+          "name": "Crush Lane",
+          "enemyId": "brute",
+          "coinReward": 80,
+          "order": 13,
+          "mapX": 0.198,
+          "mapY": 0.365
+        },
+        {
+          "id": "ch_skybridge_n15",
+          "name": "Siege Captain \u2014 Form 3",
+          "enemyId": "siege_captain",
+          "coinReward": 130,
+          "order": 14,
+          "kind": "boss_sighting",
+          "bossForm": 3,
+          "mapX": 0.624,
+          "mapY": 0.164,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_skybridge_act4",
+      "title": "Act IV",
+      "mapAsset": "assets/images/maps/map_ch_skybridge_siege_a4.png",
+      "nodes": [
+        {
+          "id": "ch_skybridge_n16",
+          "name": "Span Guard",
+          "enemyId": "brute",
+          "coinReward": 84,
+          "order": 15,
+          "mapX": 0.297,
+          "mapY": 0.827
+        },
+        {
+          "id": "ch_skybridge_n17",
+          "name": "Howl Bend",
+          "enemyId": "wolf",
+          "coinReward": 86,
+          "order": 16,
+          "mapX": 0.51,
+          "mapY": 0.643
+        },
+        {
+          "id": "ch_skybridge_n18",
+          "name": "Brush Ambush",
+          "enemyId": "goblin",
+          "coinReward": 88,
+          "order": 17,
+          "mapX": 0.304,
+          "mapY": 0.51,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_skybridge_n19",
+          "name": "Ore Wall",
+          "enemyId": "brute",
+          "coinReward": 90,
+          "order": 18,
+          "mapX": 0.617,
+          "mapY": 0.388
+        },
+        {
+          "id": "ch_skybridge_n20",
+          "name": "Siege Captain \u2014 Form 4",
+          "enemyId": "siege_captain",
+          "coinReward": 140,
+          "order": 19,
+          "kind": "boss_sighting",
+          "bossForm": 4,
+          "mapX": 0.501,
+          "mapY": 0.207,
+          "enrageAfterTurns": 8
+        }
+      ]
+    }
+  ]
+}

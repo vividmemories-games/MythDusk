@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,6 +10,7 @@ import '../../prep/presentation/prep_picker_sheet.dart';
 import '../../profile/providers/mock_profile_provider.dart';
 import '../data/campaign_repository.dart';
 import '../domain/campaign_models.dart';
+import '../providers/pin_coord_overrides.dart';
 
 /// Chapter campaign: one act map at a time (5 pins), with act dots to switch.
 class CampaignScreen extends ConsumerStatefulWidget {
@@ -28,6 +30,8 @@ class _CampaignScreenState extends ConsumerState<CampaignScreen> {
   Widget build(BuildContext context) {
     final chapterAsync = ref.watch(campaignChapterProvider);
     final profile = ref.watch(profileProvider);
+    final editMode = ref.watch(pinEditModeProvider);
+    final overrides = ref.watch(pinCoordOverridesProvider);
 
     return Scaffold(
       backgroundColor: MythoraColors.ink,
@@ -53,7 +57,8 @@ class _CampaignScreenState extends ConsumerState<CampaignScreen> {
               final frontier = chapter.frontierOrder(profile.completedNodeIds);
               final actDone =
                   chapter.isActCompleted(act, profile.completedNodeIds);
-              final fogTopY = actDone ? 0.0 : _fogStartY(act, frontier);
+              final fogTopY =
+                  (editMode || actDone) ? 0.0 : _fogStartY(act, frontier);
 
               final mapLayer = SizedBox(
                 width: mapWidth,
@@ -101,6 +106,8 @@ class _CampaignScreenState extends ConsumerState<CampaignScreen> {
                         profile: profile,
                         mapWidth: mapWidth,
                         mapHeight: mapHeight,
+                        editMode: editMode,
+                        overrides: overrides,
                       ),
                   ],
                 ),
@@ -114,6 +121,9 @@ class _CampaignScreenState extends ConsumerState<CampaignScreen> {
                   else
                     SingleChildScrollView(
                       reverse: true,
+                      physics: editMode
+                          ? const NeverScrollableScrollPhysics()
+                          : null,
                       child: mapLayer,
                     ),
                   _MapHeader(
@@ -121,15 +131,49 @@ class _CampaignScreenState extends ConsumerState<CampaignScreen> {
                     act: act,
                     acts: chapter.acts,
                     completed: profile.completedNodeIds,
+                    editMode: editMode,
+                    onToggleEdit: () {
+                      ref.read(pinEditModeProvider.notifier).state = !editMode;
+                    },
+                    onExportPins: () => _exportPins(context, chapter, act),
+                    onExportAllPins: () => _exportAllPins(context),
+                    onClearActPins: () => _clearActPins(chapter, act),
+                    onClearAllPins: _clearAllPins,
                     onSelectAct: (id) {
                       final next = chapter.actById(id);
-                      if (!chapter.isActUnlocked(
-                          next, profile.completedNodeIds)) {
+                      if (!editMode &&
+                          !chapter.isActUnlocked(
+                              next, profile.completedNodeIds)) {
                         return;
                       }
                       setState(() => _selectedActId = id);
                     },
                   ),
+                  if (editMode)
+                    Positioned(
+                      left: 12,
+                      right: 12,
+                      bottom: 16,
+                      child: Material(
+                        color: MythoraColors.ink.withValues(alpha: 0.88),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          child: Text(
+                            'Pin edit · ${overrides.length} saved · '
+                            'drag onto pads · reset=act · long-press reset=all',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: MythoraColors.parchment,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               );
             },
@@ -146,13 +190,21 @@ class _CampaignScreenState extends ConsumerState<CampaignScreen> {
     required PlayerProfile profile,
     required double mapWidth,
     required double mapHeight,
+    required bool editMode,
+    required Map<String, PinCoord> overrides,
   }) {
     final completed = chapter.isCompleted(node.id, profile.completedNodeIds);
-    final unlocked = chapter.isUnlocked(node.id, profile.completedNodeIds);
-    final isCurrent = unlocked && !completed;
-    final fog = chapter.fogTier(node, profile.completedNodeIds);
+    final unlocked =
+        editMode || chapter.isUnlocked(node.id, profile.completedNodeIds);
+    final isCurrent = !editMode && unlocked && !completed;
+    final fog = editMode
+        ? MapFogTier.clear
+        : chapter.fogTier(node, profile.completedNodeIds);
 
-    final (x, y) = _pinAnchor(actNodeCount: 5, node: node);
+    final (baseX, baseY) = _pinAnchor(actNodeCount: 5, node: node);
+    final over = overrides[node.id];
+    final x = (over?.x ?? baseX).clamp(0.05, 0.95);
+    final y = (over?.y ?? baseY).clamp(0.05, 0.95);
     const pinSize = 64.0;
     const slotWidth = 150.0;
     return Positioned(
@@ -166,8 +218,90 @@ class _CampaignScreenState extends ConsumerState<CampaignScreen> {
         isCurrent: isCurrent,
         fog: fog,
         size: pinSize,
-        onTap: unlocked ? () => _openNode(context, node) : null,
+        editMode: editMode,
+        coordLabel: editMode
+            ? '${x.toStringAsFixed(2)}, ${y.toStringAsFixed(2)}'
+            : null,
+        onTap: (!editMode && unlocked) ? () => _openNode(context, node) : null,
+        onDrag: editMode
+            ? (dx, dy) {
+                final nx = (x + dx / mapWidth).clamp(0.05, 0.95);
+                final ny = (y + dy / mapHeight).clamp(0.05, 0.95);
+                ref
+                    .read(pinCoordOverridesProvider.notifier)
+                    .setPin(node.id, nx, ny);
+              }
+            : null,
       ),
+    );
+  }
+
+  Future<void> _exportPins(
+    BuildContext context,
+    CampaignChapter chapter,
+    CampaignAct act,
+  ) async {
+    final notifier = ref.read(pinCoordOverridesProvider.notifier);
+    // Ensure current act positions are in the export even if undragged.
+    for (final node in act.nodes) {
+      final existing = ref.read(pinCoordOverridesProvider)[node.id];
+      if (existing != null) continue;
+      final (bx, by) = _pinAnchor(actNodeCount: 5, node: node);
+      await notifier.setPin(node.id, node.mapX ?? bx, node.mapY ?? by);
+    }
+    final ids = act.nodes.map((n) => n.id).toSet();
+    final text = notifier.exportJson(onlyNodeIds: ids);
+    await Clipboard.setData(ClipboardData(text: text));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Copied ${act.nodes.length} pins (${act.title}). '
+          'Paste into tools/pin_overrides.json',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _exportAllPins(BuildContext context) async {
+    final text = ref.read(pinCoordOverridesProvider.notifier).exportJson();
+    final count = ref.read(pinCoordOverridesProvider).length;
+    if (count == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No pin overrides yet — drag some first')),
+      );
+      return;
+    }
+    await Clipboard.setData(ClipboardData(text: text));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Copied $count pin overrides. Paste into tools/pin_overrides.json '
+          'then run scripts/apply_pin_overrides.py',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _clearActPins(CampaignChapter chapter, CampaignAct act) async {
+    await ref
+        .read(pinCoordOverridesProvider.notifier)
+        .clearNodeIds(act.nodes.map((n) => n.id));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Cleared overrides for ${act.title}'),
+      ),
+    );
+  }
+
+  Future<void> _clearAllPins() async {
+    final count = ref.read(pinCoordOverridesProvider).length;
+    await ref.read(pinCoordOverridesProvider.notifier).clearAll();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Cleared all $count pin overrides')),
     );
   }
 
@@ -209,6 +343,18 @@ class _CampaignScreenState extends ConsumerState<CampaignScreen> {
   }
 
   Future<void> _openNode(BuildContext context, CampaignNode node) async {
+    ref.read(profileProvider.notifier).tickLifeRegen();
+    if (ref.read(profileProvider).lives <= 0) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'No lives left — wait for regen or refill from Home',
+          ),
+        ),
+      );
+      return;
+    }
     if (node.isBoss) {
       final enemy = EnemyCatalog.byId(node.enemyId);
       final ok = await showPrepPickerSheet(
@@ -229,6 +375,12 @@ class _MapHeader extends StatelessWidget {
     required this.acts,
     required this.completed,
     required this.onSelectAct,
+    required this.editMode,
+    required this.onToggleEdit,
+    required this.onExportPins,
+    required this.onExportAllPins,
+    required this.onClearActPins,
+    required this.onClearAllPins,
   });
 
   final CampaignChapter chapter;
@@ -236,6 +388,12 @@ class _MapHeader extends StatelessWidget {
   final List<CampaignAct> acts;
   final Set<String> completed;
   final ValueChanged<String> onSelectAct;
+  final bool editMode;
+  final VoidCallback onToggleEdit;
+  final VoidCallback onExportPins;
+  final VoidCallback onExportAllPins;
+  final VoidCallback onClearActPins;
+  final VoidCallback onClearAllPins;
 
   @override
   Widget build(BuildContext context) {
@@ -289,6 +447,103 @@ class _MapHeader extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(width: 8),
+                Material(
+                  color: editMode
+                      ? MythoraColors.amber.withValues(alpha: 0.35)
+                      : MythoraColors.ink.withValues(alpha: 0.55),
+                  shape: CircleBorder(
+                    side: BorderSide(
+                      color: editMode
+                          ? MythoraColors.amber
+                          : Colors.white.withValues(alpha: 0.12),
+                    ),
+                  ),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: onToggleEdit,
+                    child: SizedBox(
+                      width: 38,
+                      height: 38,
+                      child: Icon(
+                        Icons.open_with,
+                        size: 18,
+                        color: editMode
+                            ? MythoraColors.amber
+                            : MythoraColors.parchment,
+                      ),
+                    ),
+                  ),
+                ),
+                if (editMode) ...[
+                  const SizedBox(width: 6),
+                  Material(
+                    color: MythoraColors.ink.withValues(alpha: 0.55),
+                    shape: CircleBorder(
+                      side: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.12),
+                      ),
+                    ),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: onExportPins,
+                      child: const SizedBox(
+                        width: 38,
+                        height: 38,
+                        child: Icon(
+                          Icons.copy_outlined,
+                          size: 18,
+                          color: MythoraColors.parchment,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Material(
+                    color: MythoraColors.ink.withValues(alpha: 0.55),
+                    shape: CircleBorder(
+                      side: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.12),
+                      ),
+                    ),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: onExportAllPins,
+                      child: const SizedBox(
+                        width: 38,
+                        height: 38,
+                        child: Icon(
+                          Icons.copy_all_outlined,
+                          size: 18,
+                          color: MythoraColors.parchment,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Material(
+                    color: MythoraColors.ink.withValues(alpha: 0.55),
+                    shape: CircleBorder(
+                      side: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.12),
+                      ),
+                    ),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: onClearActPins,
+                      onLongPress: onClearAllPins,
+                      child: const SizedBox(
+                        width: 38,
+                        height: 38,
+                        child: Icon(
+                          Icons.restart_alt,
+                          size: 18,
+                          color: MythoraColors.parchment,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 10),
@@ -299,7 +554,7 @@ class _MapHeader extends StatelessWidget {
                   _ActDot(
                     act: a,
                     selected: a.id == act.id,
-                    unlocked: chapter.isActUnlocked(a, completed),
+                    unlocked: editMode || chapter.isActUnlocked(a, completed),
                     completed: chapter.isActCompleted(a, completed),
                     onTap: () => onSelectAct(a.id),
                   ),
@@ -385,7 +640,10 @@ class _NodePin extends StatelessWidget {
     required this.isCurrent,
     required this.fog,
     required this.size,
+    required this.editMode,
     required this.onTap,
+    this.onDrag,
+    this.coordLabel,
   });
 
   final CampaignNode node;
@@ -394,24 +652,35 @@ class _NodePin extends StatelessWidget {
   final bool isCurrent;
   final MapFogTier fog;
   final double size;
+  final bool editMode;
   final VoidCallback? onTap;
+  final void Function(double dx, double dy)? onDrag;
+  final String? coordLabel;
 
   @override
   Widget build(BuildContext context) {
-    final ringColor = completed
-        ? MythoraColors.amber
-        : isCurrent
-            ? MythoraColors.softGold
-            : MythoraColors.muted.withValues(alpha: 0.5);
+    final ringColor = editMode
+        ? MythoraColors.softGold
+        : completed
+            ? MythoraColors.amber
+            : isCurrent
+                ? MythoraColors.softGold
+                : MythoraColors.muted.withValues(alpha: 0.5);
 
     Widget portrait = ClipOval(
-      child: Image.asset(
-        GameAssets.enemy(node.enemyId),
-        fit: BoxFit.cover,
-        alignment: Alignment.topCenter,
-        errorBuilder: (_, __, ___) => const ColoredBox(
-          color: MythoraColors.deepTeal,
-          child: Icon(Icons.flag, color: MythoraColors.parchment),
+      child: ColoredBox(
+        color: MythoraColors.ink.withValues(alpha: 0.45),
+        child: Padding(
+          padding: const EdgeInsets.all(4),
+          child: Image.asset(
+            GameAssets.enemy(node.enemyId, bossForm: node.bossForm),
+            fit: BoxFit.contain,
+            alignment: Alignment.bottomCenter,
+            errorBuilder: (_, __, ___) => const ColoredBox(
+              color: MythoraColors.deepTeal,
+              child: Icon(Icons.flag, color: MythoraColors.parchment),
+            ),
+          ),
         ),
       ),
     );
@@ -449,15 +718,15 @@ class _NodePin extends StatelessWidget {
               height: size * scale,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: MythoraColors.ink.withValues(alpha: 0.6),
+                color: MythoraColors.ink.withValues(alpha: 0.35),
                 border: Border.all(
                   color: ringColor.withValues(
                     alpha: fog == MapFogTier.shrouded ? 0.35 : 1,
                   ),
-                  width: isCurrent ? 3 : 2,
+                  width: (isCurrent || editMode) ? 3 : 2,
                 ),
                 boxShadow: [
-                  if (isCurrent)
+                  if (isCurrent || editMode)
                     BoxShadow(
                       color: MythoraColors.softGold.withValues(alpha: 0.55),
                       blurRadius: 16,
@@ -484,7 +753,7 @@ class _NodePin extends StatelessWidget {
                         color: MythoraColors.parchment,
                       ),
                     ),
-                  if (completed)
+                  if (completed && !editMode)
                     const Positioned(
                       right: 0,
                       bottom: 0,
@@ -510,11 +779,13 @@ class _NodePin extends StatelessWidget {
                 ),
               ),
               child: Text(
-                node.isBoss
-                    ? '${node.order + 1}. Boss'
-                    : fog == MapFogTier.peek
-                        ? '${node.order + 1}. ???'
-                        : '${node.order + 1}. ${node.name}',
+                coordLabel != null
+                    ? '${node.order + 1} · $coordLabel'
+                    : node.isBoss
+                        ? '${node.order + 1}. Boss'
+                        : fog == MapFogTier.peek
+                            ? '${node.order + 1}. ???'
+                            : '${node.order + 1}. ${node.name}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -529,6 +800,13 @@ class _NodePin extends StatelessWidget {
         ],
       ),
     );
+
+    if (editMode) {
+      return GestureDetector(
+        onPanUpdate: (d) => onDrag?.call(d.delta.dx, d.delta.dy),
+        child: pin,
+      );
+    }
 
     return IgnorePointer(
       ignoring: fog == MapFogTier.shrouded || !unlocked,

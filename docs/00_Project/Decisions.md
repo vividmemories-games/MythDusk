@@ -265,3 +265,70 @@ Legacy single-strip filenames (`map_ch_*.png` without `_aN`) remain **deprecated
 **Impact:** [Content Architecture](../01_Game_Design/Content_Architecture.md) art counts; [Master Prompts](../06_Asset_Bible/Master_Prompts.md) P2 (Ch1 done) + P4 (Ch2–10 × 4).
 
 **Status:** Accepted
+
+---
+
+## 2026-07-23 — Board primitives + JSON templates
+
+**Decision:** Board content is **templates + modifiers**, not unique art/code per level.
+
+### Primitives
+| Primitive | Semantics |
+|-----------|-----------|
+| **Mask** | Hole / blocked cell — gravity skips (already in engine) |
+| **Blocker overlay** | Static rock-style; breaks on **adjacent match**; does **not** fall |
+| **Binder overlay** | Vine/poison on a cell; breaks on **match under**; tile can fall through, overlay stays on cell |
+| **Mover** | Start of **player turn**, tiles **wrap** at edges (execution deferred; JSON contract now) |
+| **Hazard** | v1: **suppress resources** on matched hazard tiles (execution deferred) |
+
+### JSON layout
+- `assets/boards/overlays.json` — overlay catalog (`ovl_rock`, `ovl_vine`, `ovl_poison`, …)
+- `assets/boards/templates.json` — reusable ASCII grids + legend (`board_open_6x6`, …)
+- Chapter `boardDefaults` + node `board` merge (node wins); movers/hazardSpawn/spawnWeights inline on config
+- Defer Ch6/Ch7 rule-modifier fields until those mechanics are designed
+
+### Engine notes
+- `BoardBuilder.fromTemplate` builds playable no-match boards
+- Gravity/fill treat solid blockers like masks; binders stay cell-fixed
+- Overlay **break rules** and hazard resource suppression are catalogued but not yet executed in match resolution
+
+**Reason:** Solo-dev scalable chapter gimmicks; Ch2 overlays → Ch3 movers → Ch5 masks reuse the same stack.
+
+**Impact:** `BoardCell.overlayId` / archetype; campaign `board` / `minMoves` / `enrageAfterTurns` / `prepDrops`; battle start uses template when catalogs load.
+
+**Status:** Accepted — schema + builder + overlay break/suppress landed; mover execution still deferred
+
+---
+
+## 2026-07-23 — Campaign spine stubs (200 levels)
+
+**Decision:** Ship **10 chapter JSON files** + `campaign_index.json` (200 nodes total). Ch2–10 are structural stubs: 4 acts × 5 nodes, boss forms 1–4, chapter `boardDefaults` (template / movers / hazardSpawn as data). Map art paths point at future `map_ch_*_aN.png` (UI `errorBuilder` until P4). Missing enemy art falls back to goblin / warchief forms.
+
+**Reason:** Unlock Balancing Bible and chapter select without waiting on all art.
+
+**Impact:** `assets/levels/*.json`, `EnemyCatalog` boss stubs, `selectedCampaignChapterIdProvider`.
+
+**Status:** Accepted
+
+---
+
+## 2026-07-23 — Mover execution + chapter picker
+
+**Decision:**
+- Movers run at **start of each player turn** (including battle start), wrap within segments split by masks/solid blockers; binders stay cell-fixed.
+- Wind-created matches resolve (inline at battle start; animated after enemy turns) and **do not** spend a Move.
+- Home **Enter Campaign** → chapter select (`/chapters`) → act map; unlock via prior chapter finale node id in `campaign_index.json`.
+
+**Status:** Accepted
+
+---
+
+## 2026-07-27 — Balancing Bible v1 (combat + soft progression)
+
+**Decision:** Authoritative [Balancing_Bible](../01_Game_Design/Balancing_Bible.md) for combat formulas and soft progression. Board stays fair; friction is prep / lives / boosts. Every campaign defeat spends 1 life (max 5, +1 / 20 min). Gem partial life refill: 75 gems → +3 lives, max 3/day. Fight length targets: trash 3–5 turns, act boss 6–10, finale 10–15. Act 3+ bosses expect prep. Coin upgrades capped at ~30% per stat line. No gem combat power.
+
+**Reason:** Unlock tunable, monetization-safe economy before shop/IAP and Firebase settlement.
+
+**Impact:** `EconomyBalance`, `LifeRegenMath`, profile schema v5 (regen + gem refill + `upgradeLevels`), `PrepDrops` act chances, `HeroDef.withCombatMultipliers`, enemy HP pass-1 retune, home/campaign lives gate.
+
+**Status:** Accepted

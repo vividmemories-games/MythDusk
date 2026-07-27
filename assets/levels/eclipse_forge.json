@@ -1,0 +1,248 @@
+{
+  "id": "ch_eclipse",
+  "title": "Eclipse Forge",
+  "subtitle": "Ember hazards in the foundry.",
+  "backgroundId": "bg_battle_eclipse_forge",
+  "boardDefaults": {
+    "templateId": "board_open_6x6",
+    "hazardSpawn": {
+      "overlayId": "ovl_poison",
+      "chancePerTurn": 0.1,
+      "maxOnBoard": 3
+    }
+  },
+  "acts": [
+    {
+      "id": "ch_eclipse_act1",
+      "title": "Act I",
+      "mapAsset": "assets/images/maps/map_ch_eclipse_forge_a1.png",
+      "nodes": [
+        {
+          "id": "ch_eclipse_n01",
+          "name": "Crush Lane",
+          "enemyId": "forge_imp",
+          "coinReward": 57,
+          "order": 0,
+          "mapX": 0.385,
+          "mapY": 0.865
+        },
+        {
+          "id": "ch_eclipse_n02",
+          "name": "Mire Chant",
+          "enemyId": "shaman",
+          "coinReward": 59,
+          "order": 1,
+          "mapX": 0.657,
+          "mapY": 0.723
+        },
+        {
+          "id": "ch_eclipse_n03",
+          "name": "Reed Path",
+          "enemyId": "goblin",
+          "coinReward": 61,
+          "order": 2,
+          "mapX": 0.259,
+          "mapY": 0.613,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_eclipse_n04",
+          "name": "Howl Bend",
+          "enemyId": "wolf",
+          "coinReward": 63,
+          "order": 3,
+          "mapX": 0.485,
+          "mapY": 0.415
+        },
+        {
+          "id": "ch_eclipse_n05",
+          "name": "Ember Smith \u2014 Form 1",
+          "enemyId": "ember_smith",
+          "coinReward": 115,
+          "order": 4,
+          "kind": "boss_sighting",
+          "bossForm": 1,
+          "mapX": 0.673,
+          "mapY": 0.165,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_eclipse_act2",
+      "title": "Act II",
+      "mapAsset": "assets/images/maps/map_ch_eclipse_forge_a2.png",
+      "nodes": [
+        {
+          "id": "ch_eclipse_n06",
+          "name": "Ore Wall",
+          "enemyId": "forge_imp",
+          "coinReward": 67,
+          "order": 5,
+          "mapX": 0.321,
+          "mapY": 0.845
+        },
+        {
+          "id": "ch_eclipse_n07",
+          "name": "Candle Hex",
+          "enemyId": "shaman",
+          "coinReward": 69,
+          "order": 6,
+          "mapX": 0.489,
+          "mapY": 0.648
+        },
+        {
+          "id": "ch_eclipse_n08",
+          "name": "Scout Trail",
+          "enemyId": "goblin",
+          "coinReward": 71,
+          "order": 7,
+          "mapX": 0.808,
+          "mapY": 0.54,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_eclipse_n09",
+          "name": "Fang Rise",
+          "enemyId": "wolf",
+          "coinReward": 73,
+          "order": 8,
+          "mapX": 0.574,
+          "mapY": 0.433
+        },
+        {
+          "id": "ch_eclipse_n10",
+          "name": "Ember Smith \u2014 Form 2",
+          "enemyId": "ember_smith",
+          "coinReward": 125,
+          "order": 9,
+          "kind": "boss_sighting",
+          "bossForm": 2,
+          "mapX": 0.836,
+          "mapY": 0.172,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_eclipse_act3",
+      "title": "Act III",
+      "mapAsset": "assets/images/maps/map_ch_eclipse_forge_a3.png",
+      "nodes": [
+        {
+          "id": "ch_eclipse_n11",
+          "name": "Span Guard",
+          "enemyId": "forge_imp",
+          "coinReward": 77,
+          "order": 10,
+          "mapX": 0.441,
+          "mapY": 0.875
+        },
+        {
+          "id": "ch_eclipse_n12",
+          "name": "Hex Pool",
+          "enemyId": "shaman",
+          "coinReward": 79,
+          "order": 11,
+          "mapX": 0.725,
+          "mapY": 0.697
+        },
+        {
+          "id": "ch_eclipse_n13",
+          "name": "Brush Ambush",
+          "enemyId": "goblin",
+          "coinReward": 81,
+          "order": 12,
+          "mapX": 0.69,
+          "mapY": 0.474,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_eclipse_n14",
+          "name": "Night Hunt",
+          "enemyId": "wolf",
+          "coinReward": 83,
+          "order": 13,
+          "mapX": 0.362,
+          "mapY": 0.365
+        },
+        {
+          "id": "ch_eclipse_n15",
+          "name": "Ember Smith \u2014 Form 3",
+          "enemyId": "ember_smith",
+          "coinReward": 135,
+          "order": 14,
+          "kind": "boss_sighting",
+          "bossForm": 3,
+          "mapX": 0.596,
+          "mapY": 0.207,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_eclipse_act4",
+      "title": "Act IV",
+      "mapAsset": "assets/images/maps/map_ch_eclipse_forge_a4.png",
+      "nodes": [
+        {
+          "id": "ch_eclipse_n16",
+          "name": "Stone Gate",
+          "enemyId": "forge_imp",
+          "coinReward": 87,
+          "order": 15,
+          "mapX": 0.466,
+          "mapY": 0.848
+        },
+        {
+          "id": "ch_eclipse_n17",
+          "name": "Bone Circle",
+          "enemyId": "shaman",
+          "coinReward": 89,
+          "order": 16,
+          "mapX": 0.549,
+          "mapY": 0.659
+        },
+        {
+          "id": "ch_eclipse_n18",
+          "name": "Mud Crossing",
+          "enemyId": "goblin",
+          "coinReward": 91,
+          "order": 17,
+          "mapX": 0.401,
+          "mapY": 0.528,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_eclipse_n19",
+          "name": "Ridge Pace",
+          "enemyId": "wolf",
+          "coinReward": 93,
+          "order": 18,
+          "mapX": 0.789,
+          "mapY": 0.375
+        },
+        {
+          "id": "ch_eclipse_n20",
+          "name": "Ember Smith \u2014 Form 4",
+          "enemyId": "ember_smith",
+          "coinReward": 145,
+          "order": 19,
+          "kind": "boss_sighting",
+          "bossForm": 4,
+          "mapX": 0.636,
+          "mapY": 0.188,
+          "enrageAfterTurns": 8
+        }
+      ]
+    }
+  ]
+}

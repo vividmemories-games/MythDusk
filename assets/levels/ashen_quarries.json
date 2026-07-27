@@ -1,0 +1,243 @@
+{
+  "id": "ch_ashen",
+  "title": "Ashen Quarries",
+  "subtitle": "Rock layers and embers.",
+  "backgroundId": "bg_battle_ashen_quarries",
+  "boardDefaults": {
+    "templateId": "board_bridge_narrow_01"
+  },
+  "acts": [
+    {
+      "id": "ch_ashen_act1",
+      "title": "Act I",
+      "mapAsset": "assets/images/maps/map_ch_ashen_quarries_a1.png",
+      "nodes": [
+        {
+          "id": "ch_ashen_n01",
+          "name": "Stone Gate",
+          "enemyId": "brute",
+          "coinReward": 42,
+          "order": 0,
+          "mapX": 0.424,
+          "mapY": 0.844
+        },
+        {
+          "id": "ch_ashen_n02",
+          "name": "Brush Ambush",
+          "enemyId": "goblin",
+          "coinReward": 44,
+          "order": 1,
+          "mapX": 0.579,
+          "mapY": 0.663
+        },
+        {
+          "id": "ch_ashen_n03",
+          "name": "Night Hunt",
+          "enemyId": "wolf",
+          "coinReward": 46,
+          "order": 2,
+          "mapX": 0.425,
+          "mapY": 0.548,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_ashen_n04",
+          "name": "Span Guard",
+          "enemyId": "brute",
+          "coinReward": 48,
+          "order": 3,
+          "mapX": 0.499,
+          "mapY": 0.388
+        },
+        {
+          "id": "ch_ashen_n05",
+          "name": "Quarry Overseer \u2014 Form 1",
+          "enemyId": "quarry_overseer",
+          "coinReward": 90,
+          "order": 4,
+          "kind": "boss_sighting",
+          "bossForm": 1,
+          "mapX": 0.768,
+          "mapY": 0.194,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_ashen_act2",
+      "title": "Act II",
+      "mapAsset": "assets/images/maps/map_ch_ashen_quarries_a2.png",
+      "nodes": [
+        {
+          "id": "ch_ashen_n06",
+          "name": "Crush Lane",
+          "enemyId": "brute",
+          "coinReward": 52,
+          "order": 5,
+          "mapX": 0.546,
+          "mapY": 0.848
+        },
+        {
+          "id": "ch_ashen_n07",
+          "name": "Mud Crossing",
+          "enemyId": "goblin",
+          "coinReward": 54,
+          "order": 6,
+          "mapX": 0.681,
+          "mapY": 0.614
+        },
+        {
+          "id": "ch_ashen_n08",
+          "name": "Ridge Pace",
+          "enemyId": "wolf",
+          "coinReward": 56,
+          "order": 7,
+          "mapX": 0.339,
+          "mapY": 0.492,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_ashen_n09",
+          "name": "Stone Gate",
+          "enemyId": "brute",
+          "coinReward": 58,
+          "order": 8,
+          "mapX": 0.669,
+          "mapY": 0.37
+        },
+        {
+          "id": "ch_ashen_n10",
+          "name": "Quarry Overseer \u2014 Form 2",
+          "enemyId": "quarry_overseer",
+          "coinReward": 100,
+          "order": 9,
+          "kind": "boss_sighting",
+          "bossForm": 2,
+          "mapX": 0.697,
+          "mapY": 0.165,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_ashen_act3",
+      "title": "Act III",
+      "mapAsset": "assets/images/maps/map_ch_ashen_quarries_a3.png",
+      "nodes": [
+        {
+          "id": "ch_ashen_n11",
+          "name": "Ore Wall",
+          "enemyId": "brute",
+          "coinReward": 62,
+          "order": 10,
+          "mapX": 0.495,
+          "mapY": 0.848
+        },
+        {
+          "id": "ch_ashen_n12",
+          "name": "Reed Path",
+          "enemyId": "goblin",
+          "coinReward": 64,
+          "order": 11,
+          "mapX": 0.837,
+          "mapY": 0.655
+        },
+        {
+          "id": "ch_ashen_n13",
+          "name": "Howl Bend",
+          "enemyId": "wolf",
+          "coinReward": 66,
+          "order": 12,
+          "mapX": 0.235,
+          "mapY": 0.515,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_ashen_n14",
+          "name": "Crush Lane",
+          "enemyId": "brute",
+          "coinReward": 68,
+          "order": 13,
+          "mapX": 0.815,
+          "mapY": 0.388
+        },
+        {
+          "id": "ch_ashen_n15",
+          "name": "Quarry Overseer \u2014 Form 3",
+          "enemyId": "quarry_overseer",
+          "coinReward": 110,
+          "order": 14,
+          "kind": "boss_sighting",
+          "bossForm": 3,
+          "mapX": 0.606,
+          "mapY": 0.183,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_ashen_act4",
+      "title": "Act IV",
+      "mapAsset": "assets/images/maps/map_ch_ashen_quarries_a4.png",
+      "nodes": [
+        {
+          "id": "ch_ashen_n16",
+          "name": "Span Guard",
+          "enemyId": "brute",
+          "coinReward": 72,
+          "order": 15,
+          "mapX": 0.297,
+          "mapY": 0.85
+        },
+        {
+          "id": "ch_ashen_n17",
+          "name": "Scout Trail",
+          "enemyId": "goblin",
+          "coinReward": 74,
+          "order": 16,
+          "mapX": 0.663,
+          "mapY": 0.72
+        },
+        {
+          "id": "ch_ashen_n18",
+          "name": "Fang Rise",
+          "enemyId": "wolf",
+          "coinReward": 76,
+          "order": 17,
+          "mapX": 0.635,
+          "mapY": 0.51,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_ashen_n19",
+          "name": "Ore Wall",
+          "enemyId": "brute",
+          "coinReward": 78,
+          "order": 18,
+          "mapX": 0.476,
+          "mapY": 0.324
+        },
+        {
+          "id": "ch_ashen_n20",
+          "name": "Quarry Overseer \u2014 Form 4",
+          "enemyId": "quarry_overseer",
+          "coinReward": 120,
+          "order": 19,
+          "kind": "boss_sighting",
+          "bossForm": 4,
+          "mapX": 0.665,
+          "mapY": 0.178,
+          "enrageAfterTurns": 8
+        }
+      ]
+    }
+  ]
+}

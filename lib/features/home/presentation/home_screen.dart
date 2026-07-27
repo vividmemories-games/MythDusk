@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/assets/game_assets.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../campaign/data/campaign_repository.dart';
 import '../../heroes/domain/hero_def.dart';
 import '../../prep/domain/prep_item.dart';
+import '../../profile/domain/economy_balance.dart';
 import '../../profile/providers/mock_profile_provider.dart';
 import 'settings_sheet.dart';
 
@@ -17,6 +19,10 @@ class HomeScreen extends ConsumerWidget {
     final profile = ref.watch(profileProvider);
     final textTheme = Theme.of(context).textTheme;
     final selected = profile.selectedHero;
+    final nextLife = profile.timeUntilNextLife();
+    final livesLabel = nextLife == null
+        ? '${profile.lives}'
+        : '${profile.lives} · ${_formatRegen(nextLife)}';
 
     return Scaffold(
       body: Stack(
@@ -52,9 +58,12 @@ class HomeScreen extends ConsumerWidget {
                         icon: Icons.diamond_outlined,
                       ),
                       const SizedBox(width: 6),
-                      _ResourceChip(
-                        label: '${profile.lives}',
-                        icon: Icons.favorite_outline,
+                      GestureDetector(
+                        onTap: () => _onLivesTap(context, ref),
+                        child: _ResourceChip(
+                          label: livesLabel,
+                          icon: Icons.favorite_outline,
+                        ),
                       ),
                       const SizedBox(width: 4),
                       IconButton(
@@ -117,7 +126,15 @@ class HomeScreen extends ConsumerWidget {
                   ),
                   const Spacer(flex: 2),
                   FilledButton(
-                    onPressed: () => context.push('/campaign'),
+                    onPressed: () {
+                      ref.read(profileProvider.notifier).tickLifeRegen();
+                      final lives = ref.read(profileProvider).lives;
+                      if (lives <= 0) {
+                        _showNoLivesDialog(context, ref);
+                        return;
+                      }
+                      context.push('/chapters');
+                    },
                     child: const Text('Enter Campaign'),
                   ),
                   const SizedBox(height: 10),
@@ -148,14 +165,23 @@ class HomeScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${profile.completedNodeIds.length} / 5 nodes cleared',
+                    '${profile.completedNodeIds.length} nodes cleared',
                     textAlign: TextAlign.center,
                     style: textTheme.bodyMedium?.copyWith(fontSize: 12),
                   ),
-                  TextButton(
-                    onPressed: () =>
-                        ref.read(profileProvider.notifier).resetProgress(),
-                    child: const Text('Reset progress'),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextButton(
+                        onPressed: () => _unlockAllForQa(context, ref),
+                        child: const Text('Unlock all (QA)'),
+                      ),
+                      TextButton(
+                        onPressed: () =>
+                            ref.read(profileProvider.notifier).resetProgress(),
+                        child: const Text('Reset progress'),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -164,6 +190,107 @@ class HomeScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  String _formatRegen(Duration d) {
+    final m = d.inMinutes;
+    if (m <= 0) return '<1m';
+    if (m < 60) return '${m}m';
+    final h = m ~/ 60;
+    final rem = m % 60;
+    return rem == 0 ? '${h}h' : '${h}h ${rem}m';
+  }
+
+  void _onLivesTap(BuildContext context, WidgetRef ref) {
+    ref.read(profileProvider.notifier).tickLifeRegen();
+    final profile = ref.read(profileProvider);
+    if (profile.lives >= EconomyBalance.maxLives) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Lives are full')),
+      );
+      return;
+    }
+    _showNoLivesDialog(context, ref, title: 'Refill lives');
+  }
+
+  void _showNoLivesDialog(
+    BuildContext context,
+    WidgetRef ref, {
+    String title = 'Out of lives',
+  }) {
+    final profile = ref.read(profileProvider);
+    final remaining = profile.gemLifeRefillsRemainingToday;
+    final next = profile.timeUntilNextLife();
+    final regenText = next == null
+        ? 'Lives regenerate over time.'
+        : 'Next life in ${_formatRegen(next)}.';
+
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: MythoraColors.deepTeal,
+        title: Text(title),
+        content: Text(
+          '$regenText\n\n'
+          'Gem refill: +${EconomyBalance.gemLifeRefillAmount} lives for '
+          '${EconomyBalance.gemLifeRefillCost} gems '
+          '($remaining left today).',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+          TextButton(
+            onPressed: remaining <= 0 ||
+                    profile.gems < EconomyBalance.gemLifeRefillCost
+                ? null
+                : () {
+                    final ok = ref
+                        .read(profileProvider.notifier)
+                        .purchaseGemLifeRefill();
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          ok
+                              ? 'Lives refilled (+${EconomyBalance.gemLifeRefillAmount})'
+                              : 'Could not refill',
+                        ),
+                      ),
+                    );
+                  },
+            child: const Text('Use gems'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _unlockAllForQa(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      const SnackBar(content: Text('Unlocking all chapters & levels…')),
+    );
+    try {
+      final ids = await loadAllCampaignNodeIds();
+      await ref.read(profileProvider.notifier).unlockAllNodes(ids);
+      if (!context.mounted) return;
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            'QA unlock: ${ids.length} nodes open. Enter Campaign → any chapter.',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(content: Text('Unlock failed: $e')),
+      );
+    }
   }
 
   void _showWeeklyStub(BuildContext context) {

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/battle/presentation/battle_result_screen.dart';
 import '../../features/battle/presentation/battle_screen.dart';
 import '../../features/campaign/presentation/campaign_screen.dart';
+import '../../features/campaign/presentation/chapter_select_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -14,6 +15,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/',
         name: 'home',
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: '/chapters',
+        name: 'chapters',
+        builder: (context, state) => const ChapterSelectScreen(),
       ),
       GoRoute(
         path: '/campaign',

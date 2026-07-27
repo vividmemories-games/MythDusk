@@ -1,0 +1,254 @@
+{
+  "id": "ch_mythspire",
+  "title": "Mythspire Gate",
+  "subtitle": "Every lesson at once.",
+  "backgroundId": "bg_battle_mythspire_gate",
+  "boardDefaults": {
+    "templateId": "board_bridge_narrow_01",
+    "movers": [
+      {
+        "type": "row_shove",
+        "rows": [
+          1,
+          4
+        ],
+        "direction": "right",
+        "everyNTurns": 2
+      }
+    ]
+  },
+  "acts": [
+    {
+      "id": "ch_mythspire_act1",
+      "title": "Act I",
+      "mapAsset": "assets/images/maps/map_ch_mythspire_gate_a1.png",
+      "nodes": [
+        {
+          "id": "ch_mythspire_n01",
+          "name": "Ore Wall",
+          "enemyId": "brute",
+          "coinReward": 60,
+          "order": 0,
+          "mapX": 0.436,
+          "mapY": 0.849
+        },
+        {
+          "id": "ch_mythspire_n02",
+          "name": "Ridge Pace",
+          "enemyId": "wolf",
+          "coinReward": 62,
+          "order": 1,
+          "mapX": 0.501,
+          "mapY": 0.691
+        },
+        {
+          "id": "ch_mythspire_n03",
+          "name": "Hex Pool",
+          "enemyId": "shaman",
+          "coinReward": 64,
+          "order": 2,
+          "mapX": 0.581,
+          "mapY": 0.526,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_mythspire_n04",
+          "name": "Brush Ambush",
+          "enemyId": "goblin",
+          "coinReward": 66,
+          "order": 3,
+          "mapX": 0.444,
+          "mapY": 0.388
+        },
+        {
+          "id": "ch_mythspire_n05",
+          "name": "Mythspire Tyrant \u2014 Form 1",
+          "enemyId": "mythspire_tyrant",
+          "coinReward": 120,
+          "order": 4,
+          "kind": "boss_sighting",
+          "bossForm": 1,
+          "mapX": 0.642,
+          "mapY": 0.188,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_mythspire_act2",
+      "title": "Act II",
+      "mapAsset": "assets/images/maps/map_ch_mythspire_gate_a2.png",
+      "nodes": [
+        {
+          "id": "ch_mythspire_n06",
+          "name": "Span Guard",
+          "enemyId": "brute",
+          "coinReward": 70,
+          "order": 5,
+          "mapX": 0.451,
+          "mapY": 0.855
+        },
+        {
+          "id": "ch_mythspire_n07",
+          "name": "Howl Bend",
+          "enemyId": "wolf",
+          "coinReward": 72,
+          "order": 6,
+          "mapX": 0.24,
+          "mapY": 0.722
+        },
+        {
+          "id": "ch_mythspire_n08",
+          "name": "Bone Circle",
+          "enemyId": "shaman",
+          "coinReward": 74,
+          "order": 7,
+          "mapX": 0.533,
+          "mapY": 0.596,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_mythspire_n09",
+          "name": "Mud Crossing",
+          "enemyId": "goblin",
+          "coinReward": 76,
+          "order": 8,
+          "mapX": 0.73,
+          "mapY": 0.43
+        },
+        {
+          "id": "ch_mythspire_n10",
+          "name": "Mythspire Tyrant \u2014 Form 2",
+          "enemyId": "mythspire_tyrant",
+          "coinReward": 130,
+          "order": 9,
+          "kind": "boss_sighting",
+          "bossForm": 2,
+          "mapX": 0.602,
+          "mapY": 0.2,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_mythspire_act3",
+      "title": "Act III",
+      "mapAsset": "assets/images/maps/map_ch_mythspire_gate_a3.png",
+      "nodes": [
+        {
+          "id": "ch_mythspire_n11",
+          "name": "Stone Gate",
+          "enemyId": "brute",
+          "coinReward": 80,
+          "order": 10,
+          "mapX": 0.486,
+          "mapY": 0.878
+        },
+        {
+          "id": "ch_mythspire_n12",
+          "name": "Fang Rise",
+          "enemyId": "wolf",
+          "coinReward": 82,
+          "order": 11,
+          "mapX": 0.485,
+          "mapY": 0.751
+        },
+        {
+          "id": "ch_mythspire_n13",
+          "name": "Mire Chant",
+          "enemyId": "shaman",
+          "coinReward": 84,
+          "order": 12,
+          "mapX": 0.492,
+          "mapY": 0.619,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_mythspire_n14",
+          "name": "Reed Path",
+          "enemyId": "goblin",
+          "coinReward": 86,
+          "order": 13,
+          "mapX": 0.502,
+          "mapY": 0.485
+        },
+        {
+          "id": "ch_mythspire_n15",
+          "name": "Mythspire Tyrant \u2014 Form 3",
+          "enemyId": "mythspire_tyrant",
+          "coinReward": 140,
+          "order": 14,
+          "kind": "boss_sighting",
+          "bossForm": 3,
+          "mapX": 0.502,
+          "mapY": 0.346,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_mythspire_act4",
+      "title": "Act IV",
+      "mapAsset": "assets/images/maps/map_ch_mythspire_gate_a4.png",
+      "nodes": [
+        {
+          "id": "ch_mythspire_n16",
+          "name": "Crush Lane",
+          "enemyId": "brute",
+          "coinReward": 90,
+          "order": 15,
+          "mapX": 0.588,
+          "mapY": 0.866
+        },
+        {
+          "id": "ch_mythspire_n17",
+          "name": "Night Hunt",
+          "enemyId": "wolf",
+          "coinReward": 92,
+          "order": 16,
+          "mapX": 0.286,
+          "mapY": 0.734
+        },
+        {
+          "id": "ch_mythspire_n18",
+          "name": "Candle Hex",
+          "enemyId": "shaman",
+          "coinReward": 94,
+          "order": 17,
+          "mapX": 0.607,
+          "mapY": 0.551,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_mythspire_n19",
+          "name": "Scout Trail",
+          "enemyId": "goblin",
+          "coinReward": 96,
+          "order": 18,
+          "mapX": 0.366,
+          "mapY": 0.434
+        },
+        {
+          "id": "ch_mythspire_n20",
+          "name": "Mythspire Tyrant \u2014 Form 4",
+          "enemyId": "mythspire_tyrant",
+          "coinReward": 150,
+          "order": 19,
+          "kind": "boss_sighting",
+          "bossForm": 4,
+          "mapX": 0.515,
+          "mapY": 0.222,
+          "enrageAfterTurns": 8
+        }
+      ]
+    }
+  ]
+}

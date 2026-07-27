@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/assets/game_assets.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../campaign/data/campaign_repository.dart';
 import '../../heroes/domain/hero_def.dart';
 import '../../profile/providers/mock_profile_provider.dart';
 import '../../puzzle/domain/puzzle_engine.dart';
@@ -83,6 +84,7 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
               next.phase == BattlePhase.defeat)) {
         final args = BattleResultArgs(
           won: next.phase == BattlePhase.victory,
+          bossFled: next.bossFled,
           nodeId: next.nodeId ?? widget.nodeId,
           nodeName: next.nodeName ?? 'Battle',
           enemyName: next.enemy.name,
@@ -90,6 +92,22 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
         );
         context.pushReplacement('/result', extra: args);
         return;
+      }
+
+      // Soft-lock recovery: playerTurn with 0 moves (enemy acted but moves
+      // never refreshed). Do not treat enemyTurn as soft-lock — that is normal.
+      final softLocked =
+          next.phase == BattlePhase.playerTurn && next.movesLeft <= 0;
+      final wasSoft = prev != null &&
+          prev.phase == BattlePhase.playerTurn &&
+          prev.movesLeft <= 0;
+      if (softLocked && !wasSoft) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          ref
+              .read(battleProvider(widget.nodeId).notifier)
+              .recoverIfSoftLocked();
+        });
       }
 
       final idleChanged = prev == null ||
@@ -113,12 +131,18 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
       _scheduleHint(ref.read(battleProvider(widget.nodeId)));
     });
 
+    final chapter = ref.watch(campaignChapterProvider).valueOrNull;
+    final node = chapter?.nodeById(widget.nodeId);
+    final bgPath = GameAssets.battleBackground(
+      node?.backgroundId ?? chapter?.backgroundId,
+    );
+
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
         children: [
           Image.asset(
-            GameAssets.battleTwilightRoad,
+            bgPath,
             fit: BoxFit.cover,
             errorBuilder: (_, __, ___) =>
                 const ColoredBox(color: MythoraColors.ink),
@@ -199,6 +223,13 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
                                   ),
                                 ),
                               ],
+                              const SizedBox(width: 8),
+                              _EndTurnButton(
+                                enabled:
+                                    battle.phase == BattlePhase.playerTurn &&
+                                        !battle.inputLocked,
+                                onTap: notifier.endPlayerTurn,
+                              ),
                             ],
                           ),
                         ],
@@ -252,6 +283,60 @@ class _FloatingActionIcon extends StatelessWidget {
           width: 38,
           height: 38,
           child: Icon(icon, size: 20, color: MythoraColors.parchment),
+        ),
+      ),
+    );
+  }
+}
+
+/// Compact control to discard remaining moves and start the enemy turn.
+class _EndTurnButton extends StatelessWidget {
+  const _EndTurnButton({required this.enabled, required this.onTap});
+
+  final bool enabled;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: enabled ? onTap : null,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          decoration: BoxDecoration(
+            color: enabled
+                ? MythoraColors.deepTeal.withValues(alpha: 0.85)
+                : MythoraColors.ink.withValues(alpha: 0.35),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: enabled
+                  ? MythoraColors.amber.withValues(alpha: 0.55)
+                  : Colors.white.withValues(alpha: 0.12),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.skip_next_rounded,
+                size: 18,
+                color: enabled ? MythoraColors.amber : MythoraColors.muted,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'End',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color:
+                      enabled ? MythoraColors.parchment : MythoraColors.muted,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

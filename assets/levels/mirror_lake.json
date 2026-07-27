@@ -1,0 +1,247 @@
+{
+  "id": "ch_mirror",
+  "title": "Mirror Lake",
+  "subtitle": "Reflections twist the match.",
+  "backgroundId": "bg_battle_mirror_lake",
+  "boardDefaults": {
+    "templateId": "board_open_6x6",
+    "spawnWeights": {
+      "blue": 1.4,
+      "purple": 1.2
+    }
+  },
+  "acts": [
+    {
+      "id": "ch_mirror_act1",
+      "title": "Act I",
+      "mapAsset": "assets/images/maps/map_ch_mirror_lake_a1.png",
+      "nodes": [
+        {
+          "id": "ch_mirror_n01",
+          "name": "Night Hunt",
+          "enemyId": "wolf",
+          "coinReward": 48,
+          "order": 0,
+          "mapX": 0.364,
+          "mapY": 0.855
+        },
+        {
+          "id": "ch_mirror_n02",
+          "name": "Candle Hex",
+          "enemyId": "shaman",
+          "coinReward": 50,
+          "order": 1,
+          "mapX": 0.655,
+          "mapY": 0.714
+        },
+        {
+          "id": "ch_mirror_n03",
+          "name": "Scout Trail",
+          "enemyId": "goblin",
+          "coinReward": 52,
+          "order": 2,
+          "mapX": 0.844,
+          "mapY": 0.581,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_mirror_n04",
+          "name": "Fang Rise",
+          "enemyId": "wolf",
+          "coinReward": 54,
+          "order": 3,
+          "mapX": 0.533,
+          "mapY": 0.374
+        },
+        {
+          "id": "ch_mirror_n05",
+          "name": "Lake Wraith \u2014 Form 1",
+          "enemyId": "lake_wraith",
+          "coinReward": 100,
+          "order": 4,
+          "kind": "boss_sighting",
+          "bossForm": 1,
+          "mapX": 0.404,
+          "mapY": 0.214,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_mirror_act2",
+      "title": "Act II",
+      "mapAsset": "assets/images/maps/map_ch_mirror_lake_a2.png",
+      "nodes": [
+        {
+          "id": "ch_mirror_n06",
+          "name": "Ridge Pace",
+          "enemyId": "wolf",
+          "coinReward": 58,
+          "order": 5,
+          "mapX": 0.44,
+          "mapY": 0.851
+        },
+        {
+          "id": "ch_mirror_n07",
+          "name": "Hex Pool",
+          "enemyId": "shaman",
+          "coinReward": 60,
+          "order": 6,
+          "mapX": 0.484,
+          "mapY": 0.695
+        },
+        {
+          "id": "ch_mirror_n08",
+          "name": "Brush Ambush",
+          "enemyId": "goblin",
+          "coinReward": 62,
+          "order": 7,
+          "mapX": 0.292,
+          "mapY": 0.54,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_mirror_n09",
+          "name": "Night Hunt",
+          "enemyId": "wolf",
+          "coinReward": 64,
+          "order": 8,
+          "mapX": 0.488,
+          "mapY": 0.35
+        },
+        {
+          "id": "ch_mirror_n10",
+          "name": "Lake Wraith \u2014 Form 2",
+          "enemyId": "lake_wraith",
+          "coinReward": 110,
+          "order": 9,
+          "kind": "boss_sighting",
+          "bossForm": 2,
+          "mapX": 0.493,
+          "mapY": 0.196,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_mirror_act3",
+      "title": "Act III",
+      "mapAsset": "assets/images/maps/map_ch_mirror_lake_a3.png",
+      "nodes": [
+        {
+          "id": "ch_mirror_n11",
+          "name": "Howl Bend",
+          "enemyId": "wolf",
+          "coinReward": 68,
+          "order": 10,
+          "mapX": 0.37,
+          "mapY": 0.812
+        },
+        {
+          "id": "ch_mirror_n12",
+          "name": "Bone Circle",
+          "enemyId": "shaman",
+          "coinReward": 70,
+          "order": 11,
+          "mapX": 0.47,
+          "mapY": 0.644
+        },
+        {
+          "id": "ch_mirror_n13",
+          "name": "Mud Crossing",
+          "enemyId": "goblin",
+          "coinReward": 72,
+          "order": 12,
+          "mapX": 0.533,
+          "mapY": 0.484,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_mirror_n14",
+          "name": "Ridge Pace",
+          "enemyId": "wolf",
+          "coinReward": 74,
+          "order": 13,
+          "mapX": 0.41,
+          "mapY": 0.332
+        },
+        {
+          "id": "ch_mirror_n15",
+          "name": "Lake Wraith \u2014 Form 3",
+          "enemyId": "lake_wraith",
+          "coinReward": 120,
+          "order": 14,
+          "kind": "boss_sighting",
+          "bossForm": 3,
+          "mapX": 0.606,
+          "mapY": 0.163,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_mirror_act4",
+      "title": "Act IV",
+      "mapAsset": "assets/images/maps/map_ch_mirror_lake_a4.png",
+      "nodes": [
+        {
+          "id": "ch_mirror_n16",
+          "name": "Fang Rise",
+          "enemyId": "wolf",
+          "coinReward": 78,
+          "order": 15,
+          "mapX": 0.45,
+          "mapY": 0.867
+        },
+        {
+          "id": "ch_mirror_n17",
+          "name": "Mire Chant",
+          "enemyId": "shaman",
+          "coinReward": 80,
+          "order": 16,
+          "mapX": 0.657,
+          "mapY": 0.727
+        },
+        {
+          "id": "ch_mirror_n18",
+          "name": "Reed Path",
+          "enemyId": "goblin",
+          "coinReward": 82,
+          "order": 17,
+          "mapX": 0.414,
+          "mapY": 0.55,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_mirror_n19",
+          "name": "Howl Bend",
+          "enemyId": "wolf",
+          "coinReward": 84,
+          "order": 18,
+          "mapX": 0.502,
+          "mapY": 0.338
+        },
+        {
+          "id": "ch_mirror_n20",
+          "name": "Lake Wraith \u2014 Form 4",
+          "enemyId": "lake_wraith",
+          "coinReward": 130,
+          "order": 19,
+          "kind": "boss_sighting",
+          "bossForm": 4,
+          "mapX": 0.751,
+          "mapY": 0.193,
+          "enrageAfterTurns": 8
+        }
+      ]
+    }
+  ]
+}

@@ -1,3 +1,5 @@
+import '../../puzzle/domain/level_board_config.dart';
+
 class CampaignNode {
   const CampaignNode({
     required this.id,
@@ -10,6 +12,10 @@ class CampaignNode {
     this.backgroundId,
     this.mapX,
     this.mapY,
+    this.board = const LevelBoardConfig(),
+    this.minMoves,
+    this.enrageAfterTurns,
+    this.prepDrops = const [],
   });
 
   final String id;
@@ -33,8 +39,19 @@ class CampaignNode {
   final double? mapX;
   final double? mapY;
 
-  bool get isBoss =>
-      kind == 'boss_sighting' || kind == 'boss' || enemyId == 'warchief';
+  /// Per-node board overrides (merged over chapter [boardDefaults]).
+  final LevelBoardConfig board;
+
+  /// Optional moves floor override (default 2 via PrepBalance).
+  final int? minMoves;
+
+  /// Optional boss enrage after N player turns.
+  final int? enrageAfterTurns;
+
+  /// Prep item ids granted on clear (e.g. `prep_vanguard_tonic`).
+  final List<String> prepDrops;
+
+  bool get isBoss => kind == 'boss_sighting' || kind == 'boss';
 
   factory CampaignNode.fromJson(Map<String, dynamic> json) {
     double? coord(Object? v) {
@@ -47,6 +64,8 @@ class CampaignNode {
     final form =
         rawForm is int ? rawForm : (rawForm is num ? rawForm.toInt() : null);
 
+    final dropsRaw = json['prepDrops'] as List<dynamic>?;
+
     return CampaignNode(
       id: json['id'] as String,
       name: json['name'] as String,
@@ -58,6 +77,15 @@ class CampaignNode {
       backgroundId: json['backgroundId'] as String?,
       mapX: coord(json['mapX']),
       mapY: coord(json['mapY']),
+      board: LevelBoardConfig.fromJson(
+        json['board'] as Map<String, dynamic>?,
+      ),
+      minMoves: json['minMoves'] as int?,
+      enrageAfterTurns: json['enrageAfterTurns'] as int?,
+      prepDrops: [
+        for (final e in dropsRaw ?? const [])
+          if (e is String) e,
+      ],
     );
   }
 }
@@ -106,6 +134,8 @@ class CampaignChapter {
     required this.title,
     required this.subtitle,
     required this.acts,
+    this.boardDefaults = const LevelBoardConfig(),
+    this.backgroundId,
   });
 
   final String id;
@@ -113,10 +143,25 @@ class CampaignChapter {
   final String subtitle;
   final List<CampaignAct> acts;
 
+  /// Chapter-wide board defaults (template, spawn weights, movers).
+  final LevelBoardConfig boardDefaults;
+
+  /// Default battle stage background id (e.g. `bg_battle_mistfen_marshes`).
+  final String? backgroundId;
+
   /// Flat node list in unlock order (across all acts).
   List<CampaignNode> get nodes => [for (final a in acts) ...a.nodes];
 
+  /// Resolved board config for a node (defaults ← node overrides).
+  LevelBoardConfig boardFor(CampaignNode node) =>
+      node.board.mergeOver(boardDefaults);
+
   factory CampaignChapter.fromJson(Map<String, dynamic> json) {
+    final defaults = LevelBoardConfig.fromJson(
+      json['boardDefaults'] as Map<String, dynamic>?,
+    );
+    final backgroundId = json['backgroundId'] as String?;
+
     // New schema: acts[]. Legacy: flat nodes[] → one synthetic act.
     if (json['acts'] is List) {
       final rawActs = json['acts'] as List<dynamic>;
@@ -131,6 +176,8 @@ class CampaignChapter {
         title: json['title'] as String,
         subtitle: json['subtitle'] as String? ?? '',
         acts: acts,
+        boardDefaults: defaults,
+        backgroundId: backgroundId,
       );
     }
 
@@ -143,6 +190,8 @@ class CampaignChapter {
       id: json['id'] as String,
       title: json['title'] as String,
       subtitle: json['subtitle'] as String? ?? '',
+      boardDefaults: defaults,
+      backgroundId: backgroundId,
       acts: [
         CampaignAct(
           id: '${json['id']}_act1',

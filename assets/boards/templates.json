@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": 1,
+  "templates": [
+    {
+      "id": "board_open_6x6",
+      "schemaVersion": 1,
+      "contentVersion": 1,
+      "isEnabled": true,
+      "width": 6,
+      "height": 6,
+      "legend": {},
+      "grid": [
+        "......",
+        "......",
+        "......",
+        "......",
+        "......",
+        "......"
+      ]
+    },
+    {
+      "id": "board_bridge_narrow_01",
+      "schemaVersion": 1,
+      "contentVersion": 1,
+      "isEnabled": true,
+      "width": 6,
+      "height": 6,
+      "legend": {
+        "#": "masked",
+        "2": { "overlay": "ovl_rock", "layers": 2 }
+      },
+      "grid": [
+        "##..##",
+        "#....#",
+        "......",
+        "..22..",
+        "#....#",
+        "##..##"
+      ]
+    },
+    {
+      "id": "board_vine_corners_01",
+      "schemaVersion": 1,
+      "contentVersion": 1,
+      "isEnabled": true,
+      "width": 6,
+      "height": 6,
+      "legend": {
+        "v": { "overlay": "ovl_vine", "layers": 1 }
+      },
+      "grid": [
+        "v....v",
+        "......",
+        "......",
+        "......",
+        "......",
+        "v....v"
+      ]
+    }
+  ]
+}

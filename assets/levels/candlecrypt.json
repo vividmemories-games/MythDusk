@@ -1,0 +1,243 @@
+{
+  "id": "ch_candlecrypt",
+  "title": "Candlecrypt",
+  "subtitle": "Holes in the crypt floor.",
+  "backgroundId": "bg_battle_candlecrypt",
+  "boardDefaults": {
+    "templateId": "board_bridge_narrow_01"
+  },
+  "acts": [
+    {
+      "id": "ch_candlecrypt_act1",
+      "title": "Act I",
+      "mapAsset": "assets/images/maps/map_ch_candlecrypt_a1.png",
+      "nodes": [
+        {
+          "id": "ch_candlecrypt_n01",
+          "name": "Brush Ambush",
+          "enemyId": "crypt_skel",
+          "coinReward": 45,
+          "order": 0,
+          "mapX": 0.402,
+          "mapY": 0.892
+        },
+        {
+          "id": "ch_candlecrypt_n02",
+          "name": "Mire Chant",
+          "enemyId": "shaman",
+          "coinReward": 47,
+          "order": 1,
+          "mapX": 0.377,
+          "mapY": 0.727
+        },
+        {
+          "id": "ch_candlecrypt_n03",
+          "name": "Ridge Pace",
+          "enemyId": "wolf",
+          "coinReward": 49,
+          "order": 2,
+          "mapX": 0.55,
+          "mapY": 0.576,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_candlecrypt_n04",
+          "name": "Scout Trail",
+          "enemyId": "goblin",
+          "coinReward": 51,
+          "order": 3,
+          "mapX": 0.57,
+          "mapY": 0.37
+        },
+        {
+          "id": "ch_candlecrypt_n05",
+          "name": "Bone Seer \u2014 Form 1",
+          "enemyId": "bone_seer",
+          "coinReward": 95,
+          "order": 4,
+          "kind": "boss_sighting",
+          "bossForm": 1,
+          "mapX": 0.601,
+          "mapY": 0.199,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_candlecrypt_act2",
+      "title": "Act II",
+      "mapAsset": "assets/images/maps/map_ch_candlecrypt_a2.png",
+      "nodes": [
+        {
+          "id": "ch_candlecrypt_n06",
+          "name": "Mud Crossing",
+          "enemyId": "crypt_skel",
+          "coinReward": 55,
+          "order": 5,
+          "mapX": 0.535,
+          "mapY": 0.85
+        },
+        {
+          "id": "ch_candlecrypt_n07",
+          "name": "Candle Hex",
+          "enemyId": "shaman",
+          "coinReward": 57,
+          "order": 6,
+          "mapX": 0.369,
+          "mapY": 0.701
+        },
+        {
+          "id": "ch_candlecrypt_n08",
+          "name": "Howl Bend",
+          "enemyId": "wolf",
+          "coinReward": 59,
+          "order": 7,
+          "mapX": 0.666,
+          "mapY": 0.506,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_candlecrypt_n09",
+          "name": "Brush Ambush",
+          "enemyId": "goblin",
+          "coinReward": 61,
+          "order": 8,
+          "mapX": 0.43,
+          "mapY": 0.398
+        },
+        {
+          "id": "ch_candlecrypt_n10",
+          "name": "Bone Seer \u2014 Form 2",
+          "enemyId": "bone_seer",
+          "coinReward": 105,
+          "order": 9,
+          "kind": "boss_sighting",
+          "bossForm": 2,
+          "mapX": 0.572,
+          "mapY": 0.213,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_candlecrypt_act3",
+      "title": "Act III",
+      "mapAsset": "assets/images/maps/map_ch_candlecrypt_a3.png",
+      "nodes": [
+        {
+          "id": "ch_candlecrypt_n11",
+          "name": "Reed Path",
+          "enemyId": "crypt_skel",
+          "coinReward": 65,
+          "order": 10,
+          "mapX": 0.403,
+          "mapY": 0.863
+        },
+        {
+          "id": "ch_candlecrypt_n12",
+          "name": "Hex Pool",
+          "enemyId": "shaman",
+          "coinReward": 67,
+          "order": 11,
+          "mapX": 0.585,
+          "mapY": 0.715
+        },
+        {
+          "id": "ch_candlecrypt_n13",
+          "name": "Fang Rise",
+          "enemyId": "wolf",
+          "coinReward": 69,
+          "order": 12,
+          "mapX": 0.352,
+          "mapY": 0.579,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_candlecrypt_n14",
+          "name": "Mud Crossing",
+          "enemyId": "goblin",
+          "coinReward": 71,
+          "order": 13,
+          "mapX": 0.684,
+          "mapY": 0.385
+        },
+        {
+          "id": "ch_candlecrypt_n15",
+          "name": "Bone Seer \u2014 Form 3",
+          "enemyId": "bone_seer",
+          "coinReward": 115,
+          "order": 14,
+          "kind": "boss_sighting",
+          "bossForm": 3,
+          "mapX": 0.519,
+          "mapY": 0.195,
+          "enrageAfterTurns": 8
+        }
+      ]
+    },
+    {
+      "id": "ch_candlecrypt_act4",
+      "title": "Act IV",
+      "mapAsset": "assets/images/maps/map_ch_candlecrypt_a4.png",
+      "nodes": [
+        {
+          "id": "ch_candlecrypt_n16",
+          "name": "Scout Trail",
+          "enemyId": "crypt_skel",
+          "coinReward": 75,
+          "order": 15,
+          "mapX": 0.524,
+          "mapY": 0.867
+        },
+        {
+          "id": "ch_candlecrypt_n17",
+          "name": "Bone Circle",
+          "enemyId": "shaman",
+          "coinReward": 77,
+          "order": 16,
+          "mapX": 0.54,
+          "mapY": 0.685
+        },
+        {
+          "id": "ch_candlecrypt_n18",
+          "name": "Night Hunt",
+          "enemyId": "wolf",
+          "coinReward": 79,
+          "order": 17,
+          "mapX": 0.533,
+          "mapY": 0.495,
+          "prepDrops": [
+            "prep_vanguard_tonic"
+          ]
+        },
+        {
+          "id": "ch_candlecrypt_n19",
+          "name": "Reed Path",
+          "enemyId": "goblin",
+          "coinReward": 81,
+          "order": 18,
+          "mapX": 0.536,
+          "mapY": 0.335
+        },
+        {
+          "id": "ch_candlecrypt_n20",
+          "name": "Bone Seer \u2014 Form 4",
+          "enemyId": "bone_seer",
+          "coinReward": 125,
+          "order": 19,
+          "kind": "boss_sighting",
+          "bossForm": 4,
+          "mapX": 0.531,
+          "mapY": 0.199,
+          "enrageAfterTurns": 8
+        }
+      ]
+    }
+  ]
+}

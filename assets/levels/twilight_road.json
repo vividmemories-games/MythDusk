@@ -2,6 +2,10 @@
   "id": "twilight_road",
   "title": "Twilight Road",
   "subtitle": "Four acts on the dusk path.",
+  "backgroundId": "bg_battle_twilight_road",
+  "boardDefaults": {
+    "templateId": "board_open_6x6"
+  },
   "acts": [
     {
       "id": "ch1_act1",
@@ -14,8 +18,8 @@
           "enemyId": "goblin",
           "coinReward": 30,
           "order": 0,
-          "mapX": 0.48,
-          "mapY": 0.88
+          "mapX": 0.376,
+          "mapY": 0.861
         },
         {
           "id": "node_02",
@@ -23,8 +27,8 @@
           "enemyId": "wolf",
           "coinReward": 34,
           "order": 1,
-          "mapX": 0.58,
-          "mapY": 0.72
+          "mapX": 0.725,
+          "mapY": 0.718
         },
         {
           "id": "node_03",
@@ -32,8 +36,8 @@
           "enemyId": "shaman",
           "coinReward": 38,
           "order": 2,
-          "mapX": 0.42,
-          "mapY": 0.56
+          "mapX": 0.261,
+          "mapY": 0.546
         },
         {
           "id": "node_04",
@@ -41,19 +45,20 @@
           "enemyId": "brute",
           "coinReward": 42,
           "order": 3,
-          "mapX": 0.56,
-          "mapY": 0.38
+          "mapX": 0.672,
+          "mapY": 0.401
         },
         {
           "id": "node_05",
-          "name": "Warchief — Form I",
+          "name": "Warchief \u2014 Form I",
           "enemyId": "warchief",
           "coinReward": 70,
           "order": 4,
           "kind": "boss_sighting",
           "bossForm": 1,
-          "mapX": 0.50,
-          "mapY": 0.18
+          "mapX": 0.503,
+          "mapY": 0.209,
+          "enrageAfterTurns": 8
         }
       ]
     },
@@ -68,8 +73,8 @@
           "enemyId": "wolf",
           "coinReward": 46,
           "order": 5,
-          "mapX": 0.48,
-          "mapY": 0.88
+          "mapX": 0.59,
+          "mapY": 0.845
         },
         {
           "id": "node_07",
@@ -77,8 +82,8 @@
           "enemyId": "shaman",
           "coinReward": 50,
           "order": 6,
-          "mapX": 0.58,
-          "mapY": 0.72
+          "mapX": 0.334,
+          "mapY": 0.691
         },
         {
           "id": "node_08",
@@ -86,8 +91,8 @@
           "enemyId": "brute",
           "coinReward": 54,
           "order": 7,
-          "mapX": 0.42,
-          "mapY": 0.56
+          "mapX": 0.682,
+          "mapY": 0.586
         },
         {
           "id": "node_09",
@@ -95,19 +100,20 @@
           "enemyId": "goblin",
           "coinReward": 58,
           "order": 8,
-          "mapX": 0.56,
-          "mapY": 0.38
+          "mapX": 0.41,
+          "mapY": 0.353
         },
         {
           "id": "node_10",
-          "name": "Warchief — Form II",
+          "name": "Warchief \u2014 Form II",
           "enemyId": "warchief",
           "coinReward": 95,
           "order": 9,
           "kind": "boss_sighting",
           "bossForm": 2,
-          "mapX": 0.50,
-          "mapY": 0.18
+          "mapX": 0.538,
+          "mapY": 0.204,
+          "enrageAfterTurns": 8
         }
       ]
     },
@@ -122,8 +128,8 @@
           "enemyId": "wolf",
           "coinReward": 62,
           "order": 10,
-          "mapX": 0.48,
-          "mapY": 0.88
+          "mapX": 0.382,
+          "mapY": 0.872
         },
         {
           "id": "node_12",
@@ -131,8 +137,8 @@
           "enemyId": "shaman",
           "coinReward": 66,
           "order": 11,
-          "mapX": 0.58,
-          "mapY": 0.72
+          "mapX": 0.641,
+          "mapY": 0.761
         },
         {
           "id": "node_13",
@@ -140,8 +146,8 @@
           "enemyId": "brute",
           "coinReward": 70,
           "order": 12,
-          "mapX": 0.42,
-          "mapY": 0.56
+          "mapX": 0.602,
+          "mapY": 0.559
         },
         {
           "id": "node_14",
@@ -149,19 +155,20 @@
           "enemyId": "goblin",
           "coinReward": 74,
           "order": 13,
-          "mapX": 0.56,
-          "mapY": 0.38
+          "mapX": 0.42,
+          "mapY": 0.333
         },
         {
           "id": "node_15",
-          "name": "Warchief — Form III",
+          "name": "Warchief \u2014 Form III",
           "enemyId": "warchief",
           "coinReward": 120,
           "order": 14,
           "kind": "boss_sighting",
           "bossForm": 3,
-          "mapX": 0.50,
-          "mapY": 0.18
+          "mapX": 0.543,
+          "mapY": 0.201,
+          "enrageAfterTurns": 8
         }
       ]
     },
@@ -176,8 +183,8 @@
           "enemyId": "wolf",
           "coinReward": 78,
           "order": 15,
-          "mapX": 0.48,
-          "mapY": 0.88
+          "mapX": 0.5,
+          "mapY": 0.86
         },
         {
           "id": "node_17",
@@ -185,8 +192,8 @@
           "enemyId": "shaman",
           "coinReward": 82,
           "order": 16,
-          "mapX": 0.58,
-          "mapY": 0.72
+          "mapX": 0.386,
+          "mapY": 0.709
         },
         {
           "id": "node_18",
@@ -194,8 +201,8 @@
           "enemyId": "brute",
           "coinReward": 86,
           "order": 17,
-          "mapX": 0.42,
-          "mapY": 0.56
+          "mapX": 0.437,
+          "mapY": 0.524
         },
         {
           "id": "node_19",
@@ -203,8 +210,8 @@
           "enemyId": "goblin",
           "coinReward": 90,
           "order": 18,
-          "mapX": 0.56,
-          "mapY": 0.38
+          "mapX": 0.449,
+          "mapY": 0.36
         },
         {
           "id": "node_20",
@@ -214,8 +221,9 @@
           "order": 19,
           "kind": "boss_sighting",
           "bossForm": 4,
-          "mapX": 0.50,
-          "mapY": 0.18
+          "mapX": 0.683,
+          "mapY": 0.185,
+          "enrageAfterTurns": 8
         }
       ]
     }

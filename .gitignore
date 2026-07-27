@@ -1,3 +1,6 @@
+# Opaque character PNG backups (pre-alpha chroma-key)
+assets/_opaque_bak/
+
 # Miscellaneous
 *.class
 *.log

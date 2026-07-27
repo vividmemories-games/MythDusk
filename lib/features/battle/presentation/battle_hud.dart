@@ -39,6 +39,10 @@ class BattleHudBar extends StatelessWidget {
               accent: MythoraColors.amber,
             ),
             const Spacer(),
+            if (battle.enraged) ...[
+              const _PhaseBadge(label: 'Enraged', danger: true),
+              const SizedBox(width: 8),
+            ],
             _PhaseBadge(label: _phaseLabel(battle)),
           ],
         ),
@@ -64,7 +68,7 @@ class BattleHudBar extends StatelessWidget {
         BattlePhase.playerTurn => 'Your turn',
         BattlePhase.resolving => 'Matching…',
         BattlePhase.enemyTurn => 'Enemy turn',
-        BattlePhase.victory => 'Victory',
+        BattlePhase.victory => battle.bossFled ? 'Fled' : 'Victory',
         BattlePhase.defeat => 'Defeat',
       };
 }
@@ -208,26 +212,28 @@ class _ResourceChip extends StatelessWidget {
 }
 
 class _PhaseBadge extends StatelessWidget {
-  const _PhaseBadge({required this.label});
+  const _PhaseBadge({required this.label, this.danger = false});
 
   final String label;
+  final bool danger;
 
   @override
   Widget build(BuildContext context) {
+    final accent = danger ? MythoraColors.ember : MythoraColors.softGold;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: MythoraColors.deepTeal.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: MythoraColors.softGold.withValues(alpha: 0.35),
+          color: accent.withValues(alpha: 0.45),
         ),
       ),
       child: Text(
         label,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontSize: 12,
-              color: MythoraColors.softGold,
+              color: accent,
             ),
       ),
     );

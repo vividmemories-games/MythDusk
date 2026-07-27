@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": 1,
+  "overlays": [
+    {
+      "id": "ovl_rock",
+      "schemaVersion": 1,
+      "contentVersion": 1,
+      "isEnabled": true,
+      "archetype": "blocker",
+      "breakRule": "adjacent_match",
+      "maxLayers": 3
+    },
+    {
+      "id": "ovl_vine",
+      "schemaVersion": 1,
+      "contentVersion": 1,
+      "isEnabled": true,
+      "archetype": "binder",
+      "breakRule": "match_under",
+      "maxLayers": 1
+    },
+    {
+      "id": "ovl_poison",
+      "schemaVersion": 1,
+      "contentVersion": 1,
+      "isEnabled": true,
+      "archetype": "binder",
+      "breakRule": "match_under",
+      "maxLayers": 1,
+      "hazard": "suppress_resources"
+    }
+  ]
+}

@@ -17,12 +17,25 @@ class BattleStage extends StatelessWidget {
 
   final BattleState battle;
 
+  /// Stage band for fighters (tall enough for crowns / horns without clipping).
+  static const double stageHeight = 300;
+
   @override
   Widget build(BuildContext context) {
     // Telegraphed action for the next enemy turn (rolled at turn start).
     final intent = battle.enemyIntent;
+    final isBoss = battle.enemy.isBoss;
+    final form = battle.bossForm;
+    // Fraction of the sprite slot to fill (BoxFit.contain — never crops).
+    // Bosses fill more of the slot so they read bigger than trash.
+    final enemyFill = !isBoss
+        ? 0.88
+        : (form != null && form >= 4)
+            ? 1.0
+            : 0.96;
+
     return SizedBox(
-      height: 164,
+      height: stageHeight,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -39,12 +52,16 @@ class BattleStage extends StatelessWidget {
               shake: battle.combatFx == CombatFx.heroHit,
               showHitFx: battle.combatFx == CombatFx.heroHit,
               align: Alignment.bottomLeft,
+              slotFill: 0.92,
             ),
           ),
           const SizedBox(width: 8),
           Expanded(
             child: _FighterSlot(
-              assetPath: GameAssets.enemy(battle.enemy.id),
+              assetPath: GameAssets.enemy(
+                battle.enemy.id,
+                bossForm: battle.bossForm,
+              ),
               name: battle.enemy.name,
               hp: battle.enemyHp,
               maxHp: battle.enemy.maxHp,
@@ -54,6 +71,7 @@ class BattleStage extends StatelessWidget {
               showHitFx: battle.combatFx == CombatFx.enemyHit,
               align: Alignment.bottomRight,
               threat: intent,
+              slotFill: enemyFill,
             ),
           ),
         ],
@@ -75,6 +93,7 @@ class _FighterSlot extends StatelessWidget {
     this.shake = false,
     this.showHitFx = false,
     this.threat,
+    this.slotFill = 1.0,
   });
 
   final String assetPath;
@@ -89,93 +108,115 @@ class _FighterSlot extends StatelessWidget {
   final bool showHitFx;
   final EnemySkill? threat;
 
+  /// How much of the sprite band to use (0–1). Bosses higher than trash.
+  final double slotFill;
+
   @override
   Widget build(BuildContext context) {
-    Widget sprite = Image.asset(
-      assetPath,
-      fit: BoxFit.contain,
-      alignment: align,
-      errorBuilder: (_, __, ___) => const Icon(
-        Icons.person,
-        size: 72,
-        color: MythoraColors.muted,
-      ),
-    );
-
-    if (flash) {
-      sprite = ColorFiltered(
-        colorFilter: ColorFilter.mode(
-          barColor.withValues(alpha: 0.35),
-          BlendMode.srcATop,
-        ),
-        child: sprite,
-      );
-    }
-
-    sprite = Stack(
-      fit: StackFit.expand,
-      children: [
-        sprite,
-        if (showHitFx)
-          IgnorePointer(
-            child: Image.asset(
-              GameAssets.fxHit,
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-            ),
-          ),
-      ],
-    );
-
-    if (shake) {
-      sprite = TweenAnimationBuilder<double>(
-        key: ValueKey('shake-$name-$hp-$flash'),
-        tween: Tween(begin: 0, end: 1),
-        duration: const Duration(milliseconds: 320),
-        builder: (context, value, child) {
-          final dx = math.sin(value * math.pi * 6) * (1 - value) * 8;
-          return Transform.translate(offset: Offset(dx, 0), child: child);
-        },
-        child: sprite,
-      );
-    }
-
     final isLeft = align == Alignment.bottomLeft;
 
-    // Plate above the character's head, aligned to their side of the screen;
-    // the sprite keeps the rest of the slot and never gets covered. Header
-    // height is fixed so hero and enemy sprites stay the same size.
+    // Plate above the character's head; sprite band below never overlaps it.
     return LayoutBuilder(
       builder: (context, constraints) {
-        final plateWidth = math.min(constraints.maxWidth, 156.0);
+        final plateWidth = math.min(constraints.maxWidth, 168.0);
         return Column(
           crossAxisAlignment:
               isLeft ? CrossAxisAlignment.start : CrossAxisAlignment.end,
           children: [
-            SizedBox(
-              height: 68,
-              child: Column(
-                crossAxisAlignment:
-                    isLeft ? CrossAxisAlignment.start : CrossAxisAlignment.end,
-                children: [
-                  SizedBox(
-                    width: plateWidth,
-                    child: _HpPlate(
-                      name: subtitle == null ? name : '$name · $subtitle',
-                      hp: hp,
-                      maxHp: maxHp,
-                      barColor: barColor,
-                      flash: flash,
-                    ),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment:
+                  isLeft ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+              children: [
+                SizedBox(
+                  width: plateWidth,
+                  child: _HpPlate(
+                    name: subtitle == null ? name : '$name · $subtitle',
+                    hp: hp,
+                    maxHp: maxHp,
+                    barColor: barColor,
+                    flash: flash,
                   ),
-                  if (threat != null) ...[
-                    const SizedBox(height: 3),
-                    _ThreatBadge(threat: threat!),
-                  ],
+                ),
+                if (threat != null) ...[
+                  const SizedBox(height: 3),
+                  _ThreatBadge(threat: threat!),
                 ],
+              ],
+            ),
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, slot) {
+                  final fill = slotFill.clamp(0.7, 1.0);
+                  Widget sprite = Image.asset(
+                    assetPath,
+                    fit: BoxFit.contain,
+                    alignment: align,
+                    errorBuilder: (_, __, ___) => const Icon(
+                      Icons.person,
+                      size: 72,
+                      color: MythoraColors.muted,
+                    ),
+                  );
+
+                  if (flash) {
+                    sprite = ColorFiltered(
+                      colorFilter: ColorFilter.mode(
+                        barColor.withValues(alpha: 0.35),
+                        BlendMode.srcATop,
+                      ),
+                      child: sprite,
+                    );
+                  }
+
+                  sprite = Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      sprite,
+                      if (showHitFx)
+                        IgnorePointer(
+                          child: Image.asset(
+                            GameAssets.fxHit,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) =>
+                                const SizedBox.shrink(),
+                          ),
+                        ),
+                    ],
+                  );
+
+                  // Size within the slot — no Transform.scale, so crowns/horns
+                  // stay fully visible and never paint over the HP plate.
+                  sprite = Align(
+                    alignment: align,
+                    child: SizedBox(
+                      width: slot.maxWidth,
+                      height: slot.maxHeight * fill,
+                      child: sprite,
+                    ),
+                  );
+
+                  if (shake) {
+                    sprite = TweenAnimationBuilder<double>(
+                      key: ValueKey('shake-$name-$hp-$flash'),
+                      tween: Tween(begin: 0, end: 1),
+                      duration: const Duration(milliseconds: 320),
+                      builder: (context, value, child) {
+                        final dx =
+                            math.sin(value * math.pi * 6) * (1 - value) * 8;
+                        return Transform.translate(
+                          offset: Offset(dx, 0),
+                          child: child,
+                        );
+                      },
+                      child: sprite,
+                    );
+                  }
+
+                  return sprite;
+                },
               ),
             ),
-            Expanded(child: sprite),
           ],
         );
       },

@@ -69,9 +69,66 @@ abstract final class GameAssets {
         TileSpecial.none => null,
       };
 
-  /// Resolves enemy / boss sprite path. Boss forms use f4 finale art for now.
-  static String enemy(String enemyId) => switch (enemyId) {
-        'warchief' => 'assets/enemies/bosses/boss_warchief_ruk_f4.png',
-        _ => 'assets/enemies/enemy_$enemyId.png',
-      };
+  /// Resolves enemy / boss sprite path.
+  static String enemy(String enemyId, {int? bossForm}) {
+    final form = (bossForm ?? 4).clamp(1, 4);
+    return switch (enemyId) {
+      'warchief' => 'assets/enemies/bosses/boss_warchief_ruk_f$form.png',
+      'mirelord' => 'assets/enemies/bosses/boss_mirelord_f$form.png',
+      'pack_alpha' => 'assets/enemies/bosses/boss_pack_alpha_f$form.png',
+      'quarry_overseer' =>
+        'assets/enemies/bosses/boss_quarry_overseer_f$form.png',
+      'bone_seer' => 'assets/enemies/bosses/boss_bone_seer_f$form.png',
+      'lake_wraith' => 'assets/enemies/bosses/boss_lake_wraith_f$form.png',
+      'gilded_fence' => 'assets/enemies/bosses/boss_gilded_fence_f$form.png',
+      'siege_captain' => 'assets/enemies/bosses/boss_siege_captain_f$form.png',
+      'ember_smith' => 'assets/enemies/bosses/boss_ember_smith_f$form.png',
+      'mythspire_tyrant' =>
+        'assets/enemies/bosses/boss_mythspire_tyrant_f$form.png',
+      'shaman' => 'assets/enemies/enemy_shaman.png',
+      'mire_spawn' => 'assets/enemies/enemy_mire_spawn.png',
+      'ridge_hawk' => 'assets/enemies/enemy_ridge_hawk.png',
+      'brute' => 'assets/enemies/enemy_brute.png',
+      'crypt_skel' => 'assets/enemies/enemy_crypt_skel.png',
+      'forge_imp' => 'assets/enemies/enemy_forge_imp.png',
+      _ => 'assets/enemies/enemy_$enemyId.png',
+    };
+  }
+
+  static String battleBackground(String? backgroundId) {
+    return switch (backgroundId) {
+      'bg_battle_mistfen_marshes' ||
+      'mistfen_marshes' =>
+        'assets/images/backgrounds/battle/bg_battle_mistfen_marshes.png',
+      'bg_battle_howling_ridge' ||
+      'howling_ridge' =>
+        'assets/images/backgrounds/battle/bg_battle_howling_ridge.png',
+      'bg_battle_ashen_quarries' ||
+      'ashen_quarries' =>
+        'assets/images/backgrounds/battle/bg_battle_ashen_quarries.png',
+      'bg_battle_candlecrypt' ||
+      'candlecrypt' =>
+        'assets/images/backgrounds/battle/bg_battle_candlecrypt.png',
+      'bg_battle_mirror_lake' ||
+      'mirror_lake' =>
+        'assets/images/backgrounds/battle/bg_battle_mirror_lake.png',
+      'bg_battle_thornmarket' ||
+      'thornmarket' =>
+        'assets/images/backgrounds/battle/bg_battle_thornmarket.png',
+      'bg_battle_skybridge_siege' ||
+      'skybridge_siege' =>
+        'assets/images/backgrounds/battle/bg_battle_skybridge_siege.png',
+      'bg_battle_eclipse_forge' ||
+      'eclipse_forge' =>
+        'assets/images/backgrounds/battle/bg_battle_eclipse_forge.png',
+      'bg_battle_mythspire_gate' ||
+      'mythspire_gate' =>
+        'assets/images/backgrounds/battle/bg_battle_mythspire_gate.png',
+      'bg_battle_twilight_road' ||
+      'twilight_road' ||
+      null =>
+        battleTwilightRoad,
+      _ => 'assets/images/backgrounds/battle/bg_battle_$backgroundId.png',
+    };
+  }
 }

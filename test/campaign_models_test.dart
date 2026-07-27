@@ -171,6 +171,43 @@ void main() {
     expect(node.bossForm, isNull);
   });
 
+  test('boardDefaults and node board config parse', () {
+    final chapter = CampaignChapter.fromJson({
+      'id': 'twilight_road',
+      'title': 'Twilight Road',
+      'boardDefaults': {
+        'templateId': 'board_open_6x6',
+        'spawnWeights': {'red': 1.2},
+      },
+      'acts': [
+        {
+          'id': 'act1',
+          'title': 'Act I',
+          'mapAsset': 'assets/images/maps/map_ch_twilight_road_a1.png',
+          'nodes': [
+            {
+              'id': 'node_01',
+              'name': 'A',
+              'enemyId': 'goblin',
+              'coinReward': 35,
+              'order': 0,
+              'board': {'templateId': 'board_bridge_narrow_01'},
+              'minMoves': 2,
+              'enrageAfterTurns': 8,
+              'prepDrops': ['prep_vanguard_tonic'],
+            },
+          ],
+        },
+      ],
+    });
+    final node = chapter.nodes.first;
+    expect(chapter.boardDefaults.templateId, 'board_open_6x6');
+    expect(chapter.boardFor(node).templateId, 'board_bridge_narrow_01');
+    expect(node.minMoves, 2);
+    expect(node.enrageAfterTurns, 8);
+    expect(node.prepDrops, ['prep_vanguard_tonic']);
+  });
+
   test('twilight_road asset has 4 acts × 5 nodes and boss finales', () async {
     final raw = await File('assets/levels/twilight_road.json').readAsString();
     final chapter =
@@ -191,5 +228,6 @@ void main() {
       chapter.acts.map((a) => a.finale.order + 1).toList(),
       [5, 10, 15, 20],
     );
+    expect(chapter.boardDefaults.templateId, 'board_open_6x6');
   });
 }

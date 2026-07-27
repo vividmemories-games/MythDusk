@@ -3,9 +3,11 @@ import 'dart:math';
 import 'board_cell.dart';
 import 'match_balance.dart';
 import 'match_shapes.dart';
+import 'overlay_def.dart';
 import 'puzzle_board.dart';
 import 'tile_color.dart';
 import 'tile_id_gen.dart';
+import 'tile_spawn_weights.dart';
 
 /// Result of resolving matches / blasts on the board.
 class MatchResult {
@@ -490,7 +492,9 @@ abstract final class PuzzleEngine {
 
     final gains = <String, int>{};
     for (final (row, col) in matched) {
-      final color = board.at(row, col).color;
+      final cell = board.at(row, col);
+      if (cell.suppressesResources) continue;
+      final color = cell.color;
       if (color == null) continue;
       final key = color.resourceId;
       gains[key] = (gains[key] ?? 0) + balance.resourcePerTile;
@@ -588,7 +592,11 @@ abstract final class PuzzleEngine {
       for (var col = 0; col < board.width; col++) {
         final i = row * board.width + col;
         final existing = next[i];
-        if (existing.masked || existing.hasSpecial) continue;
+        if (existing.masked ||
+            existing.isSolidObstacle ||
+            existing.hasSpecial) {
+          continue;
+        }
         if (!existing.isPlayable && existing.color == null) continue;
 
         final forbidden = <TileColor>{};
@@ -617,6 +625,11 @@ abstract final class PuzzleEngine {
         next[i] = BoardCell.tile(
           id: existing.id ?? ids.next(),
           color: pick,
+          obstacleLayers: existing.obstacleLayers,
+          overlayId: existing.overlayId,
+          overlayArchetype: existing.overlayArchetype,
+          overlayBreakRule: existing.overlayBreakRule,
+          overlayHazard: existing.overlayHazard,
         );
       }
     }
@@ -631,14 +644,73 @@ abstract final class PuzzleEngine {
     return next;
   }
 
-  static PuzzleBoard clearCells(PuzzleBoard board, Set<(int, int)> cells) {
+  /// Clears tiles in [cells], then applies overlay break damage.
+  ///
+  /// [overlayTouchCells] defaults to [cells]. Pass creation cells too so
+  /// binders under power-up spawns still take match-under damage, and so
+  /// adjacent blockers feel those touches.
+  static PuzzleBoard clearCells(
+    PuzzleBoard board,
+    Set<(int, int)> cells, {
+    Set<(int, int)>? overlayTouchCells,
+  }) {
+    final touch = overlayTouchCells ?? cells;
+    final damage = overlayDamageFromClears(board, touch);
+
     var next = board;
     for (final (row, col) in cells) {
       final cell = next.at(row, col);
-      if (cell.masked) continue;
-      next = next.copyWithCell(row, col, BoardCell.empty());
+      if (cell.masked || cell.isSolidObstacle) continue;
+      next = next.copyWithCell(row, col, cell.copyWith(clearTile: true));
+    }
+
+    for (final entry in damage.entries) {
+      final (row, col) = entry.key;
+      final cell = next.at(row, col);
+      if (!cell.hasObstacle) continue;
+      next = next.copyWithCell(row, col, cell.damageOverlay(entry.value));
     }
     return next;
+  }
+
+  /// Computes overlay layer damage for one clear wave.
+  ///
+  /// - **match_under** binders: 1 damage if the cell is in [touch]
+  /// - **adjacent_match** blockers: 1 damage if any orthogonally adjacent
+  ///   touch cell exists (unique per blocker per wave, not per neighbor)
+  static Map<(int, int), int> overlayDamageFromClears(
+    PuzzleBoard board,
+    Set<(int, int)> touch,
+  ) {
+    final damage = <(int, int), int>{};
+
+    void hit((int, int) pos) {
+      damage[pos] = 1;
+    }
+
+    for (final (row, col) in touch) {
+      if (!board.inBounds(row, col)) continue;
+      final cell = board.at(row, col);
+
+      // Match-under: binder on the cleared / touched cell.
+      if (cell.hasObstacle &&
+          cell.overlayBreakRule == OverlayBreakRule.matchUnder) {
+        hit((row, col));
+      }
+
+      // Adjacent-match: blockers next to a touch cell.
+      for (final (dr, dc) in const [(-1, 0), (1, 0), (0, -1), (0, 1)]) {
+        final nr = row + dr;
+        final nc = col + dc;
+        if (!board.inBounds(nr, nc)) continue;
+        final neighbor = board.at(nr, nc);
+        if (neighbor.hasObstacle &&
+            neighbor.overlayBreakRule == OverlayBreakRule.adjacentMatch) {
+          hit((nr, nc));
+        }
+      }
+    }
+    return damage;
   }
 
   static PuzzleBoard applyCreations(
@@ -657,11 +729,19 @@ abstract final class PuzzleEngine {
           id: existing.id!,
           special: entry.value,
           tint: existing.color,
+          obstacleLayers: existing.obstacleLayers,
+          overlayId: existing.overlayId,
+          overlayArchetype: existing.overlayArchetype,
+          overlayBreakRule: existing.overlayBreakRule,
+          overlayHazard: existing.overlayHazard,
         ),
       );
     }
     return next;
   }
+
+  static bool _isGravitySolid(BoardCell cell) =>
+      cell.masked || cell.isSolidObstacle;
 
   static PuzzleBoard applyGravity(PuzzleBoard board) {
     final next = List<BoardCell>.from(board.cells);
@@ -669,22 +749,41 @@ abstract final class PuzzleEngine {
       final stack = <BoardCell>[];
       for (var row = board.height - 1; row >= 0; row--) {
         final cell = board.at(row, col);
-        if (cell.masked) continue;
-        if (cell.isPlayable) stack.add(cell);
+        if (_isGravitySolid(cell)) continue;
+        if (cell.isPlayable) {
+          // Binder overlays stay on the cell; only the tile falls.
+          stack.add(
+            cell.isBinderObstacle ? cell.copyWith(clearOverlay: true) : cell,
+          );
+        }
       }
 
       var writeRow = board.height - 1;
       for (final tile in stack) {
-        while (writeRow >= 0 && board.at(writeRow, col).masked) {
+        while (writeRow >= 0 && _isGravitySolid(board.at(writeRow, col))) {
           writeRow--;
         }
         if (writeRow < 0) break;
-        next[writeRow * board.width + col] = tile;
+        final dest = board.at(writeRow, col);
+        if (dest.isBinderObstacle) {
+          next[writeRow * board.width + col] = tile.copyWith(
+            obstacleLayers: dest.obstacleLayers,
+            overlayId: dest.overlayId,
+            overlayArchetype: dest.overlayArchetype,
+            overlayBreakRule: dest.overlayBreakRule,
+            overlayHazard: dest.overlayHazard,
+          );
+        } else {
+          next[writeRow * board.width + col] = tile;
+        }
         writeRow--;
       }
       while (writeRow >= 0) {
-        if (!board.at(writeRow, col).masked) {
-          next[writeRow * board.width + col] = BoardCell.empty();
+        final dest = board.at(writeRow, col);
+        if (!_isGravitySolid(dest)) {
+          next[writeRow * board.width + col] = dest.isBinderObstacle
+              ? dest.copyWith(clearTile: true)
+              : BoardCell.empty();
         }
         writeRow--;
       }
@@ -696,18 +795,28 @@ abstract final class PuzzleEngine {
     PuzzleBoard board, {
     required Random random,
     required TileIdGen ids,
+    TileSpawnWeights spawnWeights = TileSpawnWeights.uniform,
   }) {
-    const colors = TileColor.values;
     final next = List<BoardCell>.from(board.cells);
     for (var row = 0; row < board.height; row++) {
       for (var col = 0; col < board.width; col++) {
         final i = row * board.width + col;
         final cell = next[i];
-        if (cell.masked || cell.isPlayable) continue;
-        next[i] = BoardCell.tile(
-          id: ids.next(),
-          color: colors[random.nextInt(colors.length)],
-        );
+        if (cell.masked || cell.isSolidObstacle || cell.isPlayable) continue;
+        final color = spawnWeights.pick(random);
+        if (cell.isBinderObstacle) {
+          next[i] = BoardCell.tile(
+            id: ids.next(),
+            color: color,
+            obstacleLayers: cell.obstacleLayers,
+            overlayId: cell.overlayId,
+            overlayArchetype: cell.overlayArchetype,
+            overlayBreakRule: cell.overlayBreakRule,
+            overlayHazard: cell.overlayHazard,
+          );
+        } else {
+          next[i] = BoardCell.tile(id: ids.next(), color: color);
+        }
       }
     }
     return PuzzleBoard(width: board.width, height: board.height, cells: next);
@@ -723,7 +832,11 @@ abstract final class PuzzleEngine {
     required Random random,
     required TileIdGen ids,
   }) {
-    var afterClear = clearCells(board, plan.clearCells);
+    var afterClear = clearCells(
+      board,
+      plan.clearCells,
+      overlayTouchCells: {...plan.clearCells, ...plan.creations.keys},
+    );
     afterClear = applyCreations(afterClear, plan.creations);
     final afterDrop = applyGravity(afterClear);
     final afterFill = fillEmpty(afterDrop, random: random, ids: ids);

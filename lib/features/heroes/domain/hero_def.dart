@@ -17,6 +17,35 @@ class HeroDef {
   final int maxHp;
   final List<String> primaryResources;
   final List<SkillDef> skills;
+
+  /// Applies coin-upgrade multipliers (Balancing Bible §5.3).
+  HeroDef withCombatMultipliers({
+    double hpMult = 1,
+    double damageMult = 1,
+    double shieldMult = 1,
+  }) {
+    if (hpMult == 1 && damageMult == 1 && shieldMult == 1) return this;
+    return HeroDef(
+      id: id,
+      name: name,
+      movesPerTurn: movesPerTurn,
+      maxAp: maxAp,
+      maxHp: (maxHp * hpMult).round().clamp(1, 9999),
+      primaryResources: primaryResources,
+      skills: [
+        for (final s in skills)
+          SkillDef(
+            id: s.id,
+            name: s.name,
+            apCost: s.apCost,
+            resourceCosts: s.resourceCosts,
+            damage: (s.damage * damageMult).round(),
+            heal: s.heal,
+            shield: (s.shield * shieldMult).round(),
+          ),
+      ],
+    );
+  }
 }
 
 class SkillDef {
@@ -94,7 +123,83 @@ abstract final class HeroCatalog {
     ],
   );
 
-  static const all = [mage, knight];
+  static const ranger = HeroDef(
+    id: 'ranger',
+    name: 'Ranger',
+    movesPerTurn: 5,
+    maxAp: 7,
+    maxHp: 90,
+    primaryResources: ['attack', 'healing'],
+    skills: [
+      SkillDef(
+        id: 'arrow_shot',
+        name: 'Arrow Shot',
+        apCost: 1,
+        resourceCosts: {'attack': 5},
+        damage: 16,
+      ),
+      SkillDef(
+        id: 'marked_shot',
+        name: 'Marked Shot',
+        apCost: 2,
+        resourceCosts: {'attack': 8},
+        damage: 26,
+      ),
+    ],
+  );
+
+  static const priest = HeroDef(
+    id: 'priest',
+    name: 'Priest',
+    movesPerTurn: 4,
+    maxAp: 8,
+    maxHp: 95,
+    primaryResources: ['healing', 'mana'],
+    skills: [
+      SkillDef(
+        id: 'smite',
+        name: 'Smite',
+        apCost: 1,
+        resourceCosts: {'mana': 4},
+        damage: 12,
+      ),
+      SkillDef(
+        id: 'mend',
+        name: 'Mend',
+        apCost: 2,
+        resourceCosts: {'healing': 8},
+        damage: 0,
+        heal: 22,
+      ),
+    ],
+  );
+
+  static const ninja = HeroDef(
+    id: 'ninja',
+    name: 'Ninja',
+    movesPerTurn: 6,
+    maxAp: 7,
+    maxHp: 85,
+    primaryResources: ['attack', 'ultimate'],
+    skills: [
+      SkillDef(
+        id: 'dagger_flurry',
+        name: 'Dagger Flurry',
+        apCost: 1,
+        resourceCosts: {'attack': 4},
+        damage: 14,
+      ),
+      SkillDef(
+        id: 'shadow_strike',
+        name: 'Shadow Strike',
+        apCost: 2,
+        resourceCosts: {'ultimate': 6},
+        damage: 28,
+      ),
+    ],
+  );
+
+  static const all = [mage, knight, ranger, priest, ninja];
 
   static HeroDef byId(String id) =>
       all.firstWhere((h) => h.id == id, orElse: () => mage);
