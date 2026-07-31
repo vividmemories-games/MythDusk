@@ -23,6 +23,45 @@ abstract final class BoardMovers {
     return next;
   }
 
+  /// Movers scheduled to fire on [playerTurnNumber] (1-based).
+  static List<BoardMoverConfig> dueOnTurn(
+    List<BoardMoverConfig> movers,
+    int playerTurnNumber,
+  ) {
+    if (movers.isEmpty || playerTurnNumber < 1) return const [];
+    return [
+      for (final mover in movers)
+        if (_isDue(mover, playerTurnNumber)) mover,
+    ];
+  }
+
+  /// Row indices affected by due `row_shove` movers (for UI lanes).
+  static Set<int> dueWindRows(
+    List<BoardMoverConfig> movers,
+    int playerTurnNumber,
+  ) {
+    return {
+      for (final mover in dueOnTurn(movers, playerTurnNumber))
+        if (mover.type == 'row_shove') ...mover.rows,
+    };
+  }
+
+  /// Primary shove direction for due movers (`left` / `right` / `up` / `down`).
+  /// Prefer the first due `row_shove`, then `col_shove`.
+  static String? dueWindDirection(
+    List<BoardMoverConfig> movers,
+    int playerTurnNumber,
+  ) {
+    final due = dueOnTurn(movers, playerTurnNumber);
+    for (final mover in due) {
+      if (mover.type == 'row_shove') return mover.direction;
+    }
+    for (final mover in due) {
+      if (mover.type == 'col_shove') return mover.direction;
+    }
+    return null;
+  }
+
   static bool _isDue(BoardMoverConfig mover, int playerTurnNumber) {
     final every = mover.everyNTurns < 1 ? 1 : mover.everyNTurns;
     return (playerTurnNumber - 1) % every == 0;

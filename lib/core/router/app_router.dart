@@ -3,9 +3,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/battle/presentation/battle_result_screen.dart';
 import '../../features/battle/presentation/battle_screen.dart';
+import '../../features/campaign/presentation/briefing_screen.dart';
 import '../../features/campaign/presentation/campaign_screen.dart';
 import '../../features/campaign/presentation/chapter_select_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/weekly/presentation/weekly_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -25,6 +27,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/campaign',
         name: 'campaign',
         builder: (context, state) => const CampaignScreen(),
+      ),
+      GoRoute(
+        path: '/briefing/:nodeId',
+        name: 'briefing',
+        builder: (context, state) {
+          final nodeId = state.pathParameters['nodeId']!;
+          return BriefingScreen(nodeId: nodeId);
+        },
+      ),
+      GoRoute(
+        path: '/weekly',
+        name: 'weekly',
+        builder: (context, state) => const WeeklyScreen(),
       ),
       GoRoute(
         path: '/battle/:nodeId',

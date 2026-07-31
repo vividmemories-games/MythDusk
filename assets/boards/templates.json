@@ -57,6 +57,26 @@
         "......",
         "v....v"
       ]
+    },
+    {
+      "id": "board_mistfen_sticky_01",
+      "schemaVersion": 1,
+      "contentVersion": 1,
+      "isEnabled": true,
+      "width": 6,
+      "height": 6,
+      "legend": {
+        "v": { "overlay": "ovl_vine", "layers": 1 },
+        "p": { "overlay": "ovl_poison", "layers": 1 }
+      },
+      "grid": [
+        "v.p..v",
+        "......",
+        ".v..p.",
+        "......",
+        ".p..v.",
+        "v....v"
+      ]
     }
   ]
 }

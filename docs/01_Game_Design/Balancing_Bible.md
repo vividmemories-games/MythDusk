@@ -2,27 +2,29 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | v1 authoritative (combat + soft progression) |
-| **Last Updated** | 2026-07-27 |
+| **Status** | v1.1 authoritative (combat + soft progression + weekly) |
+| **Last Updated** | 2026-07-30 |
 | **Authority** | Numbers & formulas (must not contradict [GAMEPLAY](../GAMEPLAY.md) rules) |
 | **Related** | [Heroes](Heroes.md) · [Enemies](Enemies.md) · [Economy](Economy.md) · [PHASES](../PHASES.md) · `.cursor/rules/08-monetization-economy.mdc` |
 
 ## Purpose
 
-Single place for tunable combat and soft-progression numbers. Code configs (`MatchBalanceConfig`, `PrepBalance`, `EconomyBalance`, `BossCombatBalance`) must mirror this document. Shop/IAP price catalogs beyond lives refill and prep stubs are out of scope for v1.
+Single place for tunable combat and soft-progression numbers. Code configs (`MatchBalanceConfig`, `PrepBalance`, `EconomyBalance`, `BossCombatBalance`, `WeeklyBalance`) must mirror this document. Shop/IAP price catalogs beyond lives refill and prep stubs are out of scope for v1.1; prep **inventory refill** (packs/boxes) is the intended future monetization surface.
 
-## Locked design decisions (v1)
+## Locked design decisions (v1.1)
 
 | Topic | Choice |
 |--------|--------|
-| **Scope** | Combat + soft progression (coins, lives, prep); full shop/IAP tables later |
+| **Scope** | Combat + soft progression (coins, lives, prep, weekly); full shop/IAP tables later |
 | **Difficulty** | Board stays fair; **prep / lives / boosts** are the main friction |
-| **Lives** | Every campaign defeat spends 1 life |
+| **Prep offer** | Prep picker before **every** fight (campaign + weekly); **Play with none** always allowed |
+| **Prep pressure** | Trash balanced for **0 prep**; Act 3+ bosses / finales / weekend weekly expect prep |
+| **Lives** | Every campaign/weekly defeat spends 1 life |
 | **Life pool / regen** | Max **5**; **+1 every 20 minutes** |
 | **Gem lives** | Up to **3 partial refills/day** (+3 lives each), **75 gems** flat |
-| **Fight length** | Trash **3–5** player turns; act boss **6–10**; finale **10–15** (avg prep, normal play) |
-| **Prep pressure** | Act 3+ bosses effectively require prep unless over-leveled / max upgrades |
-| **Gems** | Lives refill + prep bundles (strict caps) + cosmetic placeholders; **no gem combat stats** |
+| **Fight length** | Trash **3–5** player turns; act boss **6–10**; finale **10–15**; weekend weekly **8–14** (avg prep) |
+| **Weekly toughness** | Weekly enemies ≥ **2×** campaign art-counterpart HP and skill damage |
+| **Gems** | Lives refill + capped prep bundles (+ future boxes) + cosmetics; **no gem combat stats** |
 | **Coins** | Prep shop + light hero upgrade stubs |
 | **Upgrade ceiling** | Up to **~30%** total combat power from max coin upgrades |
 
@@ -96,6 +98,8 @@ Weighted mean damage = `Σ(damage × weight) / Σ(weight)`. Cap philosophy: heav
 | Ember Smith | 240 | ~25.2 | Ch9 boss |
 | Mythspire Tyrant | 260 | ~27.7 | Ch10 finale |
 
+Weekly enemies are listed in §3.4 (derived from counterparts × 2).
+
 ### 1.4 Boss pipeline
 
 | Rule | Value |
@@ -117,8 +121,10 @@ Enrage is a soft timer pushing fights into target turn bands without unfair boar
 |------------|-------|
 | Reference hero | Mage |
 | Effective damage / player turn | **~12** early (buildup); **~15** mid with avg prep / better cascades |
+| Trash prep | **0** expected — optional cushion only |
 | Avg prep on bosses | +1 Move (Vanguard) and/or +15 shield (Aegis) |
 | Act 3+ bosses | Assume Tonic + Aegis equipped unless upgrades are near max |
+| Weekend weekly | Assume Tonic + Aegis; enemy stats already 2× counterpart |
 
 Worksheet formula:
 
@@ -159,6 +165,8 @@ Using ~12 DPS trash / ~15 DPS boss+prep:
 
 Config: `lib/features/prep/domain/prep_item.dart`.
 
+Prep is offered on a **pre-fight loadout sheet before every battle** (campaign trash, bosses, weekly). Empty selection is always valid (“Play with none”). Do **not** raise trash HP to force prep spend.
+
 | Knob | Value |
 |------|-------|
 | Max equipped | 3 |
@@ -167,24 +175,29 @@ Config: `lib/features/prep/domain/prep_item.dart`.
 | Second Wind | Once/day revive to **30%** max HP |
 | Default min moves | 2 (after boss debuffs) |
 
-### 3.1 Drop economy (v1 targets)
+### 3.1 Drop economy (v1.1 targets)
 
 | Source | Drop |
 |--------|------|
 | Non-boss clear | **+1 Vanguard Tonic** (always, stub) |
 | Act 2+ non-boss | **25%** chance +1 Aegis Flask (in addition) |
 | Act 3+ non-boss | **8%** chance +1 Second Wind (in addition) |
-| Boss clear | No prep drop (coins only) |
+| Boss / weekly clear | No prep drop (coins only) |
 
 Act index is 0-based within the chapter (`actIndex` 0 = Act I).
 
-### 3.2 Expected boss loadout
+**Sink note:** With prep offered every fight, assume ~25–40% of starts equip ≥1 item. If inventory floods mid-campaign, lower the always-Vanguard grant (e.g. to a chance) before raising shop prices.
+
+### 3.2 Expected loadout
 
 | Band | Expected prep |
 |------|----------------|
-| Ch1–2 | Optional; comfort |
-| Ch3–4 | Strongly recommended on bosses |
-| Act 3+ bosses (Ch3+) / finales | **Tonic + Aegis** minimum for on-level heroes |
+| Campaign trash | **0** (optional 1 for comfort) |
+| Ch1–2 bosses | Optional; comfort |
+| Ch3–4 bosses | Strongly recommended |
+| Act 3+ bosses / finales | **Tonic + Aegis** minimum for on-level heroes |
+| Weekly weekday | Optional; helps vs 2× scout pressure |
+| Weekly weekend | **Tonic + Aegis** recommended |
 
 Over-leveling or max upgrades can still skip prep — intentional soft gate, not a hard lock.
 
@@ -193,6 +206,39 @@ Over-leveling or max upgrades can still skip prep — intentional soft gate, not
 - Second Wind prevents an immediate defeat mid-battle.
 - If the hero dies again later in the **same attempt**, that defeat **still spends a life**.
 - Second Wind does **not** refund a life.
+- Must remain **once/day** (never uncapped paid revive stock).
+
+### 3.4 Weekly (M7)
+
+Config: `lib/features/weekly/domain/weekly_schedule.dart` → `WeeklyBalance`.
+
+| Knob | Value |
+|------|-------|
+| Enemy HP / damage | **2.0×** art-counterpart (`enemyStatMultiplier`) |
+| Weekday objectives | Survive **7** turns **or** clear **60** tiles |
+| Weekday enemy | `weekly_scout` ← Goblin Scout × 2 |
+| Weekend | One of five `weekly_boss_*`; HP fight; enrage after **8** turns |
+| Weekend fight length | **8–14** player turns with avg prep |
+| Coin reward | Weekday **40** / weekend **80** (stub) |
+| Lives | Fail spends 1 campaign life |
+| Prep | Offered every weekly start |
+
+#### Weekly roster (base = counterpart, battle applies ×2)
+
+| Weekly id | Counterpart | Base HP | Battle HP (×2) |
+|-----------|-------------|---------|----------------|
+| `weekly_boss_01` | Warchief Ruk | 140 | 280 |
+| `weekly_boss_02` | Mirelord | 160 | 320 |
+| `weekly_boss_03` | Pack Alpha | 175 | 350 |
+| `weekly_boss_04` | Gilded Fence | 210 | 420 |
+| `weekly_boss_05` | Mythspire Tyrant | 260 | 520 |
+| `weekly_scout` | Goblin Scout | 50 | 100 |
+
+Skill damage uses the same **2.0×** multiplier on counterpart skill tables.
+
+### 3.5 Monetization path (prep inventory)
+
+Allowed later (not priced in v1.1): coin/gem **prep packs**, loot **boxes** that grant Vanguard/Aegis/Second Wind, battle-pass prep track. All refill inventory only — never raw combat power. Server must validate grants (Phase 4).
 
 ---
 
@@ -205,23 +251,23 @@ Config: `lib/features/profile/domain/economy_balance.dart` → `EconomyBalance`.
 | Starting / max lives | 5 |
 | Regen | +1 life every **20 minutes** while below max |
 | Defeat | −1 life (clamp 0) |
-| Start gate | Cannot start a campaign node at **0 lives** |
+| Start gate | Cannot start a campaign node or weekly at **0 lives** |
 | Gem partial refill | **75 gems** → **+3 lives** (clamp max) |
 | Daily gem refill cap | **3** purchases per `yyyy-MM-dd` |
-| Full gem refill | Not in v1 |
+| Full gem refill | Not in v1.1 |
 
 Persist: `lastLifeRegenAt`, `gemLifeRefillDay`, `gemLifeRefillCount` on mock profile (later Firestore `users`).
 
-### 4.1 Monetization never-buy list (v1)
+### 4.1 Monetization never-buy list (v1.1)
 
 Gems / IAP must **not** purchase:
 
 - Combat stat power (damage, HP, AP, Moves beyond capped prep)
-- Uncapped revives
+- Uncapped revives / uncapped Second Wind stock
 - Guaranteed win / skip boss
 - Client-trusted reward amounts (server validates in Phase 4)
 
-Allowed gem sinks (v1+): capped life refills, capped prep bundles, cosmetics.
+Allowed gem sinks (v1.1+): capped life refills, capped prep bundles/boxes, cosmetics.
 
 ---
 
@@ -270,7 +316,7 @@ Applied once when building `BattleState.initial` (scaled `HeroDef`), not in widg
 
 | Phase | Delivery |
 |-------|----------|
-| Now | Dart `MatchBalanceConfig`, `PrepBalance`, `EconomyBalance`, `BossCombatBalance` |
+| Now | Dart `MatchBalanceConfig`, `PrepBalance`, `EconomyBalance`, `BossCombatBalance`, `WeeklyBalance` |
 | Later | `assets/balance/remote_balance.json` or Firestore `remote_balance` |
 
 Future remote document shape:
@@ -299,11 +345,14 @@ Future remote document shape:
 
 ## 7. Playtest checklist
 
-1. Trash clears in 3–5 player turns for on-level hero.
+1. Trash clears in 3–5 player turns for on-level hero **with 0 prep**.
 2. Act bosses clear in 6–10 turns before or near enrage with recommended prep.
 3. Finales 10–15 turns with prep; enrage is a backstop.
 4. Act 3+ boss defeat rate with **0 prep** is clearly higher than with Tonic+Aegis.
-5. F2P can recover lives via regen without obligatory gem spend; gem refill stays under 3/day.
-6. Max upgrades feel helpful (~30%) but do not delete prep pressure entirely.
+5. Prep sheet appears on trash and weekly; empty loadout can always start.
+6. Weekend weekly feels clearly harder than its campaign counterpart (~2× HP/damage).
+7. F2P can recover lives via regen without obligatory gem spend; gem refill stays under 3/day.
+8. Max upgrades feel helpful (~30%) but do not delete prep pressure entirely.
+9. Prep inventory neither floods uselessly nor forces gem buys by mid-Ch2.
 
 Record material formula changes in [Decisions](../00_Project/Decisions.md).

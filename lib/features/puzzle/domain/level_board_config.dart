@@ -1,8 +1,6 @@
 import 'tile_spawn_weights.dart';
 
-/// Deterministic board transform applied on a schedule.
-///
-/// Execution is deferred; this model is the JSON contract.
+/// Deterministic board transform applied on a schedule (row/col shove).
 class BoardMoverConfig {
   const BoardMoverConfig({
     required this.type,
@@ -48,7 +46,7 @@ class BoardMoverConfig {
   }
 }
 
-/// Optional per-turn hazard spawn knobs (execution deferred to Ch2+).
+/// Optional per-turn hazard spawn knobs (e.g. Mistfen poison).
 class HazardSpawnConfig {
   const HazardSpawnConfig({
     required this.overlayId,

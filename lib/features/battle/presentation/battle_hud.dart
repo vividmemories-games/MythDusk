@@ -43,9 +43,33 @@ class BattleHudBar extends StatelessWidget {
               const _PhaseBadge(label: 'Enraged', danger: true),
               const SizedBox(width: 8),
             ],
+            if (battle.movers.isNotEmpty) ...[
+              _PhaseBadge(
+                label: battle.combatFx == CombatFx.wind ? 'Wind!' : 'Windy',
+                danger: battle.combatFx == CombatFx.wind,
+              ),
+              const SizedBox(width: 8),
+            ],
+            if (battle.combatFx == CombatFx.hazard ||
+                battle.hazardPulseCells.isNotEmpty) ...[
+              const _PhaseBadge(label: 'Hazard!', danger: true),
+              const SizedBox(width: 8),
+            ],
             _PhaseBadge(label: _phaseLabel(battle)),
           ],
         ),
+        if (battle.objective != null) ...[
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: _PhaseBadge(
+              label: battle.objective!.progressText(
+                playerTurnNumber: battle.playerTurnNumber,
+                tilesCleared: battle.tilesCleared,
+              ),
+            ),
+          ),
+        ],
         const SizedBox(height: 6),
         Row(
           children: [

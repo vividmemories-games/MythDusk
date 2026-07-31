@@ -10,12 +10,15 @@ import '../../campaign/data/campaign_repository.dart';
 import '../../heroes/domain/hero_def.dart';
 import '../../profile/providers/mock_profile_provider.dart';
 import '../../puzzle/domain/puzzle_engine.dart';
+import '../../weekly/providers/weekly_providers.dart';
 import '../domain/battle_state.dart';
+import '../domain/skill_affordability.dart';
 import '../providers/battle_provider.dart';
 import 'animated_puzzle_board.dart';
 import 'battle_hud.dart';
 import 'battle_result_screen.dart';
 import 'battle_stage.dart';
+import 'battle_tutorial_overlay.dart';
 
 class BattleScreen extends ConsumerStatefulWidget {
   const BattleScreen({super.key, required this.nodeId});
@@ -85,6 +88,9 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
         final args = BattleResultArgs(
           won: next.phase == BattlePhase.victory,
           bossFled: next.bossFled,
+          isWeekly: next.isWeekly,
+          weeklyDayKey:
+              next.isWeekly ? ref.read(weeklyChallengeProvider).dayKey : null,
           nodeId: next.nodeId ?? widget.nodeId,
           nodeName: next.nodeName ?? 'Battle',
           enemyName: next.enemy.name,
@@ -216,8 +222,7 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
                                 Expanded(
                                   child: _SkillButton(
                                     skill: battle.hero.skills[i],
-                                    enabled:
-                                        notifier.canCast(battle.hero.skills[i]),
+                                    battle: battle,
                                     onTap: () => notifier
                                         .castSkill(battle.hero.skills[i]),
                                   ),
@@ -242,7 +247,7 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
                   left: 8,
                   child: _FloatingActionIcon(
                     icon: Icons.arrow_back,
-                    onTap: () => context.pop(),
+                    onTap: () => _confirmLeave(context),
                   ),
                 ),
                 Positioned(
@@ -250,8 +255,11 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
                   right: 8,
                   child: _FloatingActionIcon(
                     icon: Icons.refresh,
-                    onTap: notifier.restart,
+                    onTap: () => _confirmRestart(context, notifier),
                   ),
+                ),
+                BattleTutorialOverlay(
+                  enabled: !battle.isWeekly,
                 ),
               ],
             ),
@@ -259,6 +267,55 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _confirmLeave(BuildContext context) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: MythoraColors.deepTeal,
+        title: const Text('Leave battle?'),
+        content: const Text(
+          'Progress in this fight will be lost. A life is only spent on defeat.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Stay'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Leave'),
+          ),
+        ],
+      ),
+    );
+    if (ok == true && context.mounted) context.pop();
+  }
+
+  Future<void> _confirmRestart(
+      BuildContext context, BattleNotifier notifier) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: MythoraColors.deepTeal,
+        title: const Text('Restart battle?'),
+        content: const Text(
+          'The fight resets from the start. Prep already spent stays spent.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Restart'),
+          ),
+        ],
+      ),
+    );
+    if (ok == true && mounted) notifier.restart();
   }
 }
 
@@ -343,91 +400,114 @@ class _EndTurnButton extends StatelessWidget {
   }
 }
 
-/// Game-style ability card: name over gem/AP cost chips.
-/// Glows gold when castable; stays readable (dimmed) when not.
+/// Game-style ability card: name over current/need cost chips.
+/// Glows gold when castable; shows blocking reason when not.
 class _SkillButton extends StatelessWidget {
   const _SkillButton({
     required this.skill,
-    required this.enabled,
+    required this.battle,
     required this.onTap,
   });
 
   final SkillDef skill;
-  final bool enabled;
+  final BattleState battle;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: enabled
-              ? [MythoraColors.mist, MythoraColors.deepTeal]
-              : [
-                  MythoraColors.deepTeal.withValues(alpha: 0.55),
-                  MythoraColors.ink.withValues(alpha: 0.55),
-                ],
-        ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: enabled
-              ? MythoraColors.softGold
-              : Colors.white.withValues(alpha: 0.14),
-          width: enabled ? 1.6 : 1,
-        ),
-        boxShadow: enabled
-            ? [
-                BoxShadow(
-                  color: MythoraColors.softGold.withValues(alpha: 0.35),
-                  blurRadius: 10,
-                  spreadRadius: 0.5,
-                ),
-              ]
-            : const [],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
+    final afford = SkillAffordability.evaluate(skill, battle);
+    final enabled = afford.canCast;
+
+    return Tooltip(
+      message: afford.blockingReason ?? 'Ready',
+      triggerMode: TooltipTriggerMode.longPress,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: enabled
+                ? [MythoraColors.mist, MythoraColors.deepTeal]
+                : [
+                    MythoraColors.deepTeal.withValues(alpha: 0.55),
+                    MythoraColors.ink.withValues(alpha: 0.55),
+                  ],
+          ),
           borderRadius: BorderRadius.circular(12),
-          onTap: enabled ? onTap : null,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-            child: Opacity(
-              opacity: enabled ? 1 : 0.6,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    skill.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: enabled
-                          ? MythoraColors.softGold
-                          : MythoraColors.parchment,
+          border: Border.all(
+            color: enabled
+                ? MythoraColors.softGold
+                : Colors.white.withValues(alpha: 0.14),
+            width: enabled ? 1.6 : 1,
+          ),
+          boxShadow: enabled
+              ? [
+                  BoxShadow(
+                    color: MythoraColors.softGold.withValues(alpha: 0.35),
+                    blurRadius: 10,
+                    spreadRadius: 0.5,
+                  ),
+                ]
+              : const [],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: enabled ? onTap : null,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              child: Opacity(
+                opacity: enabled ? 1 : 0.72,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      skill.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: enabled
+                            ? MythoraColors.softGold
+                            : MythoraColors.parchment,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      for (final entry in skill.resourceCosts.entries) ...[
+                    const SizedBox(height: 3),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        for (final line in afford.resourceLines) ...[
+                          _CostChip(
+                            iconPath: GameAssets.resourceIcon(line.resourceId),
+                            label: line.label,
+                            ok: line.ok,
+                          ),
+                          const SizedBox(width: 4),
+                        ],
                         _CostChip(
-                          iconPath: GameAssets.resourceIcon(entry.key),
-                          value: entry.value,
+                          iconPath: GameAssets.iconAp,
+                          label: '${afford.apHave}/${afford.apNeed}',
+                          ok: afford.apOk,
                         ),
-                        const SizedBox(width: 6),
                       ],
-                      _CostChip(
-                          iconPath: GameAssets.iconAp, value: skill.apCost),
+                    ),
+                    if (!enabled && afford.blockingReason != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        afford.blockingReason!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 9,
+                          color: MythoraColors.ember,
+                        ),
+                      ),
                     ],
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -438,38 +518,46 @@ class _SkillButton extends StatelessWidget {
 }
 
 class _CostChip extends StatelessWidget {
-  const _CostChip({required this.iconPath, required this.value});
+  const _CostChip({
+    required this.iconPath,
+    required this.label,
+    this.ok = true,
+  });
 
   final String iconPath;
-  final int value;
+  final String label;
+  final bool ok;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(3, 2, 6, 2),
+      padding: const EdgeInsets.fromLTRB(3, 2, 5, 2),
       decoration: BoxDecoration(
         color: MythoraColors.ink.withValues(alpha: 0.45),
         borderRadius: BorderRadius.circular(9),
+        border: ok
+            ? null
+            : Border.all(color: MythoraColors.ember.withValues(alpha: 0.7)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            width: 16,
-            height: 16,
+            width: 14,
+            height: 14,
             child: Image.asset(
               iconPath,
               fit: BoxFit.contain,
               errorBuilder: (_, __, ___) => const Icon(Icons.circle, size: 10),
             ),
           ),
-          const SizedBox(width: 3),
+          const SizedBox(width: 2),
           Text(
-            '$value',
-            style: const TextStyle(
-              fontSize: 11,
+            label,
+            style: TextStyle(
+              fontSize: 10,
               fontWeight: FontWeight.w700,
-              color: MythoraColors.parchment,
+              color: ok ? MythoraColors.parchment : MythoraColors.ember,
             ),
           ),
         ],

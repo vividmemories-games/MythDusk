@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/assets/game_assets.dart';
+import '../../../core/config/app_flavor.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../campaign/data/campaign_repository.dart';
 import '../../heroes/domain/hero_def.dart';
+import '../../heroes/domain/hero_unlocks.dart';
 import '../../prep/domain/prep_item.dart';
 import '../../profile/domain/economy_balance.dart';
 import '../../profile/providers/mock_profile_provider.dart';
@@ -142,7 +144,7 @@ class HomeScreen extends ConsumerWidget {
                     children: [
                       Expanded(
                         child: OutlinedButton(
-                          onPressed: () => _showWeeklyStub(context),
+                          onPressed: () => context.push('/weekly'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: MythoraColors.parchment,
                             side: const BorderSide(color: MythoraColors.mist),
@@ -169,20 +171,22 @@ class HomeScreen extends ConsumerWidget {
                     textAlign: TextAlign.center,
                     style: textTheme.bodyMedium?.copyWith(fontSize: 12),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      TextButton(
-                        onPressed: () => _unlockAllForQa(context, ref),
-                        child: const Text('Unlock all (QA)'),
-                      ),
-                      TextButton(
-                        onPressed: () =>
-                            ref.read(profileProvider.notifier).resetProgress(),
-                        child: const Text('Reset progress'),
-                      ),
-                    ],
-                  ),
+                  if (AppFlavor.showQaTools)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextButton(
+                          onPressed: () => _unlockAllForQa(context, ref),
+                          child: const Text('Unlock all (QA)'),
+                        ),
+                        TextButton(
+                          onPressed: () => ref
+                              .read(profileProvider.notifier)
+                              .resetProgress(),
+                          child: const Text('Reset progress'),
+                        ),
+                      ],
+                    ),
                 ],
               ),
             ),
@@ -293,25 +297,6 @@ class HomeScreen extends ConsumerWidget {
     }
   }
 
-  void _showWeeklyStub(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: MythoraColors.deepTeal,
-        title: const Text('Weekly'),
-        content: const Text(
-          'Weekly objectives land in M7. Mon–Fri puzzles, weekend boss — coming soon.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showHeroPicker(BuildContext context, WidgetRef ref) {
     showModalBottomSheet<void>(
       context: context,
@@ -336,31 +321,52 @@ class HomeScreen extends ConsumerWidget {
                   const SizedBox(height: 12),
                   ...HeroCatalog.all.map((hero) {
                     final selected = hero.id == profile.selectedHeroId;
+                    final unlocked = HeroUnlocks.isUnlocked(
+                      hero.id,
+                      profile.completedNodeIds.length,
+                    );
                     return ListTile(
+                      enabled: unlocked,
                       leading: SizedBox(
                         width: 40,
                         height: 40,
-                        child: Image.asset(
-                          GameAssets.hero(hero.id),
-                          errorBuilder: (_, __, ___) => Icon(
-                            selected
-                                ? Icons.check_circle
-                                : Icons.person_outline,
-                            color: MythoraColors.amber,
+                        child: Opacity(
+                          opacity: unlocked ? 1 : 0.35,
+                          child: Image.asset(
+                            GameAssets.hero(hero.id),
+                            errorBuilder: (_, __, ___) => Icon(
+                              selected
+                                  ? Icons.check_circle
+                                  : Icons.person_outline,
+                              color: MythoraColors.amber,
+                            ),
                           ),
                         ),
                       ),
                       title: Text(hero.name),
                       subtitle: Text(
-                        '${hero.movesPerTurn} moves · ${hero.maxHp} HP',
+                        unlocked
+                            ? '${hero.movesPerTurn} moves · ${hero.maxHp} HP'
+                            : HeroUnlocks.lockBlurb(
+                                hero.id,
+                                profile.completedNodeIds.length,
+                              ),
                       ),
-                      trailing: selected
-                          ? const Icon(Icons.check, color: MythoraColors.amber)
+                      trailing: !unlocked
+                          ? const Icon(Icons.lock_outline,
+                              color: MythoraColors.muted)
+                          : selected
+                              ? const Icon(Icons.check,
+                                  color: MythoraColors.amber)
+                              : null,
+                      onTap: unlocked
+                          ? () {
+                              ref
+                                  .read(profileProvider.notifier)
+                                  .selectHero(hero.id);
+                              Navigator.pop(context);
+                            }
                           : null,
-                      onTap: () {
-                        ref.read(profileProvider.notifier).selectHero(hero.id);
-                        Navigator.pop(context);
-                      },
                     );
                   }),
                 ],

@@ -8,8 +8,11 @@ import '../../profile/providers/mock_profile_provider.dart';
 import '../../puzzle/data/board_catalog_repository.dart';
 import '../../puzzle/domain/board_builder.dart';
 import '../../puzzle/domain/level_board_config.dart';
+import '../../puzzle/domain/overlay_def.dart';
 import '../../puzzle/domain/puzzle_board.dart';
 import '../../puzzle/domain/puzzle_engine.dart';
+import '../../weekly/domain/weekly_schedule.dart';
+import '../../weekly/providers/weekly_providers.dart';
 import '../domain/battle_state.dart';
 import '../domain/enemy_def.dart';
 
@@ -31,10 +34,38 @@ final battleProvider = StateNotifierProvider.autoDispose
     damageMult: EconomyBalance.multiplierFor(upgradeSnapshot.$2),
     shieldMult: EconomyBalance.multiplierFor(upgradeSnapshot.$3),
   );
+
+  final isWeekly = nodeId == WeeklyBalance.battleNodeId;
+  if (isWeekly) {
+    final challenge = ref.watch(weeklyChallengeProvider);
+    final equipped = List<PrepItemId>.from(ref.read(pendingBossPrepProvider));
+    if (equipped.isNotEmpty) {
+      ref.read(pendingBossPrepProvider.notifier).state = const [];
+    }
+    final enemy = EnemyCatalog.byId(challenge.enemyId).scaled(
+      hpMult: WeeklyBalance.enemyStatMultiplier,
+      damageMult: WeeklyBalance.enemyStatMultiplier,
+    );
+    return BattleNotifier(
+      hero: hero,
+      enemy: enemy,
+      nodeId: WeeklyBalance.battleNodeId,
+      nodeName: challenge.title,
+      coinReward: challenge.coinReward,
+      enrageAfterTurns: challenge.enrageAfterTurns,
+      minMoves: PrepBalance.defaultMinMoves,
+      equippedPrep: equipped,
+      isWeekly: true,
+      objective: challenge.objective,
+      onSecondWindUsed: () {
+        ref.read(profileProvider.notifier).markSecondWindUsed();
+      },
+    );
+  }
+
   final chapter = ref.watch(campaignChapterProvider).valueOrNull;
   final node = chapter?.nodeById(nodeId);
   final enemy = EnemyCatalog.byId(node?.enemyId ?? 'goblin');
-  final isBoss = node?.isBoss ?? enemy.isBoss;
 
   final overlays = ref.watch(overlayCatalogProvider).valueOrNull;
   final templates = ref.watch(boardTemplateCatalogProvider).valueOrNull;
@@ -43,9 +74,7 @@ final battleProvider = StateNotifierProvider.autoDispose
       : const LevelBoardConfig();
 
   // Inventory already consumed by prep picker; apply modifiers then clear.
-  final equipped = isBoss
-      ? List<PrepItemId>.from(ref.read(pendingBossPrepProvider))
-      : const <PrepItemId>[];
+  final equipped = List<PrepItemId>.from(ref.read(pendingBossPrepProvider));
   if (equipped.isNotEmpty) {
     ref.read(pendingBossPrepProvider.notifier).state = const [];
   }
@@ -63,6 +92,10 @@ final battleProvider = StateNotifierProvider.autoDispose
     minMoves: node?.minMoves ?? PrepBalance.defaultMinMoves,
     equippedPrep: equipped,
     movers: boardConfig.effectiveMovers,
+    hazardSpawn: boardConfig.hazardSpawn,
+    hazardOverlayDef: boardConfig.hazardSpawn == null
+        ? null
+        : overlays?[boardConfig.hazardSpawn!.overlayId],
     boardFactory: () {
       if (overlays == null || templates == null || !boardConfig.hasTemplate) {
         return null;
@@ -95,6 +128,10 @@ class BattleNotifier extends StateNotifier<BattleState> {
     List<BoardMoverConfig> movers = const [],
     PuzzleBoard? Function()? boardFactory,
     void Function()? onSecondWindUsed,
+    bool isWeekly = false,
+    BattleObjective? objective,
+    HazardSpawnConfig? hazardSpawn,
+    OverlayDef? hazardOverlayDef,
   })  : _onSecondWindUsed = onSecondWindUsed,
         _equippedPrep = List.unmodifiable(equippedPrep),
         _minMoves = minMoves,
@@ -114,11 +151,16 @@ class BattleNotifier extends StateNotifier<BattleState> {
             equippedPrep: equippedPrep,
             movers: movers,
             board: boardFactory?.call(),
+            isWeekly: isWeekly,
+            objective: objective,
+            hazardSpawn: hazardSpawn,
+            hazardOverlayDef: hazardOverlayDef,
           ),
         ) {
     _controller = BattleController(state);
     _controller.startPlayerTurn(applyInline: true);
     state = _controller.state;
+    _scheduleClearWindFx();
   }
 
   late BattleController _controller;
@@ -142,6 +184,10 @@ class BattleNotifier extends StateNotifier<BattleState> {
     required List<PrepItemId> equippedPrep,
     List<BoardMoverConfig> movers = const [],
     PuzzleBoard? board,
+    bool isWeekly = false,
+    BattleObjective? objective,
+    HazardSpawnConfig? hazardSpawn,
+    OverlayDef? hazardOverlayDef,
   }) {
     var bonusMoves = 0;
     var bonusShield = 0;
@@ -175,6 +221,10 @@ class BattleNotifier extends StateNotifier<BattleState> {
       board: board,
       movers: movers,
       prepLogNotes: notes,
+      isWeekly: isWeekly,
+      objective: objective,
+      hazardSpawn: hazardSpawn,
+      hazardOverlayDef: hazardOverlayDef,
     );
   }
 
@@ -318,8 +368,16 @@ class BattleNotifier extends StateNotifier<BattleState> {
     }
 
     _controller.state = state;
+    if (_controller.tryObjectiveVictory()) {
+      state = _controller.state;
+      return;
+    }
     _controller.finishPlayerAction(movesSpent: movesSpent);
     state = _controller.state;
+    if (_controller.tryObjectiveVictory()) {
+      state = _controller.state;
+      return;
+    }
 
     if (state.phase == BattlePhase.enemyTurn) {
       await _runEnemyTurn(gen);
@@ -358,7 +416,10 @@ class BattleNotifier extends StateNotifier<BattleState> {
       }
     }
 
-    await Future<void>.delayed(BattleController.combatFxDuration);
+    final impactFx = state.combatFx == CombatFx.hazard
+        ? BattleController.hazardFxDuration
+        : BattleController.combatFxDuration;
+    await Future<void>.delayed(impactFx);
     if (!mounted) return;
 
     _controller.state = state;
@@ -377,11 +438,60 @@ class BattleNotifier extends StateNotifier<BattleState> {
     _controller.state = state;
     final cascade = _controller.startPlayerTurn();
     state = _controller.state;
+    if (state.phase == BattlePhase.victory ||
+        state.phase == BattlePhase.defeat) {
+      return;
+    }
+    // Let the row shove animate / wind lanes pulse before match clears.
+    if (state.combatFx == CombatFx.wind) {
+      await Future<void>.delayed(BattleController.windFxDuration);
+      if (!mounted || gen != _actionGen) return;
+      _controller.state = state;
+      if (state.hazardPulseCells.isNotEmpty) {
+        _controller.promoteHazardFx();
+        state = _controller.state;
+        await Future<void>.delayed(BattleController.hazardFxDuration);
+        if (!mounted || gen != _actionGen) return;
+        _controller.state = state;
+      }
+      _controller.clearCombatFx();
+      state = _controller.state;
+    } else if (state.combatFx == CombatFx.hazard ||
+        state.hazardPulseCells.isNotEmpty) {
+      await Future<void>.delayed(BattleController.hazardFxDuration);
+      if (!mounted || gen != _actionGen) return;
+      _controller.state = state;
+      _controller.clearCombatFx();
+      state = _controller.state;
+    }
     if (cascade != null) {
       await _playCascade(cascade, gen, movesSpent: 0);
       return;
     }
     await _ensurePlayableBoard(gen);
+  }
+
+  void _scheduleClearWindFx() {
+    if (state.combatFx != CombatFx.wind) return;
+    Future<void>.delayed(BattleController.windFxDuration, () {
+      if (!mounted) return;
+      if (state.combatFx != CombatFx.wind) return;
+      _controller.state = state;
+      if (state.hazardPulseCells.isNotEmpty) {
+        _controller.promoteHazardFx();
+        state = _controller.state;
+        Future<void>.delayed(BattleController.hazardFxDuration, () {
+          if (!mounted) return;
+          if (state.combatFx != CombatFx.hazard) return;
+          _controller.state = state;
+          _controller.clearCombatFx();
+          state = _controller.state;
+        });
+        return;
+      }
+      _controller.clearCombatFx();
+      state = _controller.state;
+    });
   }
 
   /// Player voluntarily ends the turn (remaining moves are discarded).
@@ -401,10 +511,22 @@ class BattleNotifier extends StateNotifier<BattleState> {
     if (!_controller.canCast(skill)) return;
 
     final gen = ++_actionGen;
+    final dealsDamage = skill.damage > 0;
     _controller.castSkill(skill);
     state = _controller.state;
 
-    await Future<void>.delayed(BattleController.combatFxDuration);
+    // Cast cue on the hero, then impact flash when the skill deals damage.
+    if (dealsDamage && state.combatFx == CombatFx.enemyHit) {
+      _controller.state = state.copyWith(combatFx: CombatFx.heroCast);
+      state = _controller.state;
+      await Future<void>.delayed(BattleController.castFxDuration);
+      if (!mounted || gen != _actionGen) return;
+      _controller.state = state.copyWith(combatFx: CombatFx.enemyHit);
+      state = _controller.state;
+      await Future<void>.delayed(BattleController.combatFxDuration);
+    } else {
+      await Future<void>.delayed(BattleController.castFxDuration);
+    }
     if (!mounted || gen != _actionGen) return;
     _controller.state = state;
     _controller.clearCombatFx();
@@ -449,5 +571,6 @@ class BattleNotifier extends StateNotifier<BattleState> {
     );
     _controller.startPlayerTurn(applyInline: true);
     state = _controller.state;
+    _scheduleClearWindFx();
   }
 }

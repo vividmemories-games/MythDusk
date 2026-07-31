@@ -85,6 +85,13 @@ abstract final class GameAssets {
       'ember_smith' => 'assets/enemies/bosses/boss_ember_smith_f$form.png',
       'mythspire_tyrant' =>
         'assets/enemies/bosses/boss_mythspire_tyrant_f$form.png',
+      'weekly_boss_01' => 'assets/enemies/bosses/boss_warchief_ruk_f$form.png',
+      'weekly_boss_02' => 'assets/enemies/bosses/boss_mirelord_f$form.png',
+      'weekly_boss_03' => 'assets/enemies/bosses/boss_pack_alpha_f$form.png',
+      'weekly_boss_04' => 'assets/enemies/bosses/boss_gilded_fence_f$form.png',
+      'weekly_boss_05' =>
+        'assets/enemies/bosses/boss_mythspire_tyrant_f$form.png',
+      'weekly_scout' => 'assets/enemies/enemy_goblin.png',
       'shaman' => 'assets/enemies/enemy_shaman.png',
       'mire_spawn' => 'assets/enemies/enemy_mire_spawn.png',
       'ridge_hawk' => 'assets/enemies/enemy_ridge_hawk.png',

@@ -1,0 +1,77 @@
+import 'dart:math';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mythora/features/battle/domain/battle_state.dart';
+import 'package:mythora/features/battle/domain/enemy_def.dart';
+import 'package:mythora/features/battle/domain/enemy_effect.dart';
+import 'package:mythora/features/heroes/domain/hero_def.dart';
+import 'package:mythora/features/puzzle/domain/board_cell.dart';
+import 'package:mythora/features/puzzle/domain/puzzle_board.dart';
+import 'package:mythora/features/puzzle/domain/tile_color.dart';
+import 'package:mythora/features/puzzle/domain/tile_id_gen.dart';
+
+void main() {
+  test('mire smother intent mentions poison overlay', () {
+    final smother =
+        EnemyCatalog.mireSpawn.skills.firstWhere((s) => s.id == 'smother');
+    expect(smother.effects, isNotEmpty);
+    expect(smother.intentLabel, contains('poison'));
+  });
+
+  test('pack howl applies move penalty for next player turn', () {
+    final howl =
+        EnemyCatalog.packAlpha.skills.firstWhere((s) => s.id == 'howl');
+    expect(howl.effects.any((e) => e.type == 'modify_moves'), isTrue);
+
+    final controller = BattleController(
+      BattleState.initial(
+        hero: HeroCatalog.mage,
+        enemy: EnemyCatalog.packAlpha,
+      ),
+      random: Random(1),
+    );
+    controller.startPlayerTurn(applyInline: true);
+    final budget = controller.state.movesPerTurn;
+    controller.applyEnemySkill(howl);
+    expect(controller.state.pendingMovePenalty, 1);
+
+    controller.startPlayerTurn(applyInline: true);
+    expect(controller.state.movesLeft, budget - 1);
+    expect(controller.state.pendingMovePenalty, 0);
+  });
+
+  test('apply_overlay spreads poison binders onto playable tiles', () {
+    final ids = TileIdGen(1);
+    final cells = [
+      for (var i = 0; i < 4; i++)
+        BoardCell.tile(id: ids.next(), color: TileColor.red),
+    ];
+    final board = PuzzleBoard(width: 2, height: 2, cells: cells);
+    final controller = BattleController(
+      BattleState.initial(
+        hero: HeroCatalog.mage,
+        enemy: EnemyCatalog.mireSpawn,
+        board: board,
+        ids: ids,
+      ),
+      random: Random(2),
+      ids: ids,
+    );
+    final smother = EnemySkill(
+      id: 'smother',
+      name: 'Smother',
+      damage: 0,
+      weight: 1,
+      effects: const [
+        EnemyEffect(type: 'apply_overlay', overlayId: 'ovl_poison', count: 2),
+      ],
+    );
+    controller.applyEnemySkill(smother);
+    final poisoned = controller.state.board.cells
+        .where((c) => c.overlayId == 'ovl_poison')
+        .length;
+    expect(poisoned, 2);
+    expect(controller.state.hazardPulseCells, hasLength(2));
+    expect(controller.state.combatFx, CombatFx.hazard);
+  });
+}

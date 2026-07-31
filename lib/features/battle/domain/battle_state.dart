@@ -2,12 +2,17 @@ import 'dart:math';
 
 import '../../heroes/domain/hero_def.dart';
 import '../../prep/domain/prep_item.dart';
+import '../../puzzle/domain/board_cell.dart';
 import '../../puzzle/domain/board_movers.dart';
+import '../../puzzle/domain/hazard_spawner.dart';
 import '../../puzzle/domain/level_board_config.dart';
+import '../../puzzle/domain/overlay_def.dart';
 import '../../puzzle/domain/puzzle_board.dart';
 import '../../puzzle/domain/puzzle_engine.dart';
 import '../../puzzle/domain/tile_id_gen.dart';
+import '../../weekly/domain/weekly_schedule.dart';
 import 'enemy_def.dart';
+import 'enemy_effect.dart';
 
 enum BattlePhase {
   playerTurn,
@@ -18,7 +23,7 @@ enum BattlePhase {
 }
 
 /// Visual feedback flags for combat juice.
-enum CombatFx { none, heroHit, enemyHit, heroCast }
+enum CombatFx { none, heroHit, enemyHit, heroCast, wind, hazard }
 
 /// Stub knobs until Balancing Bible owns boss combat math.
 abstract final class BossCombatBalance {
@@ -60,6 +65,15 @@ class BattleState {
     this.log = const [],
     this.playerTurnNumber = 0,
     this.movers = const [],
+    this.windRows = const {},
+    this.windDirection,
+    this.hazardPulseCells = const {},
+    this.pendingMovePenalty = 0,
+    this.isWeekly = false,
+    this.objective,
+    this.tilesCleared = 0,
+    this.hazardSpawn,
+    this.hazardOverlayDef,
   });
 
   final HeroDef hero;
@@ -119,6 +133,31 @@ class BattleState {
   /// Level movers applied at the start of each player turn.
   final List<BoardMoverConfig> movers;
 
+  /// Rows currently pulsing from a wind shove (UI highlight).
+  final Set<int> windRows;
+
+  /// Shove direction while [combatFx] is [CombatFx.wind] (`left`/`right`/…).
+  final String? windDirection;
+
+  /// Cells that just gained a hazard overlay (spawn pulse).
+  final Set<(int, int)> hazardPulseCells;
+
+  /// Subtracted from next player-turn move refresh (e.g. Pack Howl).
+  final int pendingMovePenalty;
+
+  /// Weekly mode battle (settlement skips campaign node completion).
+  final bool isWeekly;
+
+  /// Optional non-HP win condition (weekday objectives).
+  final BattleObjective? objective;
+
+  /// Tiles cleared this battle (weekly clear-tiles objective).
+  final int tilesCleared;
+
+  /// Optional per-turn hazard spawn (Mistfen poison, etc.).
+  final HazardSpawnConfig? hazardSpawn;
+  final OverlayDef? hazardOverlayDef;
+
   bool get inputLocked =>
       phase == BattlePhase.resolving ||
       phase == BattlePhase.enemyTurn ||
@@ -150,6 +189,10 @@ class BattleState {
     Random? random,
     List<String> prepLogNotes = const [],
     List<BoardMoverConfig> movers = const [],
+    bool isWeekly = false,
+    BattleObjective? objective,
+    HazardSpawnConfig? hazardSpawn,
+    OverlayDef? hazardOverlayDef,
   }) {
     final idGen = ids ?? TileIdGen();
     final effectiveMoves = PrepBalance.movesThisTurn(
@@ -161,6 +204,7 @@ class BattleState {
     );
     final notes = [
       'Battle started. Match tiles to fuel your skills.',
+      if (objective != null) 'Objective: ${objective.progressLabel}',
       ...prepLogNotes,
     ];
     return BattleState(
@@ -190,6 +234,10 @@ class BattleState {
       phase: BattlePhase.playerTurn,
       log: notes,
       movers: movers,
+      isWeekly: isWeekly,
+      objective: objective,
+      hazardSpawn: hazardSpawn,
+      hazardOverlayDef: hazardOverlayDef,
     );
   }
 
@@ -218,6 +266,14 @@ class BattleState {
     bool clearEnemySkill = false,
     List<String>? log,
     int? playerTurnNumber,
+    int? tilesCleared,
+    Set<int>? windRows,
+    bool clearWindRows = false,
+    String? windDirection,
+    bool clearWindDirection = false,
+    Set<(int, int)>? hazardPulseCells,
+    bool clearHazardPulse = false,
+    int? pendingMovePenalty,
   }) {
     return BattleState(
       hero: hero,
@@ -251,6 +307,18 @@ class BattleState {
       log: log ?? this.log,
       playerTurnNumber: playerTurnNumber ?? this.playerTurnNumber,
       movers: movers,
+      windRows: clearWindRows ? const {} : (windRows ?? this.windRows),
+      windDirection:
+          clearWindDirection ? null : (windDirection ?? this.windDirection),
+      hazardPulseCells: clearHazardPulse
+          ? const {}
+          : (hazardPulseCells ?? this.hazardPulseCells),
+      pendingMovePenalty: pendingMovePenalty ?? this.pendingMovePenalty,
+      isWeekly: isWeekly,
+      objective: objective,
+      tilesCleared: tilesCleared ?? this.tilesCleared,
+      hazardSpawn: hazardSpawn,
+      hazardOverlayDef: hazardOverlayDef,
     );
   }
 }
@@ -267,11 +335,14 @@ class BattleController {
   final Random _random;
   final TileIdGen ids;
 
-  static const clearDuration = Duration(milliseconds: 220);
-  static const fallDuration = Duration(milliseconds: 260);
-  static const spawnDuration = Duration(milliseconds: 280);
-  static const combatFxDuration = Duration(milliseconds: 320);
-  static const enemyTelegraph = Duration(milliseconds: 400);
+  static const clearDuration = Duration(milliseconds: 240);
+  static const fallDuration = Duration(milliseconds: 280);
+  static const spawnDuration = Duration(milliseconds: 300);
+  static const combatFxDuration = Duration(milliseconds: 360);
+  static const castFxDuration = Duration(milliseconds: 400);
+  static const windFxDuration = Duration(milliseconds: 520);
+  static const hazardFxDuration = Duration(milliseconds: 380);
+  static const enemyTelegraph = Duration(milliseconds: 480);
 
   /// Start of a player turn: bump turn counter, apply movers, refresh moves.
   ///
@@ -284,10 +355,10 @@ class BattleController {
       state.movers,
       playerTurnNumber: turn,
     );
-    final dueMovers = state.movers.where((m) {
-      final every = m.everyNTurns < 1 ? 1 : m.everyNTurns;
-      return (turn - 1) % every == 0;
-    }).toList();
+    final dueMovers = BoardMovers.dueOnTurn(state.movers, turn);
+    final windRows = BoardMovers.dueWindRows(state.movers, turn);
+    final windDir = BoardMovers.dueWindDirection(state.movers, turn);
+    final windDue = dueMovers.isNotEmpty;
 
     var enraged = state.enraged;
     final threshold = state.enrageAfterTurns;
@@ -297,22 +368,62 @@ class BattleController {
 
     final notes = <String>[
       ...state.log,
-      if (dueMovers.isNotEmpty) 'Wind shifts the board…',
       if (justEnraged) '${state.enemy.name} enrages!',
-      'Your turn — ${state.movesPerTurn} moves',
+      if (windDue)
+        'Wind! Board shifts — ${state.movesPerTurn} moves'
+      else
+        'Your turn — ${state.movesPerTurn} moves',
     ];
+
+    final penalty = state.pendingMovePenalty;
+    final refreshed =
+        (state.movesPerTurn - penalty).clamp(PrepBalance.defaultMinMoves, 99);
+    if (penalty > 0) {
+      notes.add('Howling winds steal $penalty Move!');
+    }
 
     state = state.copyWith(
       board: shoved,
       playerTurnNumber: turn,
-      movesLeft: state.movesPerTurn,
+      movesLeft: refreshed,
+      pendingMovePenalty: 0,
       phase: BattlePhase.playerTurn,
       enraged: enraged,
       clearSelected: true,
       clearHint: true,
+      combatFx: windDue ? CombatFx.wind : CombatFx.none,
+      windRows: windRows,
+      clearWindRows: windRows.isEmpty,
+      windDirection: windDir,
+      clearWindDirection: windDir == null,
+      clearHazardPulse: true,
       log: notes,
     );
+
+    final hazardCfg = state.hazardSpawn;
+    final hazardDef = state.hazardOverlayDef;
+    if (hazardCfg != null && hazardDef != null) {
+      final outcome = HazardSpawner.maybeSpawnTracked(
+        board: state.board,
+        config: hazardCfg,
+        def: hazardDef,
+        random: _random,
+      );
+      if (outcome.didSpawn) {
+        state = state.copyWith(
+          board: outcome.board,
+          combatFx: windDue ? CombatFx.wind : CombatFx.hazard,
+          hazardPulseCells: outcome.spawnedCells,
+          log: [
+            ...state.log,
+            '${_hazardLabel(hazardDef)} spreads across the marsh…',
+          ],
+        );
+      }
+    }
+
     rollEnemyIntent();
+    if (_tryObjectiveVictory()) return null;
 
     final cascade = PuzzleEngine.resolveCascade(
       shoved,
@@ -323,6 +434,7 @@ class BattleController {
 
     if (applyInline) {
       applyMatchRewards(cascade.totals);
+      if (_tryObjectiveVictory()) return null;
       state = state.copyWith(
         board: cascade.finalBoard,
         phase: BattlePhase.playerTurn,
@@ -388,7 +500,42 @@ class BattleController {
       resources[key] = (resources[key] ?? 0) + value;
     });
     final ap = (state.ap + match.apGained).clamp(0, state.hero.maxAp);
-    state = state.copyWith(resources: resources, ap: ap);
+    final tiles = state.tilesCleared + match.matchedCells.length;
+    state = state.copyWith(
+      resources: resources,
+      ap: ap,
+      tilesCleared: tiles,
+    );
+  }
+
+  /// Returns true if an objective win was applied.
+  bool _tryObjectiveVictory() {
+    final objective = state.objective;
+    if (objective == null) return false;
+    if (state.phase == BattlePhase.victory ||
+        state.phase == BattlePhase.defeat) {
+      return false;
+    }
+    if (!objective.isMet(
+      playerTurnNumber: state.playerTurnNumber,
+      tilesCleared: state.tilesCleared,
+    )) {
+      return false;
+    }
+    state = state.copyWith(
+      phase: BattlePhase.victory,
+      log: [...state.log, 'Objective complete!'],
+    );
+    return true;
+  }
+
+  /// Public check after cascade animations finish.
+  bool tryObjectiveVictory() => _tryObjectiveVictory();
+
+  static String _hazardLabel(OverlayDef def) {
+    if (def.id.contains('poison')) return 'Poison';
+    if (def.id.contains('vine') || def.id.contains('sticky')) return 'Vines';
+    return 'Hazard';
   }
 
   /// Highlight matches still on [board]; tiles animate out before gravity.
@@ -515,8 +662,23 @@ class BattleController {
     );
   }
 
-  void clearCombatFx() {
-    state = state.copyWith(combatFx: CombatFx.none);
+  void clearCombatFx({bool clearHazardPulse = true}) {
+    state = state.copyWith(
+      combatFx: CombatFx.none,
+      clearWindRows: true,
+      clearWindDirection: true,
+      clearHazardPulse: clearHazardPulse,
+    );
+  }
+
+  /// Switches to hazard FX after wind has finished playing.
+  void promoteHazardFx() {
+    if (state.hazardPulseCells.isEmpty) return;
+    state = state.copyWith(
+      combatFx: CombatFx.hazard,
+      clearWindRows: true,
+      clearWindDirection: true,
+    );
   }
 
   void clearHint() {
@@ -586,6 +748,45 @@ class BattleController {
       if (damage == 0 && skill.damage > 0) 'Shield absorbed the blow',
     ];
 
+    var board = state.board;
+    var resources = Map<String, int>.from(state.resources);
+    var movePenalty = state.pendingMovePenalty;
+    final hazardPulse = <(int, int)>{};
+
+    for (final effect in skill.effects) {
+      switch (effect.type) {
+        case 'modify_moves':
+          if (effect.amount < 0) {
+            movePenalty += -effect.amount;
+            logs.add(effect.describe());
+          }
+        case 'drain_resource':
+          final key = effect.resourceId;
+          if (key != null && effect.amount > 0) {
+            final have = resources[key] ?? 0;
+            final next = (have - effect.amount).clamp(0, 999);
+            resources[key] = next;
+            logs.add('Drained ${effect.amount} $key');
+          }
+        case 'apply_overlay':
+          final def = EnemyEffect.catalogOverlay(effect.overlayId);
+          if (def != null) {
+            final placed = _applyOverlaySpread(
+              board,
+              def: def,
+              count: effect.count < 1 ? 1 : effect.count,
+            );
+            if (placed.$2.isNotEmpty) {
+              board = placed.$1;
+              hazardPulse.addAll(placed.$2);
+              logs.add('Poison seeps onto ${placed.$2.length} tiles');
+            }
+          }
+        default:
+          break;
+      }
+    }
+
     if (heroHp <= 0) {
       if (state.secondWindArmed) {
         final reviveHp =
@@ -594,9 +795,13 @@ class BattleController {
         state = state.copyWith(
           heroHp: hp,
           shield: shield,
+          board: board,
+          resources: resources,
+          pendingMovePenalty: movePenalty,
           secondWindArmed: false,
           phase: BattlePhase.playerTurn,
           combatFx: CombatFx.heroCast,
+          hazardPulseCells: hazardPulse,
           lastEnemySkillName: skill.name,
           log: [
             ...logs,
@@ -608,8 +813,12 @@ class BattleController {
       state = state.copyWith(
         heroHp: 0,
         shield: shield,
+        board: board,
+        resources: resources,
+        pendingMovePenalty: movePenalty,
         phase: BattlePhase.defeat,
         combatFx: CombatFx.heroHit,
+        hazardPulseCells: hazardPulse,
         lastEnemySkillName: skill.name,
         log: [...logs, 'Defeat…'],
       );
@@ -619,10 +828,54 @@ class BattleController {
     state = state.copyWith(
       heroHp: heroHp,
       shield: shield,
+      board: board,
+      resources: resources,
+      pendingMovePenalty: movePenalty,
       phase: BattlePhase.playerTurn,
-      combatFx: CombatFx.heroHit,
+      combatFx: damage > 0
+          ? CombatFx.heroHit
+          : (hazardPulse.isNotEmpty ? CombatFx.hazard : CombatFx.heroHit),
+      hazardPulseCells: hazardPulse,
       lastEnemySkillName: skill.name,
       log: logs,
+    );
+  }
+
+  (PuzzleBoard, Set<(int, int)>) _applyOverlaySpread(
+    PuzzleBoard board, {
+    required OverlayDef def,
+    required int count,
+  }) {
+    final candidates = <(int, int)>[];
+    for (var r = 0; r < board.height; r++) {
+      for (var c = 0; c < board.width; c++) {
+        final cell = board.at(r, c);
+        if (!cell.isPlayable) continue;
+        if (cell.hasObstacle) continue;
+        candidates.add((r, c));
+      }
+    }
+    if (candidates.isEmpty) return (board, const {});
+    candidates.shuffle(_random);
+    final take = count.clamp(0, candidates.length);
+    final cells = List<BoardCell>.from(board.cells);
+    final spawned = <(int, int)>{};
+    for (var i = 0; i < take; i++) {
+      final (r, c) = candidates[i];
+      final idx = r * board.width + c;
+      final cell = cells[idx];
+      cells[idx] = BoardCell.withOverlay(
+        def: def,
+        layers: 1,
+        id: cell.id,
+        color: cell.color,
+        special: cell.special,
+      );
+      spawned.add((r, c));
+    }
+    return (
+      PuzzleBoard(width: board.width, height: board.height, cells: cells),
+      spawned,
     );
   }
 }

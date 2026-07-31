@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../heroes/domain/hero_def.dart';
+import '../../heroes/domain/hero_unlocks.dart';
 import '../../prep/domain/prep_item.dart';
+import '../../battle/domain/battle_tutorial.dart';
 import '../domain/economy_balance.dart';
 
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -34,9 +36,12 @@ class PlayerProfile {
       PrepItemId.secondWind: 1,
     },
     this.secondWindUsedDay = '',
+    this.weeklyLastCompletedDay = '',
     this.hintsEnabled = true,
     this.soundEnabled = true,
     this.hapticsEnabled = true,
+    this.tutorialBeatsSeen = const {},
+    this.firstBattleTutorialDone = false,
   });
 
   final String displayName;
@@ -61,9 +66,18 @@ class PlayerProfile {
   /// `yyyy-MM-dd` of last Second Wind revive (empty = never).
   final String secondWindUsedDay;
 
+  /// `yyyy-MM-dd` of last weekly reward claim (empty = never).
+  final String weeklyLastCompletedDay;
+
   final bool hintsEnabled;
   final bool soundEnabled;
   final bool hapticsEnabled;
+
+  /// First-battle coachmark beats already dismissed.
+  final Set<String> tutorialBeatsSeen;
+
+  /// True after the first-battle tutorial is finished or skipped.
+  final bool firstBattleTutorialDone;
 
   HeroDef get selectedHero => HeroCatalog.byId(selectedHeroId);
 
@@ -121,9 +135,12 @@ class PlayerProfile {
     Set<String>? completedNodeIds,
     Map<PrepItemId, int>? prepInventory,
     String? secondWindUsedDay,
+    String? weeklyLastCompletedDay,
     bool? hintsEnabled,
     bool? soundEnabled,
     bool? hapticsEnabled,
+    Set<String>? tutorialBeatsSeen,
+    bool? firstBattleTutorialDone,
   }) {
     return PlayerProfile(
       displayName: displayName ?? this.displayName,
@@ -140,16 +157,21 @@ class PlayerProfile {
       completedNodeIds: completedNodeIds ?? this.completedNodeIds,
       prepInventory: prepInventory ?? this.prepInventory,
       secondWindUsedDay: secondWindUsedDay ?? this.secondWindUsedDay,
+      weeklyLastCompletedDay:
+          weeklyLastCompletedDay ?? this.weeklyLastCompletedDay,
       hintsEnabled: hintsEnabled ?? this.hintsEnabled,
       soundEnabled: soundEnabled ?? this.soundEnabled,
       hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
+      tutorialBeatsSeen: tutorialBeatsSeen ?? this.tutorialBeatsSeen,
+      firstBattleTutorialDone:
+          firstBattleTutorialDone ?? this.firstBattleTutorialDone,
     );
   }
 
   /// Bump when the persisted shape changes; readers stay tolerant of older
   /// payloads. Mirrors the planned Firestore `users` doc (see
   /// docs/04_Technical/Firestore_Schema.md).
-  static const schemaVersion = 5;
+  static const schemaVersion = 7;
 
   Map<String, dynamic> toJson() => {
         'schemaVersion': schemaVersion,
@@ -167,9 +189,12 @@ class PlayerProfile {
           for (final e in prepInventory.entries) e.key.storageKey: e.value,
         },
         'secondWindUsedDay': secondWindUsedDay,
+        'weeklyLastCompletedDay': weeklyLastCompletedDay,
         'hintsEnabled': hintsEnabled,
         'soundEnabled': soundEnabled,
         'hapticsEnabled': hapticsEnabled,
+        'tutorialBeatsSeen': tutorialBeatsSeen.toList(),
+        'firstBattleTutorialDone': firstBattleTutorialDone,
       };
 
   factory PlayerProfile.fromJson(Map<String, dynamic> json) {
@@ -225,9 +250,16 @@ class PlayerProfile {
       completedNodeIds: ids,
       prepInventory: prep,
       secondWindUsedDay: json['secondWindUsedDay'] as String? ?? '',
+      weeklyLastCompletedDay: json['weeklyLastCompletedDay'] as String? ?? '',
       hintsEnabled: json['hintsEnabled'] as bool? ?? true,
       soundEnabled: json['soundEnabled'] as bool? ?? true,
       hapticsEnabled: json['hapticsEnabled'] as bool? ?? true,
+      tutorialBeatsSeen: (json['tutorialBeatsSeen'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toSet() ??
+          {},
+      firstBattleTutorialDone:
+          json['firstBattleTutorialDone'] as bool? ?? false,
     );
   }
 
@@ -284,6 +316,8 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
   }
 
   void selectHero(String heroId) {
+    final clears = state.completedNodeIds.length;
+    if (!HeroUnlocks.isUnlocked(heroId, clears)) return;
     state = state.copyWith(selectedHeroId: heroId);
     _persist();
   }
@@ -303,7 +337,27 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
     _persist();
   }
 
-  /// Consume equipped prep before a boss battle. Returns false if inventory short.
+  void markTutorialBeat(String beatId) {
+    if (state.firstBattleTutorialDone) return;
+    if (state.tutorialBeatsSeen.contains(beatId)) return;
+    final next = {...state.tutorialBeatsSeen, beatId};
+    final done = BattleTutorial.nextBeat(next) == null;
+    state = state.copyWith(
+      tutorialBeatsSeen: next,
+      firstBattleTutorialDone: done,
+    );
+    _persist();
+  }
+
+  void skipFirstBattleTutorial() {
+    state = state.copyWith(
+      firstBattleTutorialDone: true,
+      tutorialBeatsSeen: BattleTutorial.orderedBeats.toSet(),
+    );
+    _persist();
+  }
+
+  /// Consume equipped prep before a battle. Returns false if inventory short.
   bool consumePrep(List<PrepItemId> equipped) {
     final inv = Map<PrepItemId, int>.from(state.prepInventory);
     for (final id in equipped) {
@@ -384,13 +438,17 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
     required int coinReward,
     bool isBoss = false,
     int actIndex = 0,
+    List<String> nodePrepDrops = const [],
   }) async {
     final completed = {...state.completedNodeIds, nodeId};
     var inv = Map<PrepItemId, int>.from(state.prepInventory);
-    if (!isBoss) {
-      for (final e in PrepDrops.forNonBossClear(actIndex: actIndex).entries) {
-        inv[e.key] = (inv[e.key] ?? 0) + e.value;
-      }
+    final drops = PrepDrops.forVictory(
+      isBoss: isBoss,
+      actIndex: actIndex,
+      nodePrepDrops: nodePrepDrops,
+    );
+    for (final e in drops.entries) {
+      inv[e.key] = (inv[e.key] ?? 0) + e.value;
     }
     state = state.copyWith(
       coins: state.coins + coinReward,
@@ -398,6 +456,23 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
       prepInventory: inv,
     );
     await _persist();
+  }
+
+  /// Weekly win: coins once per [dayKey]; does not touch campaign nodes.
+  Future<int> applyWeeklyVictory({
+    required String dayKey,
+    required int coinReward,
+  }) async {
+    if (state.weeklyLastCompletedDay == dayKey) {
+      await _persist();
+      return 0;
+    }
+    state = state.copyWith(
+      coins: state.coins + coinReward,
+      weeklyLastCompletedDay: dayKey,
+    );
+    await _persist();
+    return coinReward;
   }
 
   /// Campaign defeat spends one life (Balancing Bible §4).

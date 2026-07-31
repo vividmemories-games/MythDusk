@@ -4,11 +4,11 @@
   "subtitle": "Fog and sticky footing.",
   "backgroundId": "bg_battle_mistfen_marshes",
   "boardDefaults": {
-    "templateId": "board_vine_corners_01",
+    "templateId": "board_mistfen_sticky_01",
     "hazardSpawn": {
       "overlayId": "ovl_poison",
-      "chancePerTurn": 0.15,
-      "maxOnBoard": 4
+      "chancePerTurn": 0.2,
+      "maxOnBoard": 5
     }
   },
   "acts": [

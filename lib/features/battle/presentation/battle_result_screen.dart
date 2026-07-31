@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/assets/game_assets.dart';
 import '../../campaign/data/campaign_repository.dart';
-import '../../prep/presentation/prep_picker_sheet.dart';
 import '../../profile/providers/mock_profile_provider.dart';
 
 class BattleResultArgs {
@@ -16,10 +15,14 @@ class BattleResultArgs {
     required this.enemyName,
     required this.coinReward,
     this.bossFled = false,
+    this.isWeekly = false,
+    this.weeklyDayKey,
   });
 
   final bool won;
   final bool bossFled;
+  final bool isWeekly;
+  final String? weeklyDayKey;
   final String nodeId;
   final String nodeName;
   final String enemyName;
@@ -37,6 +40,7 @@ class BattleResultScreen extends ConsumerStatefulWidget {
 
 class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
   var _applied = false;
+  var _grantedCoins = 0;
 
   @override
   void initState() {
@@ -51,6 +55,16 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
       await ref.read(profileProvider.notifier).applyDefeat();
       return;
     }
+    if (widget.args.isWeekly) {
+      final dayKey = widget.args.weeklyDayKey ?? '';
+      final granted =
+          await ref.read(profileProvider.notifier).applyWeeklyVictory(
+                dayKey: dayKey,
+                coinReward: widget.args.coinReward,
+              );
+      if (mounted) setState(() => _grantedCoins = granted);
+      return;
+    }
     final chapter = ref.read(campaignChapterProvider).valueOrNull;
     final node = chapter?.nodeById(widget.args.nodeId);
     final actIndex = chapter?.actForNode(widget.args.nodeId)?.index ?? 0;
@@ -59,7 +73,9 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
           coinReward: widget.args.coinReward,
           isBoss: node?.isBoss ?? false,
           actIndex: actIndex,
+          nodePrepDrops: node?.prepDrops ?? const [],
         );
+    if (mounted) setState(() => _grantedCoins = widget.args.coinReward);
   }
 
   @override
@@ -70,7 +86,7 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
     final profile = ref.watch(profileProvider);
 
     String? nextNodeId;
-    if (args.won && chapter != null) {
+    if (args.won && !args.isWeekly && chapter != null) {
       final current = chapter.nodeById(args.nodeId);
       final next = chapter.nodes.where((n) => n.order == current.order + 1);
       if (next.isNotEmpty) nextNodeId = next.first.id;
@@ -131,7 +147,13 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                       Text('Rewards', style: textTheme.titleMedium),
                       const SizedBox(height: 8),
                       Text(
-                        '+${args.coinReward} coins',
+                        !args.won
+                            ? '+0 coins'
+                            : (!_applied
+                                ? '+${args.coinReward} coins'
+                                : (args.isWeekly && _grantedCoins == 0
+                                    ? 'Already claimed today'
+                                    : '+${args.isWeekly ? _grantedCoins : args.coinReward} coins')),
                         style: textTheme.headlineMedium?.copyWith(
                           color: MythoraColors.softGold,
                         ),
@@ -141,7 +163,8 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                         'Purse: ${profile.coins} coins',
                         style: textTheme.bodyMedium,
                       ),
-                      if (chapter?.nodeById(args.nodeId).isBoss != true) ...[
+                      if (!args.isWeekly &&
+                          chapter?.nodeById(args.nodeId).isBoss != true) ...[
                         const SizedBox(height: 6),
                         Text(
                           '+1 Vanguard Tonic (prep stash)',
@@ -169,13 +192,15 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                 ),
               if (!args.won) const SizedBox(height: 10),
               OutlinedButton(
-                onPressed: () => context.go('/campaign'),
+                onPressed: () => context.go(
+                  args.isWeekly ? '/weekly' : '/campaign',
+                ),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: MythoraColors.parchment,
                   side: const BorderSide(color: MythoraColors.mist),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                child: const Text('Campaign map'),
+                child: Text(args.isWeekly ? 'Weekly' : 'Campaign map'),
               ),
               const SizedBox(height: 10),
               TextButton(
@@ -190,16 +215,14 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
   }
 
   Future<void> _goBattle(String nodeId) async {
-    final chapter = ref.read(campaignChapterProvider).valueOrNull;
-    final node = chapter?.nodeById(nodeId);
-    if (node != null && node.isBoss) {
-      final ok = await showPrepPickerSheet(
-        context,
-        bossName: node.name,
-      );
-      if (!ok || !mounted) return;
+    if (widget.args.isWeekly || nodeId == 'weekly') {
+      if (widget.args.isWeekly) {
+        if (!mounted) return;
+        context.go('/weekly');
+        return;
+      }
     }
     if (!mounted) return;
-    context.go('/battle/$nodeId');
+    context.go('/briefing/$nodeId');
   }
 }

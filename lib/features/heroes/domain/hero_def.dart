@@ -203,4 +203,11 @@ abstract final class HeroCatalog {
 
   static HeroDef byId(String id) =>
       all.firstWhere((h) => h.id == id, orElse: () => mage);
+
+  static HeroDef? tryById(String id) {
+    for (final h in all) {
+      if (h.id == id) return h;
+    }
+    return null;
+  }
 }

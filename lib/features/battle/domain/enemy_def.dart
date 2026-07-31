@@ -1,16 +1,32 @@
-/// Enemy skill stub — weights/damage refined in Phase 2 Balancing Bible.
+import 'enemy_effect.dart';
+
+/// Enemy skill — weights/damage from Balancing Bible; optional [effects].
 class EnemySkill {
   const EnemySkill({
     required this.id,
     required this.name,
     required this.damage,
     required this.weight,
+    this.effects = const [],
   });
 
   final String id;
   final String name;
   final int damage;
   final int weight;
+  final List<EnemyEffect> effects;
+
+  /// Player-facing telegraph (intent badge / briefing).
+  String get intentLabel {
+    final parts = <String>[];
+    if (damage > 0) parts.add('$damage dmg');
+    for (final e in effects) {
+      if (e.type == 'damage') continue;
+      parts.add(e.describe());
+    }
+    if (parts.isEmpty) return name;
+    return '$name — ${parts.join(' · ')}';
+  }
 }
 
 class EnemyDef {
@@ -37,6 +53,41 @@ class EnemyDef {
       if (s.damage > best.damage) best = s;
     }
     return best;
+  }
+
+  /// Scales HP and skill damage (weekly toughness, future balance knobs).
+  EnemyDef scaled({double hpMult = 1, double damageMult = 1}) {
+    if (hpMult == 1 && damageMult == 1) return this;
+    return EnemyDef(
+      id: id,
+      name: name,
+      maxHp: (maxHp * hpMult).round().clamp(1, 9999),
+      isBoss: isBoss,
+      blurb: blurb,
+      skills: [
+        for (final s in skills)
+          EnemySkill(
+            id: s.id,
+            name: s.name,
+            damage: (s.damage * damageMult).round().clamp(1, 999),
+            weight: s.weight,
+            effects: [
+              for (final e in s.effects)
+                EnemyEffect(
+                  type: e.type,
+                  amount: e.type == 'modify_moves' || e.type == 'drain_resource'
+                      ? (e.type == 'modify_moves'
+                          ? e.amount
+                          : (e.amount * damageMult).round().clamp(1, 999))
+                      : e.amount,
+                  resourceId: e.resourceId,
+                  overlayId: e.overlayId,
+                  count: e.count,
+                ),
+            ],
+          ),
+      ],
+    );
   }
 }
 
@@ -83,9 +134,21 @@ abstract final class EnemyCatalog {
     maxHp: 60,
     blurb: 'A dripping reedling from the Mistfen.',
     skills: [
-      EnemySkill(id: 'drip', name: 'Drip', damage: 5, weight: 45),
-      EnemySkill(id: 'lash', name: 'Reed Lash', damage: 9, weight: 40),
-      EnemySkill(id: 'smother', name: 'Smother', damage: 15, weight: 15),
+      EnemySkill(id: 'drip', name: 'Drip', damage: 5, weight: 40),
+      EnemySkill(id: 'lash', name: 'Reed Lash', damage: 9, weight: 35),
+      EnemySkill(
+        id: 'smother',
+        name: 'Smother',
+        damage: 8,
+        weight: 25,
+        effects: [
+          EnemyEffect(
+            type: 'apply_overlay',
+            overlayId: 'ovl_poison',
+            count: 2,
+          ),
+        ],
+      ),
     ],
   );
 
@@ -173,7 +236,15 @@ abstract final class EnemyCatalog {
     blurb: 'Howling Ridge wind-wolf.',
     skills: [
       EnemySkill(id: 'gust', name: 'Gust Bite', damage: 12, weight: 40),
-      EnemySkill(id: 'howl', name: 'Pack Howl', damage: 18, weight: 35),
+      EnemySkill(
+        id: 'howl',
+        name: 'Pack Howl',
+        damage: 14,
+        weight: 35,
+        effects: [
+          EnemyEffect(type: 'modify_moves', amount: -1),
+        ],
+      ),
       EnemySkill(id: 'storm', name: 'Storm Pounce', damage: 30, weight: 25),
     ],
   );
@@ -269,6 +340,85 @@ abstract final class EnemyCatalog {
     ],
   );
 
+  // --- Weekly (M7) — base stats = campaign art counterparts; battle applies ×2 ---
+
+  static const weeklyBoss01 = EnemyDef(
+    id: 'weekly_boss_01',
+    name: 'Dusk Warden',
+    maxHp: 140,
+    isBoss: true,
+    blurb: 'Weekend extreme — dusk steel (Warchief counterpart).',
+    skills: [
+      EnemySkill(id: 'guard', name: 'Guard Cut', damage: 10, weight: 35),
+      EnemySkill(id: 'sweep', name: 'Dusk Sweep', damage: 16, weight: 40),
+      EnemySkill(id: 'sentence', name: 'Sentence', damage: 26, weight: 25),
+    ],
+  );
+
+  static const weeklyBoss02 = EnemyDef(
+    id: 'weekly_boss_02',
+    name: 'Ash Herald',
+    maxHp: 160,
+    isBoss: true,
+    blurb: 'Weekend extreme — ember proclamations (Mirelord counterpart).',
+    skills: [
+      EnemySkill(id: 'cinder', name: 'Cinder', damage: 11, weight: 40),
+      EnemySkill(id: 'brand', name: 'Brand', damage: 17, weight: 40),
+      EnemySkill(id: 'pyre', name: 'Pyre', damage: 28, weight: 20),
+    ],
+  );
+
+  static const weeklyBoss03 = EnemyDef(
+    id: 'weekly_boss_03',
+    name: 'Tide Marauder',
+    maxHp: 175,
+    isBoss: true,
+    blurb: 'Weekend extreme — crashing tide (Pack Alpha counterpart).',
+    skills: [
+      EnemySkill(id: 'spray', name: 'Spray', damage: 12, weight: 40),
+      EnemySkill(id: 'riptide', name: 'Riptide', damage: 18, weight: 35),
+      EnemySkill(id: 'drown', name: 'Drown', damage: 30, weight: 25),
+    ],
+  );
+
+  static const weeklyBoss04 = EnemyDef(
+    id: 'weekly_boss_04',
+    name: 'Gilded Scourge',
+    maxHp: 210,
+    isBoss: true,
+    blurb: 'Weekend extreme — coin and claw (Gilded Fence counterpart).',
+    skills: [
+      EnemySkill(id: 'toll', name: 'Toll', damage: 15, weight: 40),
+      EnemySkill(id: 'gild', name: 'Gild Blade', damage: 22, weight: 35),
+      EnemySkill(id: 'levy', name: 'Levy', damage: 36, weight: 25),
+    ],
+  );
+
+  static const weeklyBoss05 = EnemyDef(
+    id: 'weekly_boss_05',
+    name: 'Eclipse Judge',
+    maxHp: 260,
+    isBoss: true,
+    blurb: 'Weekend extreme — verdict of night (Mythspire counterpart).',
+    skills: [
+      EnemySkill(id: 'gavel', name: 'Gavel', damage: 18, weight: 35),
+      EnemySkill(id: 'verdict', name: 'Verdict', damage: 26, weight: 40),
+      EnemySkill(id: 'blacksun', name: 'Black Sun', damage: 44, weight: 25),
+    ],
+  );
+
+  static const weeklyScout = EnemyDef(
+    id: 'weekly_scout',
+    name: 'Weekly Scout',
+    maxHp: 50,
+    blurb: 'Weekday objective sparring partner (Goblin counterpart).',
+    skills: [
+      EnemySkill(id: 'nick', name: 'Nick', damage: 4, weight: 45),
+      EnemySkill(id: 'slash', name: 'Slash', damage: 8, weight: 40),
+      EnemySkill(id: 'heavy', name: 'Heavy', damage: 14, weight: 15),
+    ],
+  );
+
   static const all = [
     goblin,
     wolf,
@@ -288,8 +438,21 @@ abstract final class EnemyCatalog {
     siegeCaptain,
     emberSmith,
     mythspireTyrant,
+    weeklyScout,
+    weeklyBoss01,
+    weeklyBoss02,
+    weeklyBoss03,
+    weeklyBoss04,
+    weeklyBoss05,
   ];
 
   static EnemyDef byId(String id) =>
       all.firstWhere((e) => e.id == id, orElse: () => goblin);
+
+  static EnemyDef? tryById(String id) {
+    for (final e in all) {
+      if (e.id == id) return e;
+    }
+    return null;
+  }
 }

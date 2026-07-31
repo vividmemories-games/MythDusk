@@ -323,6 +323,26 @@ Legacy single-strip filenames (`map_ch_*.png` without `_aN`) remain **deprecated
 
 ---
 
+## 2026-07-28 — M8 Ch2+ board complexity
+
+**Decision:** Mistfen sticky/poison feel via denser `board_mistfen_sticky_01` (vines + poison) and live `hazardSpawn` each player turn. Howling Ridge movers remain the Ch3 lesson (dual row shove). Overlay/mask/rock readability on the battle board (tint placeholders). Hero unlocks gated by completed nodes: mage 0 / knight 50 / ranger 100 / priest 150 / ninja 200. Ch4–10 keep reusable templates; no new unique chapter mechanics in this pass.
+
+**Impact:** `HazardSpawner`, board UI overlays, `HeroUnlocks`, Mistfen/Howling JSON + templates.
+
+**Status:** Accepted
+
+---
+
+## 2026-07-28 — M7 Weekly shell
+
+**Decision:** Ship playable Weekly stub. Mon–Fri date-seeded survive-turns or clear-tiles objectives; Sat–Sun one of five `weekly_boss_*` enemies. Fail spends campaign life; win coins once per local calendar day. Client uses device local time; Firebase must own day/week validation when progress is server-backed. QA day override on Weekly screen.
+
+**Impact:** `lib/features/weekly/`, battle `BattleObjective` / `tilesCleared` / `isWeekly`, Home → `/weekly`, profile `weeklyLastCompletedDay` (schema v6).
+
+**Status:** Accepted
+
+---
+
 ## 2026-07-27 — Balancing Bible v1 (combat + soft progression)
 
 **Decision:** Authoritative [Balancing_Bible](../01_Game_Design/Balancing_Bible.md) for combat formulas and soft progression. Board stays fair; friction is prep / lives / boosts. Every campaign defeat spends 1 life (max 5, +1 / 20 min). Gem partial life refill: 75 gems → +3 lives, max 3/day. Fight length targets: trash 3–5 turns, act boss 6–10, finale 10–15. Act 3+ bosses expect prep. Coin upgrades capped at ~30% per stat line. No gem combat power.
@@ -332,3 +352,76 @@ Legacy single-strip filenames (`map_ch_*.png` without `_aN`) remain **deprecated
 **Impact:** `EconomyBalance`, `LifeRegenMath`, profile schema v5 (regen + gem refill + `upgradeLevels`), `PrepDrops` act chances, `HeroDef.withCombatMultipliers`, enemy HP pass-1 retune, home/campaign lives gate.
 
 **Status:** Accepted
+
+---
+
+## 2026-07-30 — Prep every fight + weekly 2× (Bible v1.1)
+
+**Decision:**
+- Prep picker before **every** battle (campaign trash, bosses, weekly). Empty loadout always allowed.
+- Trash stays balanced for **0 prep**; Act 3+ bosses / finales / weekend weekly still expect Tonic+Aegis.
+- Weekly enemies use campaign art-counterpart base stats × **`WeeklyBalance.enemyStatMultiplier` (2.0)** HP and skill damage.
+- Weekday objectives: survive **7** / clear **60**. Prep inventory is the intended future pack/box monetization surface (no gem combat power).
+
+**Impact:** Balancing Bible v1.1 §3; `EnemyDef.scaled`, weekly catalog counterparts, prep gates in campaign/weekly/result/`battle_provider`.
+
+**Status:** Accepted
+
+---
+
+## 2026-07-31 — P0 safety cut (QA gate, confirms, prepDrops)
+
+**Decision:**
+- QA tools (Unlock-all, Reset, pin edit, Weekly day override) only when `AppFlavor.showQaTools` (`FLAVOR=dev` or `kDebugMode`).
+- Battle leave / restart require confirmation dialogs.
+- Non-empty `node.prepDrops` is authoritative for victory prep grants; empty falls back to `PrepDrops.forNonBossClear`.
+- Briefing → battle covered by widget/nav tests.
+
+**Impact:** `AppFlavor`, home/weekly/campaign QA visibility, battle confirms, `PrepDrops.forVictory`, `tryById` helpers.
+
+**Status:** Accepted
+
+---
+
+## 2026-07-30 — Pre-launch battle animation polish (blocker)
+
+**Decision:** Do **not** ship live / store until a dedicated **battle animation pass** lands. Core combat rules and M7/M8 systems can stay; readability of motion is currently insufficient for first-time players.
+
+### Must polish before go-live
+| Area | Gap today |
+|------|-----------|
+| **Wind / movers (M8 / Howling)** | Shove is easy to miss; lanes + “Wind!” badge are stopgaps. Need clearer row-slide / gust timing, wrap handling, and stronger telegraph. |
+| **Hazards / overlays (M8 / Mistfen)** | Sticky/poison/rock/mask tints are placeholders — spawn, break, and suppress need readable FX, not only log lines. |
+| **Weekly (M7)** | Objective progress and boss weekend fights need the same combat juice as campaign (no special-case “stub” feel). |
+| **Hero combat** | Cast / hit / skill feedback is thin (`CombatFx` flashes); skills need clearer cast cues and impact readability. |
+| **Enemy combat** | Intent telegraph, hit, enrage, and board-altering enemy actions need stronger, consistent presentation. |
+| **Board cascades** | Match clear / fall / spawn already exist but should feel unified with the above (timing, easing, no silent teleports). |
+
+### Out of scope for that pass
+- New combat rules, new chapter gimmicks, or art pipeline expansion unless animation work blocks without them.
+
+**Reason:** Playtest (Howling Ridge wind) showed mechanics working but **not obvious**. Live players will blame “broken” systems if motion doesn’t sell the rule change.
+
+**Impact:** Future polish milestone on `animated_puzzle_board`, `battle_stage` / HUD combat FX, wind/hazard presentation; track as explicit launch blocker alongside content/Firebase readiness.
+
+**Status:** Superseded by **2026-07-31 — P0.7 battle animation / juice pass** (baseline shipped; AB2 sheets still deferred)
+
+---
+
+## 2026-07-30 — Enhancement P0 first slice (clarity + enemy effects)
+
+**Decision:** Ship preferred enhancement slice: campaign `/briefing/:nodeId` with embedded prep; skill affordability chips (`have/need` + missing cost); first-battle tutorial beats on profile (schema v7); enemy skill `effects` with Mistfen `apply_overlay` (Mire Spawn Smother) and Howling `modify_moves` (Pack Alpha Howl). Hero unlocks remain 50/100/150/200.
+
+**Impact:** `BriefingScreen`, `SkillAffordability`, `BattleTutorial`, `EnemyEffect`, battle apply path, intent labels.
+
+**Status:** Accepted
+
+---
+
+## 2026-07-31 — P0.7 battle animation / juice pass
+
+**Decision:** Ship a readability-focused battle juice pass without new art pipelines: stronger wind lanes + gust overlay + tile nudge; hazard spawn pulse cells + HUD badge; hero cast cue then impact; enemy telegraph pulse; cascade timings aligned to `BattleController` constants; respect reduced-motion.
+
+**Impact:** `CombatFx.hazard`, `windDirection` / `hazardPulseCells`, `animated_puzzle_board`, `battle_stage`, `battle_hud`, provider FX sequencing, `Animations.md`.
+
+**Status:** Accepted — launch-blocker juice baseline; further AB2 sprite sheets still deferred

@@ -5,10 +5,10 @@ import '../../../core/theme/app_theme.dart';
 import '../../profile/providers/mock_profile_provider.dart';
 import '../domain/prep_item.dart';
 
-/// Pre-boss prep loadout (max 3). Confirms → consumes inventory + sets pending.
+/// Pre-fight prep loadout (max 3). Confirms → consumes inventory + sets pending.
 Future<bool> showPrepPickerSheet(
   BuildContext context, {
-  required String bossName,
+  required String encounterName,
 }) async {
   final result = await showModalBottomSheet<bool>(
     context: context,
@@ -17,15 +17,15 @@ Future<bool> showPrepPickerSheet(
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
-    builder: (context) => PrepPickerSheet(bossName: bossName),
+    builder: (context) => PrepPickerSheet(encounterName: encounterName),
   );
   return result ?? false;
 }
 
 class PrepPickerSheet extends ConsumerStatefulWidget {
-  const PrepPickerSheet({super.key, required this.bossName});
+  const PrepPickerSheet({super.key, required this.encounterName});
 
-  final String bossName;
+  final String encounterName;
 
   @override
   ConsumerState<PrepPickerSheet> createState() => _PrepPickerSheetState();
@@ -50,11 +50,11 @@ class _PrepPickerSheetState extends ConsumerState<PrepPickerSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Prepare for ${widget.bossName}',
+          Text('Prepare for ${widget.encounterName}',
               style: textTheme.headlineMedium),
           const SizedBox(height: 4),
           Text(
-            'Equip up to ${PrepBalance.maxEquipped} items. They are spent when battle starts.',
+            'Optional aids — equip up to ${PrepBalance.maxEquipped}, or enter with none. Spent when battle starts.',
             style: textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),

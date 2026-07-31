@@ -4,9 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/assets/game_assets.dart';
+import '../../../core/config/app_flavor.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../battle/domain/enemy_def.dart';
-import '../../prep/presentation/prep_picker_sheet.dart';
 import '../../profile/providers/mock_profile_provider.dart';
 import '../data/campaign_repository.dart';
 import '../domain/campaign_models.dart';
@@ -30,7 +29,7 @@ class _CampaignScreenState extends ConsumerState<CampaignScreen> {
   Widget build(BuildContext context) {
     final chapterAsync = ref.watch(campaignChapterProvider);
     final profile = ref.watch(profileProvider);
-    final editMode = ref.watch(pinEditModeProvider);
+    final editMode = AppFlavor.showQaTools && ref.watch(pinEditModeProvider);
     final overrides = ref.watch(pinCoordOverridesProvider);
 
     return Scaffold(
@@ -132,9 +131,12 @@ class _CampaignScreenState extends ConsumerState<CampaignScreen> {
                     acts: chapter.acts,
                     completed: profile.completedNodeIds,
                     editMode: editMode,
-                    onToggleEdit: () {
-                      ref.read(pinEditModeProvider.notifier).state = !editMode;
-                    },
+                    onToggleEdit: AppFlavor.showQaTools
+                        ? () {
+                            ref.read(pinEditModeProvider.notifier).state =
+                                !editMode;
+                          }
+                        : null,
                     onExportPins: () => _exportPins(context, chapter, act),
                     onExportAllPins: () => _exportAllPins(context),
                     onClearActPins: () => _clearActPins(chapter, act),
@@ -355,16 +357,7 @@ class _CampaignScreenState extends ConsumerState<CampaignScreen> {
       );
       return;
     }
-    if (node.isBoss) {
-      final enemy = EnemyCatalog.byId(node.enemyId);
-      final ok = await showPrepPickerSheet(
-        context,
-        bossName: enemy.name,
-      );
-      if (!ok || !context.mounted) return;
-    }
-    if (!context.mounted) return;
-    context.push('/battle/${node.id}');
+    context.push('/briefing/${node.id}');
   }
 }
 
@@ -389,7 +382,7 @@ class _MapHeader extends StatelessWidget {
   final Set<String> completed;
   final ValueChanged<String> onSelectAct;
   final bool editMode;
-  final VoidCallback onToggleEdit;
+  final VoidCallback? onToggleEdit;
   final VoidCallback onExportPins;
   final VoidCallback onExportAllPins;
   final VoidCallback onClearActPins;
@@ -448,33 +441,34 @@ class _MapHeader extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Material(
-                  color: editMode
-                      ? MythoraColors.amber.withValues(alpha: 0.35)
-                      : MythoraColors.ink.withValues(alpha: 0.55),
-                  shape: CircleBorder(
-                    side: BorderSide(
-                      color: editMode
-                          ? MythoraColors.amber
-                          : Colors.white.withValues(alpha: 0.12),
-                    ),
-                  ),
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
-                    onTap: onToggleEdit,
-                    child: SizedBox(
-                      width: 38,
-                      height: 38,
-                      child: Icon(
-                        Icons.open_with,
-                        size: 18,
+                if (onToggleEdit != null)
+                  Material(
+                    color: editMode
+                        ? MythoraColors.amber.withValues(alpha: 0.35)
+                        : MythoraColors.ink.withValues(alpha: 0.55),
+                    shape: CircleBorder(
+                      side: BorderSide(
                         color: editMode
                             ? MythoraColors.amber
-                            : MythoraColors.parchment,
+                            : Colors.white.withValues(alpha: 0.12),
+                      ),
+                    ),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: onToggleEdit,
+                      child: SizedBox(
+                        width: 38,
+                        height: 38,
+                        child: Icon(
+                          Icons.open_with,
+                          size: 18,
+                          color: editMode
+                              ? MythoraColors.amber
+                              : MythoraColors.parchment,
+                        ),
                       ),
                     ),
                   ),
-                ),
                 if (editMode) ...[
                   const SizedBox(width: 6),
                   Material(

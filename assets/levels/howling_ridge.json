@@ -8,11 +8,15 @@
     "movers": [
       {
         "type": "row_shove",
-        "rows": [
-          2
-        ],
+        "rows": [2],
         "direction": "left",
         "everyNTurns": 1
+      },
+      {
+        "type": "row_shove",
+        "rows": [4],
+        "direction": "right",
+        "everyNTurns": 2
       }
     ]
   },

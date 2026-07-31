@@ -3,7 +3,7 @@ import 'dart:math';
 import '../../../core/assets/game_assets.dart';
 import '../../profile/domain/economy_balance.dart';
 
-/// Meta prep items carried into boss battles (Content Architecture §3).
+/// Meta prep items carried into battles (Content Architecture §3 / Bible §3).
 enum PrepItemId {
   vanguardTonic,
   aegisFlask,
@@ -40,6 +40,12 @@ extension PrepItemIdX on PrepItemId {
       if (id.storageKey == key) return id;
     }
     return null;
+  }
+
+  /// Parses level JSON `prepDrops` entries (`prep_vanguard_tonic` or `vanguard_tonic`).
+  static PrepItemId? tryParseDrop(String raw) {
+    final key = raw.startsWith('prep_') ? raw.substring(5) : raw;
+    return tryParse(key);
   }
 }
 
@@ -84,6 +90,31 @@ abstract final class PrepDrops {
   /// Act index is 0-based within the chapter (0 = Act I).
   static const aegisAct2PlusChance = 0.25;
   static const secondWindAct3PlusChance = 0.08;
+
+  /// When [nodePrepDrops] is non-empty, those ids are authoritative (+1 each).
+  /// Otherwise uses the act-based random table.
+  static Map<PrepItemId, int> forVictory({
+    required bool isBoss,
+    int actIndex = 0,
+    List<String> nodePrepDrops = const [],
+    Random? random,
+  }) {
+    if (isBoss) return const {};
+    if (nodePrepDrops.isNotEmpty) {
+      return fromNodePrepDrops(nodePrepDrops);
+    }
+    return forNonBossClear(actIndex: actIndex, random: random);
+  }
+
+  static Map<PrepItemId, int> fromNodePrepDrops(List<String> prepDrops) {
+    final drops = <PrepItemId, int>{};
+    for (final raw in prepDrops) {
+      final id = PrepItemIdX.tryParseDrop(raw);
+      if (id == null) continue;
+      drops[id] = (drops[id] ?? 0) + 1;
+    }
+    return drops;
+  }
 
   static Map<PrepItemId, int> forNonBossClear({
     int actIndex = 0,
