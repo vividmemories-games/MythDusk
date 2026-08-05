@@ -6,7 +6,11 @@ import '../../features/battle/presentation/battle_screen.dart';
 import '../../features/campaign/presentation/briefing_screen.dart';
 import '../../features/campaign/presentation/campaign_screen.dart';
 import '../../features/campaign/presentation/chapter_select_screen.dart';
+import '../../features/heroes/presentation/heroes_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/profile/presentation/settings_screen.dart';
+import '../../features/profile/presentation/shop_screen.dart';
 import '../../features/weekly/presentation/weekly_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -17,6 +21,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/',
         name: 'home',
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: '/heroes',
+        name: 'heroes',
+        builder: (context, state) => const HeroesScreen(),
+      ),
+      GoRoute(
+        path: '/profile',
+        name: 'profile',
+        builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/shop',
+        name: 'shop',
+        builder: (context, state) => const ShopScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        name: 'settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
       GoRoute(
         path: '/chapters',

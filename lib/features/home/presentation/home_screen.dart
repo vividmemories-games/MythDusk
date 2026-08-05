@@ -11,7 +11,9 @@ import '../../heroes/domain/hero_unlocks.dart';
 import '../../prep/domain/prep_item.dart';
 import '../../profile/domain/economy_balance.dart';
 import '../../profile/providers/mock_profile_provider.dart';
-import 'settings_sheet.dart';
+import 'coming_soon_sheet.dart';
+import 'home_hub_widgets.dart';
+import 'home_progress.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -19,12 +21,13 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(profileProvider);
-    final textTheme = Theme.of(context).textTheme;
     final selected = profile.selectedHero;
     final nextLife = profile.timeUntilNextLife();
     final livesLabel = nextLife == null
         ? '${profile.lives}'
         : '${profile.lives} · ${_formatRegen(nextLife)}';
+    final progressAsync = ref.watch(homeCampaignProgressProvider);
+    final clears = profile.completedNodeIds.length;
 
     return Scaffold(
       body: Stack(
@@ -33,167 +36,218 @@ class HomeScreen extends ConsumerWidget {
           Image.asset(
             GameAssets.homeBackground,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) =>
-                const ColoredBox(color: MythoraColors.ink),
+            alignment: Alignment.topCenter,
+            errorBuilder: (_, __, ___) => Image.asset(
+              GameAssets.homeBackgroundFallback,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) =>
+                  const ColoredBox(color: MythoraColors.ink),
+            ),
           ),
-          Container(color: MythoraColors.ink.withValues(alpha: 0.5)),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        'Mythora',
-                        style: textTheme.displayLarge?.copyWith(fontSize: 30),
-                      ),
-                      const Spacer(),
-                      _ResourceChip(
-                        label: '${profile.coins}',
-                        icon: Icons.monetization_on_outlined,
-                      ),
-                      const SizedBox(width: 6),
-                      _ResourceChip(
-                        label: '${profile.gems}',
-                        icon: Icons.diamond_outlined,
-                      ),
-                      const SizedBox(width: 6),
-                      GestureDetector(
-                        onTap: () => _onLivesTap(context, ref),
-                        child: _ResourceChip(
-                          label: livesLabel,
-                          icon: Icons.favorite_outline,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      IconButton(
-                        tooltip: 'Settings',
-                        onPressed: () => showSettingsSheet(context),
-                        icon: const Icon(
-                          Icons.settings_outlined,
-                          color: MythoraColors.parchment,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Match tiles. Fuel skills. Outlast the enemy.',
-                    style: textTheme.bodyMedium,
-                  ),
-                  const Spacer(flex: 1),
-                  GestureDetector(
-                    onTap: () => _showHeroPicker(context, ref),
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          height: 168,
-                          child: Image.asset(
-                            GameAssets.hero(selected.id),
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => const Icon(
-                              Icons.person,
-                              size: 96,
-                              color: MythoraColors.muted,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(selected.name, style: textTheme.headlineMedium),
-                        Text(
-                          'Tap to change hero',
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: MythoraColors.softGold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      for (final id in PrepItemId.values) ...[
-                        _PrepBadge(
-                          path: id.assetPath,
-                          count: profile.prepCount(id),
-                        ),
-                        if (id != PrepItemId.values.last)
-                          const SizedBox(width: 10),
-                      ],
-                    ],
-                  ),
-                  const Spacer(flex: 2),
-                  FilledButton(
-                    onPressed: () {
-                      ref.read(profileProvider.notifier).tickLifeRegen();
-                      final lives = ref.read(profileProvider).lives;
-                      if (lives <= 0) {
-                        _showNoLivesDialog(context, ref);
-                        return;
-                      }
-                      context.push('/chapters');
-                    },
-                    child: const Text('Enter Campaign'),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => context.push('/weekly'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: MythoraColors.parchment,
-                            side: const BorderSide(color: MythoraColors.mist),
-                          ),
-                          child: const Text('Weekly'),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => _showHeroPicker(context, ref),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: MythoraColors.parchment,
-                            side: const BorderSide(color: MythoraColors.mist),
-                          ),
-                          child: const Text('Heroes'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${profile.completedNodeIds.length} nodes cleared',
-                    textAlign: TextAlign.center,
-                    style: textTheme.bodyMedium?.copyWith(fontSize: 12),
-                  ),
-                  if (AppFlavor.showQaTools)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        TextButton(
-                          onPressed: () => _unlockAllForQa(context, ref),
-                          child: const Text('Unlock all (QA)'),
-                        ),
-                        TextButton(
-                          onPressed: () => ref
-                              .read(profileProvider.notifier)
-                              .resetProgress(),
-                          child: const Text('Reset progress'),
-                        ),
-                      ],
-                    ),
+          // Soft vignette so UI stays readable without flattening the art.
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0x66071118),
+                  Color(0x33071118),
+                  Color(0x99071118),
+                  Color(0xE6071118),
                 ],
+                stops: [0, 0.28, 0.62, 1],
               ),
             ),
+          ),
+          Column(
+            children: [
+              Expanded(
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 6, 14, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _HubHeader(
+                          coins: profile.coins,
+                          gems: profile.gems,
+                          livesLabel: livesLabel,
+                          onLivesTap: () => _onLivesTap(context, ref),
+                          onSettings: () => context.push('/settings'),
+                        ),
+                        Expanded(
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              final heroH = (constraints.maxHeight - 64)
+                                  .clamp(100.0, 235.0);
+                              return Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Align(
+                                    alignment: Alignment.center,
+                                    child: _HeroStage(
+                                      hero: selected,
+                                      height: heroH,
+                                      onTap: () => context.push('/heroes'),
+                                      onPrev: () => _cycleHero(ref, -1),
+                                      onNext: () => _cycleHero(ref, 1),
+                                    ),
+                                  ),
+                                  Align(
+                                    alignment: const Alignment(-0.98, -0.05),
+                                    child: HubRankBadge(
+                                      clears: clears,
+                                      onTap: () => showComingSoonSheet(
+                                        context,
+                                        title: 'Path rank',
+                                        blurb:
+                                            'Cosmetic path tier from campaign '
+                                            'clears. Competitive Ranked comes later.',
+                                      ),
+                                    ),
+                                  ),
+                                  Align(
+                                    alignment: const Alignment(1.0, -0.08),
+                                    child: HubSideRail(
+                                      items: [
+                                        HubRailItem(
+                                          icon: Icons.shopping_bag_outlined,
+                                          label: 'Shop',
+                                          onTap: () => context.push('/shop'),
+                                        ),
+                                        HubRailItem(
+                                          icon: Icons.person_outline,
+                                          label: 'Profile',
+                                          onTap: () => context.push('/profile'),
+                                        ),
+                                        HubRailItem(
+                                          icon: Icons.science_outlined,
+                                          label: 'Mock',
+                                          onTap: () => showComingSoonSheet(
+                                            context,
+                                            title: 'Mock',
+                                            blurb:
+                                                'Placeholder slot — replace with '
+                                                'a real mode later.',
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (final id in PrepItemId.values) ...[
+                              HubPrepSlot(
+                                assetPath: id.assetPath,
+                                count: profile.prepCount(id),
+                                onTap: () => context.push('/shop'),
+                              ),
+                              const SizedBox(width: 10),
+                            ],
+                            const HubLockedPrepSlot(
+                              unlockHint: 'Unlocks at Act III',
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        progressAsync.when(
+                          data: (p) => HubProgressBar(
+                            title: '${p.actTitle} · ${p.chapterTitle}',
+                            subtitle:
+                                'Node ${p.completedInChapter} / ${p.totalInChapter}',
+                            completed: p.completedInChapter,
+                            total: p.totalInChapter,
+                          ),
+                          loading: () => const HubProgressBar(
+                            title: 'Campaign',
+                            subtitle: 'Loading…',
+                            completed: 0,
+                            total: 20,
+                          ),
+                          error: (_, __) => HubProgressBar(
+                            title: 'Campaign',
+                            subtitle: 'Node $clears',
+                            completed: clears.clamp(0, 20),
+                            total: 20,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        HubCampaignButton(
+                          onPressed: () => _enterCampaign(context, ref),
+                        ),
+                        const SizedBox(height: 10),
+                        HubModeTabs(
+                          onWeekly: () => context.push('/weekly'),
+                          onHeroes: () => context.push('/heroes'),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              SafeArea(
+                top: false,
+                child: HubBottomNav(
+                  onHome: () {},
+                  onHero: () => context.push('/heroes'),
+                  onInventory: () => context.push('/shop'),
+                  onRanked: () => showComingSoonSheet(
+                    context,
+                    title: 'Ranked',
+                    blurb: 'Competitive ranked mode is planned for later. '
+                        'Your path rank badge tracks campaign clears for now.',
+                  ),
+                  onMore: () => context.push('/profile'),
+                  onMoreLongPress: AppFlavor.showQaTools
+                      ? () => _showQaToolsSheet(context, ref)
+                      : null,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
+  }
+
+  void _enterCampaign(BuildContext context, WidgetRef ref) {
+    ref.read(profileProvider.notifier).tickLifeRegen();
+    final lives = ref.read(profileProvider).lives;
+    if (lives <= 0) {
+      _showNoLivesDialog(context, ref);
+      return;
+    }
+    final progress = ref.read(homeCampaignProgressProvider).asData?.value;
+    if (progress != null) {
+      ref.read(selectedCampaignChapterIdProvider.notifier).state =
+          progress.chapterId;
+    }
+    context.push('/chapters');
+  }
+
+  void _cycleHero(WidgetRef ref, int delta) {
+    final profile = ref.read(profileProvider);
+    final clears = profile.completedNodeIds.length;
+    final unlocked = [
+      for (final h in HeroCatalog.all)
+        if (HeroUnlocks.isUnlocked(h.id, clears)) h,
+    ];
+    if (unlocked.length < 2) return;
+    final idx = unlocked.indexWhere((h) => h.id == profile.selectedHeroId);
+    final safeIdx = idx < 0 ? 0 : idx;
+    final next =
+        unlocked[(safeIdx + delta + unlocked.length * 4) % unlocked.length];
+    ref.read(profileProvider.notifier).selectHero(next.id);
   }
 
   String _formatRegen(Duration d) {
@@ -297,144 +351,288 @@ class HomeScreen extends ConsumerWidget {
     }
   }
 
-  void _showHeroPicker(BuildContext context, WidgetRef ref) {
+  void _showQaToolsSheet(BuildContext context, WidgetRef ref) {
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: MythoraColors.deepTeal,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) {
-        return Consumer(
-          builder: (context, ref, _) {
-            final profile = ref.watch(profileProvider);
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'Heroes',
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  const SizedBox(height: 12),
-                  ...HeroCatalog.all.map((hero) {
-                    final selected = hero.id == profile.selectedHeroId;
-                    final unlocked = HeroUnlocks.isUnlocked(
-                      hero.id,
-                      profile.completedNodeIds.length,
-                    );
-                    return ListTile(
-                      enabled: unlocked,
-                      leading: SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: Opacity(
-                          opacity: unlocked ? 1 : 0.35,
-                          child: Image.asset(
-                            GameAssets.hero(hero.id),
-                            errorBuilder: (_, __, ___) => Icon(
-                              selected
-                                  ? Icons.check_circle
-                                  : Icons.person_outline,
-                              color: MythoraColors.amber,
-                            ),
-                          ),
-                        ),
-                      ),
-                      title: Text(hero.name),
-                      subtitle: Text(
-                        unlocked
-                            ? '${hero.movesPerTurn} moves · ${hero.maxHp} HP'
-                            : HeroUnlocks.lockBlurb(
-                                hero.id,
-                                profile.completedNodeIds.length,
-                              ),
-                      ),
-                      trailing: !unlocked
-                          ? const Icon(Icons.lock_outline,
-                              color: MythoraColors.muted)
-                          : selected
-                              ? const Icon(Icons.check,
-                                  color: MythoraColors.amber)
-                              : null,
-                      onTap: unlocked
-                          ? () {
-                              ref
-                                  .read(profileProvider.notifier)
-                                  .selectHero(hero.id);
-                              Navigator.pop(context);
-                            }
-                          : null,
-                    );
-                  }),
-                ],
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'QA tools',
+                style: Theme.of(context).textTheme.headlineMedium,
               ),
-            );
-          },
-        );
-      },
+              const SizedBox(height: 8),
+              ListTile(
+                leading: const Icon(
+                  Icons.lock_open,
+                  color: MythoraColors.amber,
+                ),
+                title: const Text('Unlock all campaign content'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _unlockAllForQa(context, ref);
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.restart_alt,
+                  color: MythoraColors.ember,
+                ),
+                title: const Text('Reset local progress'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  ref.read(profileProvider.notifier).resetProgress();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
 
-class _PrepBadge extends StatelessWidget {
-  const _PrepBadge({required this.path, required this.count});
+class _HubHeader extends StatelessWidget {
+  const _HubHeader({
+    required this.coins,
+    required this.gems,
+    required this.livesLabel,
+    required this.onLivesTap,
+    required this.onSettings,
+  });
 
-  final String path;
-  final int count;
+  final int coins;
+  final int gems;
+  final String livesLabel;
+  final VoidCallback onLivesTap;
+  final VoidCallback onSettings;
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SizedBox(
-          width: 44,
-          height: 44,
-          child: Image.asset(
-            path,
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Mythora',
+                  maxLines: 1,
+                  style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                        fontSize: 29,
+                        color: MythoraColors.parchment,
+                        height: 1.05,
+                      ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Flexible(
+              flex: 2,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    HubResourceChip(
+                      label: '$coins',
+                      icon: Icons.monetization_on,
+                      iconColor: MythoraColors.amber,
+                    ),
+                    const SizedBox(width: 4),
+                    HubResourceChip(
+                      label: '$gems',
+                      icon: Icons.diamond,
+                      iconColor: const Color(0xFF5B9BD5),
+                    ),
+                    const SizedBox(width: 4),
+                    HubResourceChip(
+                      label: livesLabel,
+                      icon: Icons.favorite,
+                      iconColor: MythoraColors.ember,
+                      onTap: onLivesTap,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            IconButton(
+              tooltip: 'Settings',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              onPressed: onSettings,
+              icon: const Icon(
+                Icons.settings,
+                color: HubColors.frameGold,
+                size: 22,
+              ),
+            ),
+          ],
         ),
         Text(
-          '×$count',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 11),
+          'Forge powerful combos. Write your legend.',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontSize: 11,
+                color: MythoraColors.muted,
+              ),
         ),
       ],
     );
   }
 }
 
-class _ResourceChip extends StatelessWidget {
-  const _ResourceChip({required this.label, required this.icon});
+class _HeroStage extends StatelessWidget {
+  const _HeroStage({
+    required this.hero,
+    required this.height,
+    required this.onTap,
+    required this.onPrev,
+    required this.onNext,
+  });
 
-  final String label;
-  final IconData icon;
+  final HeroDef hero;
+  final double height;
+  final VoidCallback onTap;
+  final VoidCallback onPrev;
+  final VoidCallback onNext;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-      decoration: BoxDecoration(
-        color: MythoraColors.deepTeal.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: MythoraColors.mist),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: MythoraColors.amber),
-          const SizedBox(width: 3),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontSize: 12,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: SizedBox(
+            height: height,
+            width: height * 1.05,
+            child: Stack(
+              alignment: Alignment.bottomCenter,
+              children: [
+                Positioned(
+                  bottom: height * 0.02,
+                  child: SizedBox(
+                    width: height * 0.88,
+                    height: height * 0.24,
+                    child: CustomPaint(
+                      painter: _HeroPedestalPainter(),
+                    ),
+                  ),
                 ),
+                Positioned.fill(
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: height * 0.06),
+                    child: Image.asset(
+                      GameAssets.hero(hero.id),
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => Icon(
+                        Icons.person,
+                        size: height * 0.45,
+                        color: MythoraColors.muted,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              onPressed: onPrev,
+              icon: const Icon(
+                Icons.chevron_left,
+                color: HubColors.frameGold,
+                size: 28,
+              ),
+            ),
+            GestureDetector(
+              onTap: onTap,
+              child: Text(
+                hero.name,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontSize: 22,
+                      color: MythoraColors.parchment,
+                    ),
+              ),
+            ),
+            IconButton(
+              onPressed: onNext,
+              icon: const Icon(
+                Icons.chevron_right,
+                color: HubColors.frameGold,
+                size: 28,
+              ),
+            ),
+          ],
+        ),
+        Text(
+          'Tap for heroes',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: MythoraColors.muted,
+                fontSize: 11,
+              ),
+        ),
+      ],
     );
   }
+}
+
+class _HeroPedestalPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect =
+        Rect.fromLTWH(0, size.height * 0.12, size.width, size.height * 0.7);
+    final glow = Paint()
+      ..color = HubColors.glow.withValues(alpha: 0.28)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14);
+    canvas.drawOval(rect, glow);
+
+    canvas.drawOval(
+      rect,
+      Paint()
+        ..shader = const RadialGradient(
+          colors: [Color(0xB8326370), Color(0xE810222C)],
+        ).createShader(rect),
+    );
+    canvas.drawOval(
+      rect,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..color = HubColors.glow.withValues(alpha: 0.55),
+    );
+
+    final inner = Rect.fromCenter(
+      center: rect.center,
+      width: rect.width * 0.72,
+      height: rect.height * 0.58,
+    );
+    canvas.drawOval(
+      inner,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1
+        ..color = HubColors.frameGold.withValues(alpha: 0.42),
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

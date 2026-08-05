@@ -3,7 +3,10 @@ import '../../features/puzzle/domain/tile_color.dart';
 
 /// Central asset paths for presentation wiring.
 abstract final class GameAssets {
-  static const homeBackground = 'assets/images/backgrounds/bg_home_dusk.png';
+  static const homeBackground =
+      'assets/images/backgrounds/bg_home_mythspire_night.png';
+  static const homeBackgroundFallback =
+      'assets/images/backgrounds/bg_home_dusk.png';
   static const battleTwilightRoad =
       'assets/images/backgrounds/battle/bg_battle_twilight_road.png';
 

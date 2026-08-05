@@ -8,23 +8,27 @@ import 'package:mythora/features/puzzle/domain/board_movers.dart';
 import 'package:mythora/features/puzzle/domain/level_board_config.dart';
 
 void main() {
-  test('Howling Ridge boardDefaults include dual row shove movers', () {
+  test('Howling Ridge ramps movers; finale uses dual row shove', () {
     final raw = File('assets/levels/howling_ridge.json').readAsStringSync();
     final chapter =
         CampaignChapter.fromJson(jsonDecode(raw) as Map<String, dynamic>);
-    final movers = chapter.boardDefaults.effectiveMovers;
+    final defaults = chapter.boardDefaults.effectiveMovers;
+    expect(defaults, hasLength(1));
+    expect(defaults[0].type, 'row_shove');
+    expect(defaults[0].rows, [2]);
+    expect(defaults[0].direction, 'left');
+    expect(defaults[0].everyNTurns, 2);
+
+    final calm = chapter.nodeById('ch_howling_n01');
+    expect(chapter.boardFor(calm).effectiveMovers, isEmpty);
+
+    final node = chapter.nodeById('ch_howling_n05');
+    final movers = chapter.boardFor(node).effectiveMovers;
     expect(movers, hasLength(2));
-    expect(movers[0].type, 'row_shove');
     expect(movers[0].rows, [2]);
-    expect(movers[0].direction, 'left');
     expect(movers[0].everyNTurns, 1);
     expect(movers[1].rows, [4]);
     expect(movers[1].direction, 'right');
-    expect(movers[1].everyNTurns, 2);
-
-    final node = chapter.nodeById('ch_howling_n04');
-    expect(node, isNotNull);
-    expect(chapter.boardFor(node!).effectiveMovers, hasLength(2));
   });
 
   test('startPlayerTurn sets wind combat fx and status when movers due', () {

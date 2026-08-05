@@ -10,12 +10,6 @@
         "type": "row_shove",
         "rows": [2],
         "direction": "left",
-        "everyNTurns": 1
-      },
-      {
-        "type": "row_shove",
-        "rows": [4],
-        "direction": "right",
         "everyNTurns": 2
       }
     ]
@@ -33,7 +27,10 @@
           "coinReward": 39,
           "order": 0,
           "mapX": 0.383,
-          "mapY": 0.858
+          "mapY": 0.858,
+          "board": {
+            "movers": []
+          }
         },
         {
           "id": "ch_howling_n02",
@@ -42,7 +39,10 @@
           "coinReward": 41,
           "order": 1,
           "mapX": 0.312,
-          "mapY": 0.686
+          "mapY": 0.686,
+          "board": {
+            "movers": []
+          }
         },
         {
           "id": "ch_howling_n03",
@@ -63,7 +63,17 @@
           "coinReward": 45,
           "order": 3,
           "mapX": 0.459,
-          "mapY": 0.317
+          "mapY": 0.317,
+          "board": {
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [2],
+                "direction": "left",
+                "everyNTurns": 1
+              }
+            ]
+          }
         },
         {
           "id": "ch_howling_n05",
@@ -75,7 +85,23 @@
           "bossForm": 1,
           "mapX": 0.707,
           "mapY": 0.152,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [2],
+                "direction": "left",
+                "everyNTurns": 1
+              },
+              {
+                "type": "row_shove",
+                "rows": [4],
+                "direction": "right",
+                "everyNTurns": 2
+              }
+            ]
+          }
         }
       ]
     },
@@ -91,7 +117,17 @@
           "coinReward": 49,
           "order": 5,
           "mapX": 0.392,
-          "mapY": 0.804
+          "mapY": 0.804,
+          "board": {
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [2],
+                "direction": "left",
+                "everyNTurns": 1
+              }
+            ]
+          }
         },
         {
           "id": "ch_howling_n07",
@@ -100,7 +136,17 @@
           "coinReward": 51,
           "order": 6,
           "mapX": 0.625,
-          "mapY": 0.668
+          "mapY": 0.668,
+          "board": {
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [2],
+                "direction": "left",
+                "everyNTurns": 1
+              }
+            ]
+          }
         },
         {
           "id": "ch_howling_n08",
@@ -112,7 +158,17 @@
           "mapY": 0.516,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [2],
+                "direction": "left",
+                "everyNTurns": 1
+              }
+            ]
+          }
         },
         {
           "id": "ch_howling_n09",
@@ -121,7 +177,24 @@
           "coinReward": 55,
           "order": 8,
           "mapX": 0.68,
-          "mapY": 0.344
+          "mapY": 0.344,
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [2],
+                "direction": "left",
+                "everyNTurns": 1
+              },
+              {
+                "type": "row_shove",
+                "rows": [4],
+                "direction": "right",
+                "everyNTurns": 2
+              }
+            ]
+          }
         },
         {
           "id": "ch_howling_n10",
@@ -133,7 +206,23 @@
           "bossForm": 2,
           "mapX": 0.792,
           "mapY": 0.158,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [2],
+                "direction": "left",
+                "everyNTurns": 1
+              },
+              {
+                "type": "row_shove",
+                "rows": [4],
+                "direction": "right",
+                "everyNTurns": 2
+              }
+            ]
+          }
         }
       ]
     },
@@ -149,7 +238,23 @@
           "coinReward": 59,
           "order": 10,
           "mapX": 0.28,
-          "mapY": 0.855
+          "mapY": 0.855,
+          "board": {
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [2],
+                "direction": "left",
+                "everyNTurns": 1
+              },
+              {
+                "type": "row_shove",
+                "rows": [4],
+                "direction": "right",
+                "everyNTurns": 2
+              }
+            ]
+          }
         },
         {
           "id": "ch_howling_n12",
@@ -158,7 +263,23 @@
           "coinReward": 61,
           "order": 11,
           "mapX": 0.769,
-          "mapY": 0.651
+          "mapY": 0.651,
+          "board": {
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [2],
+                "direction": "left",
+                "everyNTurns": 1
+              },
+              {
+                "type": "row_shove",
+                "rows": [4],
+                "direction": "right",
+                "everyNTurns": 2
+              }
+            ]
+          }
         },
         {
           "id": "ch_howling_n13",
@@ -170,7 +291,23 @@
           "mapY": 0.534,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [2],
+                "direction": "left",
+                "everyNTurns": 1
+              },
+              {
+                "type": "row_shove",
+                "rows": [4],
+                "direction": "right",
+                "everyNTurns": 2
+              }
+            ]
+          }
         },
         {
           "id": "ch_howling_n14",
@@ -179,7 +316,24 @@
           "coinReward": 65,
           "order": 13,
           "mapX": 0.631,
-          "mapY": 0.351
+          "mapY": 0.351,
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [2],
+                "direction": "left",
+                "everyNTurns": 1
+              },
+              {
+                "type": "row_shove",
+                "rows": [4],
+                "direction": "right",
+                "everyNTurns": 2
+              }
+            ]
+          }
         },
         {
           "id": "ch_howling_n15",
@@ -191,7 +345,24 @@
           "bossForm": 3,
           "mapX": 0.517,
           "mapY": 0.194,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [2],
+                "direction": "left",
+                "everyNTurns": 1
+              },
+              {
+                "type": "row_shove",
+                "rows": [4],
+                "direction": "right",
+                "everyNTurns": 2
+              }
+            ]
+          }
         }
       ]
     },
@@ -207,7 +378,23 @@
           "coinReward": 69,
           "order": 15,
           "mapX": 0.366,
-          "mapY": 0.872
+          "mapY": 0.872,
+          "board": {
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [2],
+                "direction": "left",
+                "everyNTurns": 1
+              },
+              {
+                "type": "row_shove",
+                "rows": [4],
+                "direction": "right",
+                "everyNTurns": 2
+              }
+            ]
+          }
         },
         {
           "id": "ch_howling_n17",
@@ -216,7 +403,23 @@
           "coinReward": 71,
           "order": 16,
           "mapX": 0.681,
-          "mapY": 0.713
+          "mapY": 0.713,
+          "board": {
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [2],
+                "direction": "left",
+                "everyNTurns": 1
+              },
+              {
+                "type": "row_shove",
+                "rows": [4],
+                "direction": "right",
+                "everyNTurns": 2
+              }
+            ]
+          }
         },
         {
           "id": "ch_howling_n18",
@@ -228,7 +431,23 @@
           "mapY": 0.615,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [2],
+                "direction": "left",
+                "everyNTurns": 1
+              },
+              {
+                "type": "row_shove",
+                "rows": [4],
+                "direction": "right",
+                "everyNTurns": 2
+              }
+            ]
+          }
         },
         {
           "id": "ch_howling_n19",
@@ -237,7 +456,24 @@
           "coinReward": 75,
           "order": 18,
           "mapX": 0.644,
-          "mapY": 0.445
+          "mapY": 0.445,
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [2],
+                "direction": "left",
+                "everyNTurns": 1
+              },
+              {
+                "type": "row_shove",
+                "rows": [4],
+                "direction": "right",
+                "everyNTurns": 2
+              }
+            ]
+          }
         },
         {
           "id": "ch_howling_n20",
@@ -249,7 +485,24 @@
           "bossForm": 4,
           "mapX": 0.598,
           "mapY": 0.223,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [2],
+                "direction": "left",
+                "everyNTurns": 1
+              },
+              {
+                "type": "row_shove",
+                "rows": [4],
+                "direction": "right",
+                "everyNTurns": 2
+              }
+            ]
+          }
         }
       ]
     }

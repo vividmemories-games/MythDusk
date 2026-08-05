@@ -425,3 +425,43 @@ Legacy single-strip filenames (`map_ch_*.png` without `_aN`) remain **deprecated
 **Impact:** `CombatFx.hazard`, `windDirection` / `hazardPulseCells`, `animated_puzzle_board`, `battle_stage`, `battle_hud`, provider FX sequencing, `Animations.md`.
 
 **Status:** Accepted — launch-blocker juice baseline; further AB2 sprite sheets still deferred
+
+---
+
+## 2026-08-01 — P1.2 per-node board variety (Ch1–3)
+
+**Decision:** Author per-node `board` overrides on Twilight, Mistfen, and Howling using existing templates only. Soft intro → reinforce → act-finale patterns: Twilight open→vines→bridge; Mistfen open/vines then sticky, with live `hazardSpawn` only on mid/late nodes; Howling calm→gentle shove→dual shove (bridge under wind on finales). No new templates, no campaign objectives, Ch4–10 remain chapter-flat.
+
+**Impact:** `twilight_road.json`, `mistfen_marshes.json`, `howling_ridge.json`; `board_content_variety_test.dart`; briefing already shows resolved boards via `boardFor`.
+
+**Status:** Accepted
+
+---
+
+## 2026-08-03 — Home hub visual pass (mockup match)
+
+**Decision:** Match closed Home mockup more closely: night Mythspire hub background (`bg_home_mythspire_night.png`), gold-framed rail on the right, path-rank badge (cosmetic from clears), hex prep slots + locked fourth slot, teal progress card above Campaign CTA, bottom nav (Home/Hero/Inventory/Ranked/More). Quests/Events/Ranked remain honest coming-soon until built.
+
+**Impact:** Home presentation widgets, `GameAssets.homeBackground`, new background asset.
+
+**Status:** Accepted
+
+---
+
+## 2026-08-05 — Profile + Heroes hub screens
+
+**Decision:** Ship Profile and Heroes as real routes (`/profile`, `/heroes`). Home bottom **More** opens Profile; gear remains Settings; **Hero** / Heroes tab / hero stage open Heroes (select, unlocks, skills, coin upgrades via `purchaseUpgrade`). Settings sheet links to Profile. Shop sheet / Quests / Events / Ranked unchanged.
+
+**Impact:** `heroes_screen.dart`, `profile_screen.dart`, `app_router.dart`, home + settings wiring; `profile_heroes_nav_test.dart`.
+
+**Status:** Accepted
+
+---
+
+## 2026-08-05 — Heroes carousel + Shop/Settings pages + rail swap
+
+**Decision:** Heroes is a per-hero detail carousel (swipe + chevrons; no roster list; skills/upgrades under the viewed hero). Shop and Settings are full routes (`/shop`, `/settings`) instead of bottom sheets. Home right rail is Shop / Profile / Mock (Quests/Events removed; Mock is a temporary coming-soon stub).
+
+**Impact:** `heroes_screen.dart`, `shop_screen.dart`, `settings_screen.dart`, `app_router.dart`, home hub rail + nav wiring; removed prep/settings sheets; tests updated.
+
+**Status:** Accepted

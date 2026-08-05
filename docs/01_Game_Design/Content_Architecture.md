@@ -268,7 +268,9 @@ Each level node should eventually support:
 Chapter files may set `boardDefaults` (merged under node `board`).  
 Board geometry lives in `assets/boards/templates.json` + `overlays.json` — see [Decisions](../00_Project/Decisions.md) 2026-07-23.
 
-Full 200-level stub generator → later PR; Twilight Road uses `boardDefaults.templateId = board_open_6x6`.
+**Ch1–3 progression (P1.2):** Twilight / Mistfen / Howling use real per-node `board` overrides (intro → reinforce → finale). Defaults stay soft; lists on a node **replace** chapter movers/hazard entirely. Ch4–10 remain chapter-flat stubs until a later content pass. Template IDs are checked by `test/board_content_variety_test.dart`.
+
+Full 200-level stub generator → later PR; Twilight Road defaults to `board_open_6x6` with mid/late vines and bridge boards.
 
 ---
 

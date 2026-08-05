@@ -4,12 +4,7 @@
   "subtitle": "Fog and sticky footing.",
   "backgroundId": "bg_battle_mistfen_marshes",
   "boardDefaults": {
-    "templateId": "board_mistfen_sticky_01",
-    "hazardSpawn": {
-      "overlayId": "ovl_poison",
-      "chancePerTurn": 0.2,
-      "maxOnBoard": 5
-    }
+    "templateId": "board_mistfen_sticky_01"
   },
   "acts": [
     {
@@ -24,7 +19,10 @@
           "coinReward": 36,
           "order": 0,
           "mapX": 0.467,
-          "mapY": 0.889
+          "mapY": 0.889,
+          "board": {
+            "templateId": "board_open_6x6"
+          }
         },
         {
           "id": "ch_mistfen_n02",
@@ -33,7 +31,10 @@
           "coinReward": 38,
           "order": 1,
           "mapX": 0.652,
-          "mapY": 0.737
+          "mapY": 0.737,
+          "board": {
+            "templateId": "board_vine_corners_01"
+          }
         },
         {
           "id": "ch_mistfen_n03",
@@ -66,7 +67,15 @@
           "bossForm": 1,
           "mapX": 0.525,
           "mapY": 0.19,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_mistfen_sticky_01",
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.15,
+              "maxOnBoard": 3
+            }
+          }
         }
       ]
     },
@@ -82,7 +91,10 @@
           "coinReward": 46,
           "order": 5,
           "mapX": 0.532,
-          "mapY": 0.854
+          "mapY": 0.854,
+          "board": {
+            "templateId": "board_vine_corners_01"
+          }
         },
         {
           "id": "ch_mistfen_n07",
@@ -103,7 +115,15 @@
           "mapY": 0.505,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_mistfen_sticky_01",
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.15,
+              "maxOnBoard": 3
+            }
+          }
         },
         {
           "id": "ch_mistfen_n09",
@@ -112,7 +132,15 @@
           "coinReward": 52,
           "order": 8,
           "mapX": 0.417,
-          "mapY": 0.378
+          "mapY": 0.378,
+          "board": {
+            "templateId": "board_mistfen_sticky_01",
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.2,
+              "maxOnBoard": 4
+            }
+          }
         },
         {
           "id": "ch_mistfen_n10",
@@ -124,7 +152,15 @@
           "bossForm": 2,
           "mapX": 0.553,
           "mapY": 0.196,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_mistfen_sticky_01",
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.2,
+              "maxOnBoard": 4
+            }
+          }
         }
       ]
     },
@@ -149,7 +185,15 @@
           "coinReward": 58,
           "order": 11,
           "mapX": 0.293,
-          "mapY": 0.727
+          "mapY": 0.727,
+          "board": {
+            "templateId": "board_mistfen_sticky_01",
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.2,
+              "maxOnBoard": 4
+            }
+          }
         },
         {
           "id": "ch_mistfen_n13",
@@ -161,7 +205,15 @@
           "mapY": 0.568,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_mistfen_sticky_01",
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.22,
+              "maxOnBoard": 5
+            }
+          }
         },
         {
           "id": "ch_mistfen_n14",
@@ -170,7 +222,15 @@
           "coinReward": 62,
           "order": 13,
           "mapX": 0.496,
-          "mapY": 0.462
+          "mapY": 0.462,
+          "board": {
+            "templateId": "board_mistfen_sticky_01",
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.22,
+              "maxOnBoard": 5
+            }
+          }
         },
         {
           "id": "ch_mistfen_n15",
@@ -182,7 +242,15 @@
           "bossForm": 3,
           "mapX": 0.607,
           "mapY": 0.199,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_mistfen_sticky_01",
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.25,
+              "maxOnBoard": 5
+            }
+          }
         }
       ]
     },
@@ -198,7 +266,15 @@
           "coinReward": 66,
           "order": 15,
           "mapX": 0.472,
-          "mapY": 0.88
+          "mapY": 0.88,
+          "board": {
+            "templateId": "board_mistfen_sticky_01",
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.2,
+              "maxOnBoard": 4
+            }
+          }
         },
         {
           "id": "ch_mistfen_n17",
@@ -207,7 +283,15 @@
           "coinReward": 68,
           "order": 16,
           "mapX": 0.603,
-          "mapY": 0.705
+          "mapY": 0.705,
+          "board": {
+            "templateId": "board_mistfen_sticky_01",
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.22,
+              "maxOnBoard": 5
+            }
+          }
         },
         {
           "id": "ch_mistfen_n18",
@@ -219,7 +303,15 @@
           "mapY": 0.543,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_mistfen_sticky_01",
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.25,
+              "maxOnBoard": 5
+            }
+          }
         },
         {
           "id": "ch_mistfen_n19",
@@ -228,7 +320,15 @@
           "coinReward": 72,
           "order": 18,
           "mapX": 0.808,
-          "mapY": 0.428
+          "mapY": 0.428,
+          "board": {
+            "templateId": "board_mistfen_sticky_01",
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.25,
+              "maxOnBoard": 5
+            }
+          }
         },
         {
           "id": "ch_mistfen_n20",
@@ -240,7 +340,15 @@
           "bossForm": 4,
           "mapX": 0.764,
           "mapY": 0.304,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_mistfen_sticky_01",
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.25,
+              "maxOnBoard": 5
+            }
+          }
         }
       ]
     }

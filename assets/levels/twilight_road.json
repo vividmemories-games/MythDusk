@@ -37,7 +37,10 @@
           "coinReward": 38,
           "order": 2,
           "mapX": 0.261,
-          "mapY": 0.546
+          "mapY": 0.546,
+          "board": {
+            "templateId": "board_vine_corners_01"
+          }
         },
         {
           "id": "node_04",
@@ -46,7 +49,10 @@
           "coinReward": 42,
           "order": 3,
           "mapX": 0.672,
-          "mapY": 0.401
+          "mapY": 0.401,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "node_05",
@@ -58,7 +64,14 @@
           "bossForm": 1,
           "mapX": 0.503,
           "mapY": 0.209,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_vine_corners_01",
+            "spawnWeights": {
+              "red": 1.15,
+              "yellow": 1.1
+            }
+          }
         }
       ]
     },
@@ -83,7 +96,10 @@
           "coinReward": 50,
           "order": 6,
           "mapX": 0.334,
-          "mapY": 0.691
+          "mapY": 0.691,
+          "board": {
+            "templateId": "board_vine_corners_01"
+          }
         },
         {
           "id": "node_08",
@@ -92,7 +108,10 @@
           "coinReward": 54,
           "order": 7,
           "mapX": 0.682,
-          "mapY": 0.586
+          "mapY": 0.586,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "node_09",
@@ -101,7 +120,10 @@
           "coinReward": 58,
           "order": 8,
           "mapX": 0.41,
-          "mapY": 0.353
+          "mapY": 0.353,
+          "board": {
+            "templateId": "board_vine_corners_01"
+          }
         },
         {
           "id": "node_10",
@@ -113,7 +135,14 @@
           "bossForm": 2,
           "mapX": 0.538,
           "mapY": 0.204,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "spawnWeights": {
+              "red": 1.2,
+              "yellow": 1.1
+            }
+          }
         }
       ]
     },
@@ -138,7 +167,10 @@
           "coinReward": 66,
           "order": 11,
           "mapX": 0.641,
-          "mapY": 0.761
+          "mapY": 0.761,
+          "board": {
+            "templateId": "board_vine_corners_01"
+          }
         },
         {
           "id": "node_13",
@@ -147,7 +179,10 @@
           "coinReward": 70,
           "order": 12,
           "mapX": 0.602,
-          "mapY": 0.559
+          "mapY": 0.559,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "node_14",
@@ -156,7 +191,10 @@
           "coinReward": 74,
           "order": 13,
           "mapX": 0.42,
-          "mapY": 0.333
+          "mapY": 0.333,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "node_15",
@@ -168,7 +206,14 @@
           "bossForm": 3,
           "mapX": 0.543,
           "mapY": 0.201,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "spawnWeights": {
+              "red": 1.2,
+              "yellow": 1.15
+            }
+          }
         }
       ]
     },
@@ -184,7 +229,10 @@
           "coinReward": 78,
           "order": 15,
           "mapX": 0.5,
-          "mapY": 0.86
+          "mapY": 0.86,
+          "board": {
+            "templateId": "board_vine_corners_01"
+          }
         },
         {
           "id": "node_17",
@@ -193,7 +241,10 @@
           "coinReward": 82,
           "order": 16,
           "mapX": 0.386,
-          "mapY": 0.709
+          "mapY": 0.709,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "node_18",
@@ -202,7 +253,10 @@
           "coinReward": 86,
           "order": 17,
           "mapX": 0.437,
-          "mapY": 0.524
+          "mapY": 0.524,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "node_19",
@@ -211,7 +265,10 @@
           "coinReward": 90,
           "order": 18,
           "mapX": 0.449,
-          "mapY": 0.36
+          "mapY": 0.36,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "node_20",
@@ -223,7 +280,14 @@
           "bossForm": 4,
           "mapX": 0.683,
           "mapY": 0.185,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "spawnWeights": {
+              "red": 1.25,
+              "yellow": 1.15
+            }
+          }
         }
       ]
     }
