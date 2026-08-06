@@ -465,3 +465,13 @@ Legacy single-strip filenames (`map_ch_*.png` without `_aN`) remain **deprecated
 **Impact:** `heroes_screen.dart`, `shop_screen.dart`, `settings_screen.dart`, `app_router.dart`, home hub rail + nav wiring; removed prep/settings sheets; tests updated.
 
 **Status:** Accepted
+
+---
+
+## 2026-08-05 — Typed enemy effect pipeline
+
+**Decision:** Replace raw string-based enemy effects with a sealed Dart hierarchy while preserving the existing JSON wire names. Support `ModifyMovesEffect`, `DrainResourceEffect`, and `ApplyOverlayEffect`; reject unknown types, invalid parameters, unsupported overlays, and the previously described but unresolved `damage` effect. Base hit damage remains exclusively on `EnemySkill.damage`.
+
+**Impact:** `EnemyEffect` parsing/serialization, enemy catalog definitions, weekly scaling, exhaustive battle resolution, content validation, and effect regression tests.
+
+**Status:** Accepted

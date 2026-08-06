@@ -10,7 +10,7 @@
     {
       "id": "ch_mistfen_act1",
       "title": "Act I",
-      "mapAsset": "assets/images/maps/map_ch_mistfen_marshes_a1.png",
+      "mapAsset": "assets/images/maps/map_ch_mistfen_marshes_a1.webp",
       "nodes": [
         {
           "id": "ch_mistfen_n01",
@@ -82,7 +82,7 @@
     {
       "id": "ch_mistfen_act2",
       "title": "Act II",
-      "mapAsset": "assets/images/maps/map_ch_mistfen_marshes_a2.png",
+      "mapAsset": "assets/images/maps/map_ch_mistfen_marshes_a2.webp",
       "nodes": [
         {
           "id": "ch_mistfen_n06",
@@ -167,7 +167,7 @@
     {
       "id": "ch_mistfen_act3",
       "title": "Act III",
-      "mapAsset": "assets/images/maps/map_ch_mistfen_marshes_a3.png",
+      "mapAsset": "assets/images/maps/map_ch_mistfen_marshes_a3.webp",
       "nodes": [
         {
           "id": "ch_mistfen_n11",
@@ -257,7 +257,7 @@
     {
       "id": "ch_mistfen_act4",
       "title": "Act IV",
-      "mapAsset": "assets/images/maps/map_ch_mistfen_marshes_a4.png",
+      "mapAsset": "assets/images/maps/map_ch_mistfen_marshes_a4.webp",
       "nodes": [
         {
           "id": "ch_mistfen_n16",

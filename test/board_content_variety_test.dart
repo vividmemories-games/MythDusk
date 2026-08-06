@@ -13,7 +13,9 @@ String _boardFingerprint(LevelBoardConfig cfg) {
   final hazard = cfg.hazardSpawn == null
       ? '-'
       : '${cfg.hazardSpawn!.overlayId}:${cfg.hazardSpawn!.chancePerTurn}:${cfg.hazardSpawn!.maxOnBoard}';
-  final weights = cfg.spawnWeights?.toJson().entries
+  final weights = cfg.spawnWeights
+          ?.toJson()
+          .entries
           .where((e) => (e.value as num) != 1.0)
           .map((e) => '${e.key}=${e.value}')
           .join(',') ??

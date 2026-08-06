@@ -15,7 +15,7 @@
     {
       "id": "ch_eclipse_act1",
       "title": "Act I",
-      "mapAsset": "assets/images/maps/map_ch_eclipse_forge_a1.png",
+      "mapAsset": "assets/images/maps/map_ch_eclipse_forge_a1.webp",
       "nodes": [
         {
           "id": "ch_eclipse_n01",
@@ -73,7 +73,7 @@
     {
       "id": "ch_eclipse_act2",
       "title": "Act II",
-      "mapAsset": "assets/images/maps/map_ch_eclipse_forge_a2.png",
+      "mapAsset": "assets/images/maps/map_ch_eclipse_forge_a2.webp",
       "nodes": [
         {
           "id": "ch_eclipse_n06",
@@ -131,7 +131,7 @@
     {
       "id": "ch_eclipse_act3",
       "title": "Act III",
-      "mapAsset": "assets/images/maps/map_ch_eclipse_forge_a3.png",
+      "mapAsset": "assets/images/maps/map_ch_eclipse_forge_a3.webp",
       "nodes": [
         {
           "id": "ch_eclipse_n11",
@@ -189,7 +189,7 @@
     {
       "id": "ch_eclipse_act4",
       "title": "Act IV",
-      "mapAsset": "assets/images/maps/map_ch_eclipse_forge_a4.png",
+      "mapAsset": "assets/images/maps/map_ch_eclipse_forge_a4.webp",
       "nodes": [
         {
           "id": "ch_eclipse_n16",

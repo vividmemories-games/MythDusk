@@ -197,7 +197,7 @@ class CampaignChapter {
           id: '${json['id']}_act1',
           title: 'Act I',
           mapAsset: json['mapAsset'] as String? ??
-              'assets/images/maps/map_ch_twilight_road_a1.png',
+              'assets/images/maps/map_ch_twilight_road_a1.webp',
           nodes: nodes,
         ),
       ],

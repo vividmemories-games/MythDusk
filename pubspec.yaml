@@ -26,7 +26,6 @@ flutter:
     - assets/boards/
     - assets/heroes/
     - assets/enemies/
-    - assets/images/style_board/
     - assets/images/tiles/
     - assets/images/skills/
     - assets/images/icons/

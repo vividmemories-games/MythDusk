@@ -150,15 +150,15 @@ int _checkCodeConsistency(Directory root) {
   requireContains(
     'lib/features/battle/domain/battle_state.dart',
     [
-      'clearDuration = Duration(milliseconds: 220)',
-      'fallDuration = Duration(milliseconds: 260)',
-      'spawnDuration = Duration(milliseconds: 280)',
+      'clearDuration = Duration(milliseconds: 240)',
+      'fallDuration = Duration(milliseconds: 280)',
+      'spawnDuration = Duration(milliseconds: 300)',
     ],
     'animations',
   );
   requireContains(
     'docs/02_Design_System/Animations.md',
-    ['220ms', '260ms', '280ms'],
+    ['240ms', '280ms', '300ms'],
     'animations-doc',
   );
 

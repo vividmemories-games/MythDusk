@@ -12,7 +12,7 @@ import 'package:mythora/features/puzzle/domain/tile_id_gen.dart';
 
 void main() {
   group('HazardSpawner', () {
-    final poison = const OverlayDef(
+    const poison = OverlayDef(
       id: 'ovl_poison',
       archetype: OverlayArchetype.binder,
       breakRule: OverlayBreakRule.matchUnder,

@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Status** | Active |
-| **Last Updated** | 2026-07-10 |
+| **Last Updated** | 2026-08-05 |
 | **Related** | [Coding Standards](Coding_Standards.md) · [PHASES](../PHASES.md) · [GAMEPLAY](../GAMEPLAY.md) |
 
 ## Stack
@@ -33,6 +33,22 @@ Higher layers depend on lower layers — never the reverse for **rules**.
 ```text
 Input → provider/notifier → domain controller/engine → immutable state → UI
 ```
+
+## Typed enemy effects
+
+Enemy skill side effects use the sealed `EnemyEffect` hierarchy. The JSON
+wire discriminator remains stable for future remote content, while parsing
+rejects unknown types, resources, overlays, and invalid amounts.
+
+| Wire type | Dart type | Required data |
+|-----------|-----------|---------------|
+| `modify_moves` | `ModifyMovesEffect` | Negative `amount` |
+| `drain_resource` | `DrainResourceEffect` | Known `resourceId`, positive `amount` |
+| `apply_overlay` | `ApplyOverlayEffect` | Supported `overlayId`, positive `count` |
+
+Base enemy damage belongs only to `EnemySkill.damage`; `damage` is not an
+effect type. Resolution uses an exhaustive sealed-type switch, so newly added
+effect subclasses must be handled explicitly.
 
 ## Feature map (Phase 1)
 

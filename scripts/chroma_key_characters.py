@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Chroma-key solid #123A44 character backgrounds to true alpha PNGs.
+"""Chroma-key legacy #123A44 character masters to transparent source PNGs.
 
 Always re-processes from assets/_opaque_bak/ (seeded on first run).
-Uses corner flood-fill for the flat teal BG, then strips bright fringe.
+Writes reviewed sources under art_sources/runtime_png/; run
+optimize_runtime_assets.py afterward to refresh the bundled WebP files.
+Uses corner flood-fill for the flat teal background, then strips bright fringe.
 
 Usage:
   python3 scripts/chroma_key_characters.py
@@ -17,8 +19,10 @@ from pathlib import Path
 
 from PIL import Image, ImageFilter
 
-ROOT = Path(__file__).resolve().parents[1] / "assets"
-BAK = ROOT / "_opaque_bak"
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+ASSET_ROOT = PROJECT_ROOT / "assets"
+BAK = ASSET_ROOT / "_opaque_bak"
+OUTPUT_ROOT = PROJECT_ROOT / "art_sources" / "runtime_png"
 KEY = (0x12, 0x3A, 0x44)
 HARD = 38.0
 
@@ -124,16 +128,17 @@ def process(path: Path, bak_path: Path) -> tuple[int, tuple[int, int]]:
 
 def main() -> None:
     targets = (
-        sorted((ROOT / "heroes").glob("hero_*.png"))
-        + sorted((ROOT / "enemies").glob("enemy_*.png"))
-        + sorted((ROOT / "enemies" / "bosses").glob("boss_*.png"))
+        sorted((BAK / "heroes").glob("hero_*.png"))
+        + sorted((BAK / "enemies").glob("enemy_*.png"))
+        + sorted((BAK / "enemies" / "bosses").glob("boss_*.png"))
     )
     print(f"Processing {len(targets)} files from bak…")
-    for path in targets:
-        rel = path.relative_to(ROOT)
-        touched, size = process(path, BAK / rel)
+    for bak_path in targets:
+        rel = bak_path.relative_to(BAK)
+        path = OUTPUT_ROOT / rel
+        touched, size = process(path, bak_path)
         print(f"  {rel}: touched≈{touched} → {size[0]}x{size[1]}")
-    print("done")
+    print("done; run optimize_runtime_assets.py --apply to refresh WebP")
 
 
 if __name__ == "__main__":

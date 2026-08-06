@@ -21,7 +21,7 @@
     {
       "id": "ch_mythspire_act1",
       "title": "Act I",
-      "mapAsset": "assets/images/maps/map_ch_mythspire_gate_a1.png",
+      "mapAsset": "assets/images/maps/map_ch_mythspire_gate_a1.webp",
       "nodes": [
         {
           "id": "ch_mythspire_n01",
@@ -79,7 +79,7 @@
     {
       "id": "ch_mythspire_act2",
       "title": "Act II",
-      "mapAsset": "assets/images/maps/map_ch_mythspire_gate_a2.png",
+      "mapAsset": "assets/images/maps/map_ch_mythspire_gate_a2.webp",
       "nodes": [
         {
           "id": "ch_mythspire_n06",
@@ -137,7 +137,7 @@
     {
       "id": "ch_mythspire_act3",
       "title": "Act III",
-      "mapAsset": "assets/images/maps/map_ch_mythspire_gate_a3.png",
+      "mapAsset": "assets/images/maps/map_ch_mythspire_gate_a3.webp",
       "nodes": [
         {
           "id": "ch_mythspire_n11",
@@ -195,7 +195,7 @@
     {
       "id": "ch_mythspire_act4",
       "title": "Act IV",
-      "mapAsset": "assets/images/maps/map_ch_mythspire_gate_a4.png",
+      "mapAsset": "assets/images/maps/map_ch_mythspire_gate_a4.webp",
       "nodes": [
         {
           "id": "ch_mythspire_n16",

@@ -4,20 +4,20 @@ import '../../features/puzzle/domain/tile_color.dart';
 /// Central asset paths for presentation wiring.
 abstract final class GameAssets {
   static const homeBackground =
-      'assets/images/backgrounds/bg_home_mythspire_night.png';
+      'assets/images/backgrounds/bg_home_mythspire_night.webp';
   static const homeBackgroundFallback =
-      'assets/images/backgrounds/bg_home_dusk.png';
+      'assets/images/backgrounds/bg_home_dusk.webp';
   static const battleTwilightRoad =
-      'assets/images/backgrounds/battle/bg_battle_twilight_road.png';
+      'assets/images/backgrounds/battle/bg_battle_twilight_road.webp';
 
   static const mapTwilightAct1 =
-      'assets/images/maps/map_ch_twilight_road_a1.png';
+      'assets/images/maps/map_ch_twilight_road_a1.webp';
   static const mapTwilightAct2 =
-      'assets/images/maps/map_ch_twilight_road_a2.png';
+      'assets/images/maps/map_ch_twilight_road_a2.webp';
   static const mapTwilightAct3 =
-      'assets/images/maps/map_ch_twilight_road_a3.png';
+      'assets/images/maps/map_ch_twilight_road_a3.webp';
   static const mapTwilightAct4 =
-      'assets/images/maps/map_ch_twilight_road_a4.png';
+      'assets/images/maps/map_ch_twilight_road_a4.webp';
 
   /// Prefer [CampaignAct.mapAsset]; these are the Ch1 defaults.
   static String mapTwilightAct(int actIndex1Based) => switch (actIndex1Based) {
@@ -51,7 +51,7 @@ abstract final class GameAssets {
         _ => tile(TileColor.red),
       };
 
-  static String hero(String heroId) => 'assets/heroes/hero_$heroId.png';
+  static String hero(String heroId) => 'assets/heroes/hero_$heroId.webp';
 
   static String tile(TileColor color) => switch (color) {
         TileColor.red => 'assets/images/tiles/tile_red.png',
@@ -76,32 +76,32 @@ abstract final class GameAssets {
   static String enemy(String enemyId, {int? bossForm}) {
     final form = (bossForm ?? 4).clamp(1, 4);
     return switch (enemyId) {
-      'warchief' => 'assets/enemies/bosses/boss_warchief_ruk_f$form.png',
-      'mirelord' => 'assets/enemies/bosses/boss_mirelord_f$form.png',
-      'pack_alpha' => 'assets/enemies/bosses/boss_pack_alpha_f$form.png',
+      'warchief' => 'assets/enemies/bosses/boss_warchief_ruk_f$form.webp',
+      'mirelord' => 'assets/enemies/bosses/boss_mirelord_f$form.webp',
+      'pack_alpha' => 'assets/enemies/bosses/boss_pack_alpha_f$form.webp',
       'quarry_overseer' =>
-        'assets/enemies/bosses/boss_quarry_overseer_f$form.png',
-      'bone_seer' => 'assets/enemies/bosses/boss_bone_seer_f$form.png',
-      'lake_wraith' => 'assets/enemies/bosses/boss_lake_wraith_f$form.png',
-      'gilded_fence' => 'assets/enemies/bosses/boss_gilded_fence_f$form.png',
-      'siege_captain' => 'assets/enemies/bosses/boss_siege_captain_f$form.png',
-      'ember_smith' => 'assets/enemies/bosses/boss_ember_smith_f$form.png',
+        'assets/enemies/bosses/boss_quarry_overseer_f$form.webp',
+      'bone_seer' => 'assets/enemies/bosses/boss_bone_seer_f$form.webp',
+      'lake_wraith' => 'assets/enemies/bosses/boss_lake_wraith_f$form.webp',
+      'gilded_fence' => 'assets/enemies/bosses/boss_gilded_fence_f$form.webp',
+      'siege_captain' => 'assets/enemies/bosses/boss_siege_captain_f$form.webp',
+      'ember_smith' => 'assets/enemies/bosses/boss_ember_smith_f$form.webp',
       'mythspire_tyrant' =>
-        'assets/enemies/bosses/boss_mythspire_tyrant_f$form.png',
-      'weekly_boss_01' => 'assets/enemies/bosses/boss_warchief_ruk_f$form.png',
-      'weekly_boss_02' => 'assets/enemies/bosses/boss_mirelord_f$form.png',
-      'weekly_boss_03' => 'assets/enemies/bosses/boss_pack_alpha_f$form.png',
-      'weekly_boss_04' => 'assets/enemies/bosses/boss_gilded_fence_f$form.png',
+        'assets/enemies/bosses/boss_mythspire_tyrant_f$form.webp',
+      'weekly_boss_01' => 'assets/enemies/bosses/boss_warchief_ruk_f$form.webp',
+      'weekly_boss_02' => 'assets/enemies/bosses/boss_mirelord_f$form.webp',
+      'weekly_boss_03' => 'assets/enemies/bosses/boss_pack_alpha_f$form.webp',
+      'weekly_boss_04' => 'assets/enemies/bosses/boss_gilded_fence_f$form.webp',
       'weekly_boss_05' =>
-        'assets/enemies/bosses/boss_mythspire_tyrant_f$form.png',
-      'weekly_scout' => 'assets/enemies/enemy_goblin.png',
-      'shaman' => 'assets/enemies/enemy_shaman.png',
-      'mire_spawn' => 'assets/enemies/enemy_mire_spawn.png',
-      'ridge_hawk' => 'assets/enemies/enemy_ridge_hawk.png',
-      'brute' => 'assets/enemies/enemy_brute.png',
-      'crypt_skel' => 'assets/enemies/enemy_crypt_skel.png',
-      'forge_imp' => 'assets/enemies/enemy_forge_imp.png',
-      _ => 'assets/enemies/enemy_$enemyId.png',
+        'assets/enemies/bosses/boss_mythspire_tyrant_f$form.webp',
+      'weekly_scout' => 'assets/enemies/enemy_goblin.webp',
+      'shaman' => 'assets/enemies/enemy_shaman.webp',
+      'mire_spawn' => 'assets/enemies/enemy_mire_spawn.webp',
+      'ridge_hawk' => 'assets/enemies/enemy_ridge_hawk.webp',
+      'brute' => 'assets/enemies/enemy_brute.webp',
+      'crypt_skel' => 'assets/enemies/enemy_crypt_skel.webp',
+      'forge_imp' => 'assets/enemies/enemy_forge_imp.webp',
+      _ => 'assets/enemies/enemy_$enemyId.webp',
     };
   }
 
@@ -109,36 +109,36 @@ abstract final class GameAssets {
     return switch (backgroundId) {
       'bg_battle_mistfen_marshes' ||
       'mistfen_marshes' =>
-        'assets/images/backgrounds/battle/bg_battle_mistfen_marshes.png',
+        'assets/images/backgrounds/battle/bg_battle_mistfen_marshes.webp',
       'bg_battle_howling_ridge' ||
       'howling_ridge' =>
-        'assets/images/backgrounds/battle/bg_battle_howling_ridge.png',
+        'assets/images/backgrounds/battle/bg_battle_howling_ridge.webp',
       'bg_battle_ashen_quarries' ||
       'ashen_quarries' =>
-        'assets/images/backgrounds/battle/bg_battle_ashen_quarries.png',
+        'assets/images/backgrounds/battle/bg_battle_ashen_quarries.webp',
       'bg_battle_candlecrypt' ||
       'candlecrypt' =>
-        'assets/images/backgrounds/battle/bg_battle_candlecrypt.png',
+        'assets/images/backgrounds/battle/bg_battle_candlecrypt.webp',
       'bg_battle_mirror_lake' ||
       'mirror_lake' =>
-        'assets/images/backgrounds/battle/bg_battle_mirror_lake.png',
+        'assets/images/backgrounds/battle/bg_battle_mirror_lake.webp',
       'bg_battle_thornmarket' ||
       'thornmarket' =>
-        'assets/images/backgrounds/battle/bg_battle_thornmarket.png',
+        'assets/images/backgrounds/battle/bg_battle_thornmarket.webp',
       'bg_battle_skybridge_siege' ||
       'skybridge_siege' =>
-        'assets/images/backgrounds/battle/bg_battle_skybridge_siege.png',
+        'assets/images/backgrounds/battle/bg_battle_skybridge_siege.webp',
       'bg_battle_eclipse_forge' ||
       'eclipse_forge' =>
-        'assets/images/backgrounds/battle/bg_battle_eclipse_forge.png',
+        'assets/images/backgrounds/battle/bg_battle_eclipse_forge.webp',
       'bg_battle_mythspire_gate' ||
       'mythspire_gate' =>
-        'assets/images/backgrounds/battle/bg_battle_mythspire_gate.png',
+        'assets/images/backgrounds/battle/bg_battle_mythspire_gate.webp',
       'bg_battle_twilight_road' ||
       'twilight_road' ||
       null =>
         battleTwilightRoad,
-      _ => 'assets/images/backgrounds/battle/bg_battle_$backgroundId.png',
+      _ => 'assets/images/backgrounds/battle/bg_battle_$backgroundId.webp',
     };
   }
 }

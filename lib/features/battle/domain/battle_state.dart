@@ -754,36 +754,28 @@ class BattleController {
     final hazardPulse = <(int, int)>{};
 
     for (final effect in skill.effects) {
-      switch (effect.type) {
-        case 'modify_moves':
-          if (effect.amount < 0) {
-            movePenalty += -effect.amount;
-            logs.add(effect.describe());
+      switch (effect) {
+        case ModifyMovesEffect(:final amount):
+          movePenalty += -amount;
+          logs.add(effect.describe());
+        case DrainResourceEffect(:final resource, :final amount):
+          final key = resource.id;
+          final have = resources[key] ?? 0;
+          final next = (have - amount).clamp(0, 999);
+          resources[key] = next;
+          logs.add('Drained $amount $key');
+        case ApplyOverlayEffect(:final overlayId, :final count):
+          final def = EnemyEffect.requireCatalogOverlay(overlayId);
+          final placed = _applyOverlaySpread(
+            board,
+            def: def,
+            count: count,
+          );
+          if (placed.$2.isNotEmpty) {
+            board = placed.$1;
+            hazardPulse.addAll(placed.$2);
+            logs.add('Poison seeps onto ${placed.$2.length} tiles');
           }
-        case 'drain_resource':
-          final key = effect.resourceId;
-          if (key != null && effect.amount > 0) {
-            final have = resources[key] ?? 0;
-            final next = (have - effect.amount).clamp(0, 999);
-            resources[key] = next;
-            logs.add('Drained ${effect.amount} $key');
-          }
-        case 'apply_overlay':
-          final def = EnemyEffect.catalogOverlay(effect.overlayId);
-          if (def != null) {
-            final placed = _applyOverlaySpread(
-              board,
-              def: def,
-              count: effect.count < 1 ? 1 : effect.count,
-            );
-            if (placed.$2.isNotEmpty) {
-              board = placed.$1;
-              hazardPulse.addAll(placed.$2);
-              logs.add('Poison seeps onto ${placed.$2.length} tiles');
-            }
-          }
-        default:
-          break;
       }
     }
 

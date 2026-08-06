@@ -10,7 +10,7 @@
     {
       "id": "ch1_act1",
       "title": "Act I",
-      "mapAsset": "assets/images/maps/map_ch_twilight_road_a1.png",
+      "mapAsset": "assets/images/maps/map_ch_twilight_road_a1.webp",
       "nodes": [
         {
           "id": "node_01",
@@ -78,7 +78,7 @@
     {
       "id": "ch1_act2",
       "title": "Act II",
-      "mapAsset": "assets/images/maps/map_ch_twilight_road_a2.png",
+      "mapAsset": "assets/images/maps/map_ch_twilight_road_a2.webp",
       "nodes": [
         {
           "id": "node_06",
@@ -149,7 +149,7 @@
     {
       "id": "ch1_act3",
       "title": "Act III",
-      "mapAsset": "assets/images/maps/map_ch_twilight_road_a3.png",
+      "mapAsset": "assets/images/maps/map_ch_twilight_road_a3.webp",
       "nodes": [
         {
           "id": "node_11",
@@ -220,7 +220,7 @@
     {
       "id": "ch1_act4",
       "title": "Act IV",
-      "mapAsset": "assets/images/maps/map_ch_twilight_road_a4.png",
+      "mapAsset": "assets/images/maps/map_ch_twilight_road_a4.webp",
       "nodes": [
         {
           "id": "node_16",

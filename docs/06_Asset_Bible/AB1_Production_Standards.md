@@ -85,8 +85,9 @@ Use this verbatim in AI prompts until a custom LoRA / Element exists:
 3. Upload approved board as Style Reference / train Element (optional)
 4. Batch generate by domain using [Leonardo Prompt Pack](AB1_Leonardo_Prompt_Pack.md)
 5. Human review checklist (§11)
-6. Export to assets/ paths (§5–§6)
-7. Wire Image.asset in battle stage + board when ready
+6. Export reviewed PNG sources to `art_sources/runtime_png/`
+7. Run `python3 scripts/optimize_runtime_assets.py --apply`
+8. Wire the generated WebP delivery assets in battle stage + board
 ```
 
 **Rule:** No asset ships without passing §11 review.
@@ -116,9 +117,10 @@ These five define palette, outline weight, chibi proportions, and tile gloss. Co
 ## 5. Directory layout
 
 ```text
+art_sources/runtime_png/ # reviewed PNG masters, never bundled
 assets/
-├── heroes/              # hero_{id}.png  (full-body chibi battle sprite)
-├── enemies/             # enemy_{id}.png (full-body chibi battle sprite)
+├── heroes/              # hero_{id}.webp  (full-body chibi battle sprite)
+├── enemies/             # enemy_{id}.webp (full-body chibi battle sprite)
 ├── images/
 │   ├── style_board/     # AB1 golden references (§4)
 │   ├── tiles/           # tile_{color}.png, tile_{color}_shape.png
@@ -133,26 +135,26 @@ assets/
 
 ## 6. Naming conventions
 
-Pattern: `{category}_{stable_id}.png` — lowercase, underscores, **no spaces**, IDs match domain models.
+Pattern: `{category}_{stable_id}.{format}` — lowercase, underscores, **no spaces**, IDs match domain models. Large runtime art uses WebP; tiles, icons, and VFX remain PNG.
 
 ### Heroes & enemies
 
 | Pattern | Example | Maps to |
 |---------|---------|---------|
-| `hero_{id}.png` | `hero_mage.png` | `HeroDef.id` |
-| `enemy_{id}.png` | `enemy_goblin.png` | `EnemyDef.id` |
+| `hero_{id}.webp` | `hero_mage.webp` | `HeroDef.id` |
+| `enemy_{id}.webp` | `enemy_goblin.webp` | `EnemyDef.id` |
 
 Phase 1 roster:
 
 | Asset file | Code id |
 |------------|---------|
-| `hero_mage.png` | `mage` |
-| `hero_knight.png` | `knight` |
-| `enemy_goblin.png` | `goblin` |
-| `enemy_wolf.png` | `wolf` |
-| `enemy_shaman.png` | `shaman` |
-| `enemy_brute.png` | `brute` |
-| `enemy_warchief.png` | `warchief` |
+| `hero_mage.webp` | `mage` |
+| `hero_knight.webp` | `knight` |
+| `enemy_goblin.webp` | `goblin` |
+| `enemy_wolf.webp` | `wolf` |
+| `enemy_shaman.webp` | `shaman` |
+| `enemy_brute.webp` | `brute` |
+| `enemy_warchief.webp` | `warchief` |
 
 ### Tiles
 
@@ -181,10 +183,11 @@ Same patterns as before: `skill_{id}.png`, `icon_resource_{id}.png`, `fx_{name}.
 
 | Property | Value |
 |----------|-------|
-| Format | PNG-24, sRGB |
+| Source format | PNG-24, sRGB under `art_sources/runtime_png/` |
+| Delivery format | WebP for heroes, enemies, maps, and backgrounds; PNG for tiles/icons/VFX |
 | Alpha | Straight alpha |
 | Max file size (guideline) | ≤ 350 KB per battle sprite; ≤ 80 KB per tile @2x |
-| Compression | TinyPNG or pngquant after review — visually lossless |
+| Compression | Category quality tiers in `scripts/optimize_runtime_assets.py`; alpha and dimensions must remain exact |
 
 ### Master vs delivery
 

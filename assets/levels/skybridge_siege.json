@@ -10,7 +10,7 @@
     {
       "id": "ch_skybridge_act1",
       "title": "Act I",
-      "mapAsset": "assets/images/maps/map_ch_skybridge_siege_a1.png",
+      "mapAsset": "assets/images/maps/map_ch_skybridge_siege_a1.webp",
       "nodes": [
         {
           "id": "ch_skybridge_n01",
@@ -68,7 +68,7 @@
     {
       "id": "ch_skybridge_act2",
       "title": "Act II",
-      "mapAsset": "assets/images/maps/map_ch_skybridge_siege_a2.png",
+      "mapAsset": "assets/images/maps/map_ch_skybridge_siege_a2.webp",
       "nodes": [
         {
           "id": "ch_skybridge_n06",
@@ -126,7 +126,7 @@
     {
       "id": "ch_skybridge_act3",
       "title": "Act III",
-      "mapAsset": "assets/images/maps/map_ch_skybridge_siege_a3.png",
+      "mapAsset": "assets/images/maps/map_ch_skybridge_siege_a3.webp",
       "nodes": [
         {
           "id": "ch_skybridge_n11",
@@ -184,7 +184,7 @@
     {
       "id": "ch_skybridge_act4",
       "title": "Act IV",
-      "mapAsset": "assets/images/maps/map_ch_skybridge_siege_a4.png",
+      "mapAsset": "assets/images/maps/map_ch_skybridge_siege_a4.webp",
       "nodes": [
         {
           "id": "ch_skybridge_n16",

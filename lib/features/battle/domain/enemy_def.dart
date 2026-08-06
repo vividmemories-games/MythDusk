@@ -21,7 +21,6 @@ class EnemySkill {
     final parts = <String>[];
     if (damage > 0) parts.add('$damage dmg');
     for (final e in effects) {
-      if (e.type == 'damage') continue;
       parts.add(e.describe());
     }
     if (parts.isEmpty) return name;
@@ -72,18 +71,7 @@ class EnemyDef {
             damage: (s.damage * damageMult).round().clamp(1, 999),
             weight: s.weight,
             effects: [
-              for (final e in s.effects)
-                EnemyEffect(
-                  type: e.type,
-                  amount: e.type == 'modify_moves' || e.type == 'drain_resource'
-                      ? (e.type == 'modify_moves'
-                          ? e.amount
-                          : (e.amount * damageMult).round().clamp(1, 999))
-                      : e.amount,
-                  resourceId: e.resourceId,
-                  overlayId: e.overlayId,
-                  count: e.count,
-                ),
+              for (final e in s.effects) e.scaled(damageMultiplier: damageMult),
             ],
           ),
       ],
@@ -142,8 +130,7 @@ abstract final class EnemyCatalog {
         damage: 8,
         weight: 25,
         effects: [
-          EnemyEffect(
-            type: 'apply_overlay',
+          ApplyOverlayEffect(
             overlayId: 'ovl_poison',
             count: 2,
           ),
@@ -242,7 +229,7 @@ abstract final class EnemyCatalog {
         damage: 14,
         weight: 35,
         effects: [
-          EnemyEffect(type: 'modify_moves', amount: -1),
+          ModifyMovesEffect(amount: -1),
         ],
       ),
       EnemySkill(id: 'storm', name: 'Storm Pounce', damage: 30, weight: 25),
