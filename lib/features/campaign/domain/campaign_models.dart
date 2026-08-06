@@ -204,11 +204,31 @@ class CampaignChapter {
     );
   }
 
-  CampaignNode nodeById(String id) =>
-      nodes.firstWhere((n) => n.id == id, orElse: () => nodes.first);
+  CampaignNode nodeById(String id) {
+    final node = tryNodeById(id);
+    if (node == null) throw StateError('Unknown campaign node id: $id');
+    return node;
+  }
 
-  CampaignAct actById(String id) =>
-      acts.firstWhere((a) => a.id == id, orElse: () => acts.first);
+  CampaignNode? tryNodeById(String id) {
+    for (final node in nodes) {
+      if (node.id == id) return node;
+    }
+    return null;
+  }
+
+  CampaignAct actById(String id) {
+    final act = tryActById(id);
+    if (act == null) throw StateError('Unknown campaign act id: $id');
+    return act;
+  }
+
+  CampaignAct? tryActById(String id) {
+    for (final act in acts) {
+      if (act.id == id) return act;
+    }
+    return null;
+  }
 
   CampaignAct? actForNode(String nodeId) {
     for (final act in acts) {

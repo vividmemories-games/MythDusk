@@ -47,12 +47,25 @@ class CampaignIndex {
 
   final List<CampaignIndexEntry> chapters;
 
-  CampaignIndexEntry get first => chapters.first;
+  CampaignIndexEntry get first {
+    if (chapters.isEmpty) {
+      throw StateError('Campaign index contains no chapters');
+    }
+    return chapters.first;
+  }
 
-  CampaignIndexEntry byId(String id) => chapters.firstWhere(
-        (c) => c.id == id,
-        orElse: () => first,
-      );
+  CampaignIndexEntry byId(String id) {
+    final chapter = tryById(id);
+    if (chapter == null) throw StateError('Unknown campaign chapter id: $id');
+    return chapter;
+  }
+
+  CampaignIndexEntry? tryById(String id) {
+    for (final chapter in chapters) {
+      if (chapter.id == id) return chapter;
+    }
+    return null;
+  }
 
   factory CampaignIndex.fromJson(Map<String, dynamic> json) {
     final raw = json['chapters'] as List<dynamic>? ?? const [];

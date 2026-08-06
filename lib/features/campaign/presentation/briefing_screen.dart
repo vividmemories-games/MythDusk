@@ -10,6 +10,7 @@ import '../../campaign/domain/campaign_models.dart';
 import '../../prep/domain/prep_item.dart';
 import '../../profile/providers/mock_profile_provider.dart';
 import '../../puzzle/domain/level_board_config.dart';
+import '../../../shared/presentation/content_error_screen.dart';
 
 /// Pre-battle briefing with embedded prep loadout (campaign path).
 class BriefingScreen extends ConsumerStatefulWidget {
@@ -51,7 +52,7 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
     return parts.join(' · ');
   }
 
-  Future<void> _startBattle(CampaignNode node, EnemyDef enemy) async {
+  Future<void> _startBattle(CampaignNode node) async {
     final list = _selected.toList();
     if (list.isNotEmpty) {
       final ok = ref.read(profileProvider.notifier).consumePrep(list);
@@ -64,24 +65,44 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final chapter = ref.watch(campaignChapterProvider).valueOrNull;
-    final node = chapter?.nodeById(widget.nodeId);
+    final chapterAsync = ref.watch(campaignChapterProvider);
+    return chapterAsync.when(
+      loading: () => const Scaffold(
+        backgroundColor: MythoraColors.ink,
+        body: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => const ContentErrorScreen(
+        title: 'Campaign unavailable',
+        message: 'The selected chapter could not be loaded.',
+      ),
+      data: (chapter) {
+        final node = chapter.tryNodeById(widget.nodeId);
+        if (node == null) {
+          return ContentErrorScreen(
+            title: 'Battle unavailable',
+            message: 'Campaign node “${widget.nodeId}” does not exist.',
+          );
+        }
+        final enemy = EnemyCatalog.tryById(node.enemyId);
+        if (enemy == null) {
+          return ContentErrorScreen(
+            title: 'Enemy unavailable',
+            message: 'Enemy content “${node.enemyId}” could not be found.',
+          );
+        }
+        return _buildBriefing(context, chapter, node, enemy);
+      },
+    );
+  }
+
+  Widget _buildBriefing(
+    BuildContext context,
+    CampaignChapter chapter,
+    CampaignNode node,
+    EnemyDef enemy,
+  ) {
     final profile = ref.watch(profileProvider);
     final textTheme = Theme.of(context).textTheme;
-
-    if (chapter == null || node == null) {
-      return Scaffold(
-        backgroundColor: MythoraColors.ink,
-        body: Center(
-          child: TextButton(
-            onPressed: () => context.pop(),
-            child: const Text('Back'),
-          ),
-        ),
-      );
-    }
-
-    final enemy = EnemyCatalog.byId(node.enemyId);
     final board = chapter.boardFor(node);
     final hero = profile.combatHero();
     final heaviest = enemy.heaviestSkill;
@@ -98,6 +119,7 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
                 children: [
                   IconButton(
                     onPressed: () => context.pop(),
+                    tooltip: 'Back to campaign',
                     icon: const Icon(Icons.arrow_back,
                         color: MythoraColors.parchment),
                   ),
@@ -327,7 +349,7 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: FilledButton(
-                onPressed: () => _startBattle(node, enemy),
+                onPressed: () => _startBattle(node),
                 child: Text(
                   _selected.isEmpty
                       ? 'Battle'

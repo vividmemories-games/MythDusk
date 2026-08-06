@@ -237,6 +237,11 @@ class PlayerProfile {
       regenAt = DateTime.tryParse(rawRegen);
     }
 
+    final storedHeroId = json['selectedHeroId'] as String? ?? 'mage';
+    // Persisted profiles may outlive renamed or removed content. Recover at
+    // this explicit migration boundary; runtime catalog lookups stay strict.
+    final selectedHeroId = HeroCatalog.tryById(storedHeroId)?.id ?? 'mage';
+
     return PlayerProfile(
       displayName: json['displayName'] as String? ?? 'Wanderer',
       coins: json['coins'] as int? ?? 500,
@@ -246,7 +251,7 @@ class PlayerProfile {
       gemLifeRefillDay: json['gemLifeRefillDay'] as String? ?? '',
       gemLifeRefillCount: json['gemLifeRefillCount'] as int? ?? 0,
       upgradeLevels: upgrades,
-      selectedHeroId: json['selectedHeroId'] as String? ?? 'mage',
+      selectedHeroId: selectedHeroId,
       completedNodeIds: ids,
       prepInventory: prep,
       secondWindUsedDay: json['secondWindUsedDay'] as String? ?? '',
@@ -316,6 +321,7 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
   }
 
   void selectHero(String heroId) {
+    if (HeroCatalog.tryById(heroId) == null) return;
     final clears = state.completedNodeIds.length;
     if (!HeroUnlocks.isUnlocked(heroId, clears)) return;
     state = state.copyWith(selectedHeroId: heroId);

@@ -83,6 +83,95 @@ void main() {
     expect(find.text('battle:ch_twilight_n01'), findsOneWidget);
   });
 
+  testWidgets('unknown briefing node shows a recoverable content error',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final chapter = _stubChapter();
+    final router = GoRouter(
+      initialLocation: '/briefing/missing_node',
+      routes: [
+        GoRoute(
+          path: '/briefing/:nodeId',
+          builder: (context, state) =>
+              BriefingScreen(nodeId: state.pathParameters['nodeId']!),
+        ),
+        GoRoute(
+          path: '/chapters',
+          builder: (_, __) => const Scaffold(body: Text('chapters')),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          campaignChapterProvider.overrideWith((ref) async => chapter),
+        ],
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Battle unavailable'), findsOneWidget);
+    expect(find.textContaining('missing_node'), findsOneWidget);
+    expect(find.text('First Steps'), findsNothing);
+
+    await tester.tap(find.text('Back to Campaign'));
+    await tester.pumpAndSettle();
+    expect(find.text('chapters'), findsOneWidget);
+  });
+
+  testWidgets('briefing remains usable on a compact phone with larger text',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final chapter = _stubChapter();
+    await tester.binding.setSurfaceSize(const Size(360, 640));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final semantics = tester.ensureSemantics();
+    final router = GoRouter(
+      initialLocation: '/briefing/ch_twilight_n01',
+      routes: [
+        GoRoute(
+          path: '/briefing/:nodeId',
+          builder: (context, state) =>
+              BriefingScreen(nodeId: state.pathParameters['nodeId']!),
+        ),
+        GoRoute(
+          path: '/battle/:nodeId',
+          builder: (_, __) => const SizedBox.shrink(),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          campaignChapterProvider.overrideWith((ref) async => chapter),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: const TextScaler.linear(1.3),
+            ),
+            child: child!,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('First Steps'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Battle'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    semantics.dispose();
+  });
+
   test('app router includes /briefing/:nodeId', () async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();

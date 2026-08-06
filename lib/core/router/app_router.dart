@@ -12,6 +12,7 @@ import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/profile/presentation/settings_screen.dart';
 import '../../features/profile/presentation/shop_screen.dart';
 import '../../features/weekly/presentation/weekly_screen.dart';
+import '../../shared/presentation/content_error_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -79,7 +80,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final args = state.extra;
           if (args is! BattleResultArgs) {
-            return const CampaignScreen();
+            return const ContentErrorScreen(
+              title: 'Battle result unavailable',
+              message: 'This result link is incomplete or no longer valid.',
+            );
           }
           return BattleResultScreen(args: args);
         },

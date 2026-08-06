@@ -5,13 +5,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/assets/game_assets.dart';
+import '../../../core/config/app_flavor.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../campaign/data/campaign_repository.dart';
+import '../../campaign/domain/campaign_models.dart';
 import '../../heroes/domain/hero_def.dart';
 import '../../profile/providers/mock_profile_provider.dart';
+import '../../puzzle/data/board_catalog_repository.dart';
 import '../../puzzle/domain/puzzle_engine.dart';
+import '../../weekly/domain/weekly_schedule.dart';
 import '../../weekly/providers/weekly_providers.dart';
+import '../../../shared/presentation/content_error_screen.dart';
 import '../domain/battle_state.dart';
+import '../domain/enemy_def.dart';
 import '../domain/skill_affordability.dart';
 import '../providers/battle_provider.dart';
 import 'animated_puzzle_board.dart';
@@ -33,14 +39,14 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
   static const _hintIdle = Duration(seconds: 5);
 
   Timer? _hintTimer;
+  var _initialHintScheduled = false;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _scheduleHint(ref.read(battleProvider(widget.nodeId)));
-    });
+  void didUpdateWidget(covariant BattleScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.nodeId == widget.nodeId) return;
+    _hintTimer?.cancel();
+    _initialHintScheduled = false;
   }
 
   @override
@@ -77,8 +83,76 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.nodeId == WeeklyBalance.battleNodeId) {
+      return _buildBattle(context);
+    }
+
+    final chapterAsync = ref.watch(campaignChapterProvider);
+    final overlaysAsync = ref.watch(overlayCatalogProvider);
+    final templatesAsync = ref.watch(boardTemplateCatalogProvider);
+    if (chapterAsync.hasError ||
+        overlaysAsync.hasError ||
+        templatesAsync.hasError) {
+      return const ContentErrorScreen(
+        title: 'Battle content unavailable',
+        message: 'The chapter or puzzle-board data could not be loaded.',
+      );
+    }
+    final chapter = chapterAsync.valueOrNull;
+    final overlays = overlaysAsync.valueOrNull;
+    final templates = templatesAsync.valueOrNull;
+    if (chapter == null || overlays == null || templates == null) {
+      return const Scaffold(
+        backgroundColor: MythoraColors.ink,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    final node = chapter.tryNodeById(widget.nodeId);
+    if (node == null) {
+      return ContentErrorScreen(
+        title: 'Battle unavailable',
+        message: 'Campaign node “${widget.nodeId}” does not exist.',
+      );
+    }
+    if (EnemyCatalog.tryById(node.enemyId) == null) {
+      return ContentErrorScreen(
+        title: 'Enemy unavailable',
+        message: 'Enemy content “${node.enemyId}” could not be found.',
+      );
+    }
+    final board = chapter.boardFor(node);
+    final templateId = board.templateId;
+    if (templateId == null || templates[templateId] == null) {
+      return ContentErrorScreen(
+        title: 'Board unavailable',
+        message: 'Puzzle-board content for “${node.id}” could not be found.',
+      );
+    }
+    final hazardId = board.hazardSpawn?.overlayId;
+    if (hazardId != null && overlays[hazardId] == null) {
+      return ContentErrorScreen(
+        title: 'Board unavailable',
+        message: 'Hazard content “$hazardId” could not be found.',
+      );
+    }
+    return _buildBattle(context, chapter: chapter, node: node);
+  }
+
+  Widget _buildBattle(
+    BuildContext context, {
+    CampaignChapter? chapter,
+    CampaignNode? node,
+  }) {
     final battle = ref.watch(battleProvider(widget.nodeId));
     final notifier = ref.read(battleProvider(widget.nodeId).notifier);
+
+    if (!_initialHintScheduled) {
+      _initialHintScheduled = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _scheduleHint(ref.read(battleProvider(widget.nodeId)));
+      });
+    }
 
     ref.listen(battleProvider(widget.nodeId), (prev, next) {
       if (prev != null &&
@@ -137,8 +211,6 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
       _scheduleHint(ref.read(battleProvider(widget.nodeId)));
     });
 
-    final chapter = ref.watch(campaignChapterProvider).valueOrNull;
-    final node = chapter?.nodeById(widget.nodeId);
     final bgPath = GameAssets.battleBackground(
       node?.backgroundId ?? chapter?.backgroundId,
     );
@@ -247,14 +319,32 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
                   left: 8,
                   child: _FloatingActionIcon(
                     icon: Icons.arrow_back,
+                    semanticLabel: 'Leave battle',
                     onTap: () => _confirmLeave(context),
                   ),
                 ),
+                if (AppFlavor.showQaTools &&
+                    battle.phase == BattlePhase.playerTurn &&
+                    !battle.inputLocked)
+                  Positioned(
+                    top: 2,
+                    left: 64,
+                    child: _FloatingActionIcon(
+                      icon: Icons.bug_report_outlined,
+                      semanticLabel: 'QA: force enemy skill',
+                      onTap: () => _showQaEnemySkills(
+                        context,
+                        battle,
+                        notifier,
+                      ),
+                    ),
+                  ),
                 Positioned(
                   top: 2,
                   right: 8,
                   child: _FloatingActionIcon(
                     icon: Icons.refresh,
+                    semanticLabel: 'Restart battle',
                     onTap: () => _confirmRestart(context, notifier),
                   ),
                 ),
@@ -317,29 +407,88 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
     );
     if (ok == true && mounted) notifier.restart();
   }
+
+  Future<void> _showQaEnemySkills(
+    BuildContext context,
+    BattleState battle,
+    BattleNotifier notifier,
+  ) async {
+    final skill = await showModalBottomSheet<EnemySkill>(
+      context: context,
+      backgroundColor: MythoraColors.deepTeal,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                'Force ${battle.enemy.name} skill',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: MythoraColors.parchment,
+                    ),
+              ),
+            ),
+            for (final candidate in battle.enemy.skills)
+              ListTile(
+                title: Text(candidate.name),
+                subtitle: Text(candidate.intentLabel),
+                trailing: candidate.effects.isEmpty
+                    ? null
+                    : const Icon(
+                        Icons.science_outlined,
+                        color: MythoraColors.amber,
+                      ),
+                onTap: () => Navigator.pop(sheetContext, candidate),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (skill == null || !mounted) return;
+    final applied = await notifier.forceEnemySkillForQa(skill);
+    if (!context.mounted || applied) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+          content: Text('Wait for the player turn, then try again.')),
+    );
+  }
 }
 
 /// Translucent circular back/restart button replacing the old AppBar band.
 class _FloatingActionIcon extends StatelessWidget {
-  const _FloatingActionIcon({required this.icon, required this.onTap});
+  const _FloatingActionIcon({
+    required this.icon,
+    required this.semanticLabel,
+    required this.onTap,
+  });
 
   final IconData icon;
+  final String semanticLabel;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: MythoraColors.ink.withValues(alpha: 0.5),
-      shape: CircleBorder(
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
-      ),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: SizedBox(
-          width: 38,
-          height: 38,
-          child: Icon(icon, size: 20, color: MythoraColors.parchment),
+    return Tooltip(
+      message: semanticLabel,
+      child: Semantics(
+        button: true,
+        label: semanticLabel,
+        excludeSemantics: true,
+        child: Material(
+          color: MythoraColors.ink.withValues(alpha: 0.5),
+          shape: CircleBorder(
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+          ),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: onTap,
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: Icon(icon, size: 22, color: MythoraColors.parchment),
+            ),
+          ),
         ),
       ),
     );

@@ -64,14 +64,35 @@ final battleProvider = StateNotifierProvider.autoDispose
   }
 
   final chapter = ref.watch(campaignChapterProvider).valueOrNull;
-  final node = chapter?.nodeById(nodeId);
-  final enemy = EnemyCatalog.byId(node?.enemyId ?? 'goblin');
+  if (chapter == null) {
+    throw StateError('Campaign content is not ready for battle $nodeId');
+  }
+  final node = chapter.nodeById(nodeId);
+  final enemy = EnemyCatalog.byId(node.enemyId);
 
   final overlays = ref.watch(overlayCatalogProvider).valueOrNull;
   final templates = ref.watch(boardTemplateCatalogProvider).valueOrNull;
-  final boardConfig = (chapter != null && node != null)
-      ? chapter.boardFor(node)
-      : const LevelBoardConfig();
+  if (overlays == null || templates == null) {
+    throw StateError('Board catalogs are not ready for battle $nodeId');
+  }
+  final boardConfig = chapter.boardFor(node);
+  final templateId = boardConfig.templateId;
+  if (templateId == null || templateId.isEmpty) {
+    throw StateError('Battle $nodeId has no board template');
+  }
+  final template = templates[templateId];
+  if (template == null) {
+    throw StateError('Battle $nodeId references unknown template $templateId');
+  }
+  final hazardOverlayDef = boardConfig.hazardSpawn == null
+      ? null
+      : overlays[boardConfig.hazardSpawn!.overlayId];
+  if (boardConfig.hazardSpawn != null && hazardOverlayDef == null) {
+    throw StateError(
+      'Battle $nodeId references unknown hazard overlay '
+      '${boardConfig.hazardSpawn!.overlayId}',
+    );
+  }
 
   // Inventory already consumed by prep picker; apply modifiers then clear.
   final equipped = List<PrepItemId>.from(ref.read(pendingBossPrepProvider));
@@ -83,25 +104,18 @@ final battleProvider = StateNotifierProvider.autoDispose
     hero: hero,
     enemy: enemy,
     nodeId: nodeId,
-    nodeName: node?.name,
-    coinReward: node?.coinReward ?? 0,
-    bossForm: node?.bossForm,
-    enrageAfterTurns: node?.isBoss == true
-        ? (node?.enrageAfterTurns ?? BossCombatBalance.defaultEnrageAfterTurns)
-        : node?.enrageAfterTurns,
-    minMoves: node?.minMoves ?? PrepBalance.defaultMinMoves,
+    nodeName: node.name,
+    coinReward: node.coinReward,
+    bossForm: node.bossForm,
+    enrageAfterTurns: node.isBoss
+        ? (node.enrageAfterTurns ?? BossCombatBalance.defaultEnrageAfterTurns)
+        : node.enrageAfterTurns,
+    minMoves: node.minMoves ?? PrepBalance.defaultMinMoves,
     equippedPrep: equipped,
     movers: boardConfig.effectiveMovers,
     hazardSpawn: boardConfig.hazardSpawn,
-    hazardOverlayDef: boardConfig.hazardSpawn == null
-        ? null
-        : overlays?[boardConfig.hazardSpawn!.overlayId],
+    hazardOverlayDef: hazardOverlayDef,
     boardFactory: () {
-      if (overlays == null || templates == null || !boardConfig.hasTemplate) {
-        return null;
-      }
-      final template = templates[boardConfig.templateId!];
-      if (template == null) return null;
       return BoardBuilder.fromTemplate(
         template: template,
         overlays: overlays,
@@ -549,6 +563,24 @@ class BattleNotifier extends StateNotifier<BattleState> {
     if (state.phase != BattlePhase.playerTurn || state.movesLeft > 0) return;
     final gen = ++_actionGen;
     await _beginPlayerTurn(gen);
+  }
+
+  /// Debug/dev-only UI hook that runs one of the current enemy's real skills
+  /// through the normal enemy-turn pipeline.
+  Future<bool> forceEnemySkillForQa(EnemySkill skill) async {
+    if (!mounted ||
+        state.phase != BattlePhase.playerTurn ||
+        state.inputLocked) {
+      return false;
+    }
+    if (!state.enemy.skills.any((candidate) => candidate.id == skill.id)) {
+      return false;
+    }
+    final gen = ++_actionGen;
+    _controller.state = state.copyWith(enemyIntent: skill);
+    state = _controller.state;
+    await _runEnemyTurn(gen);
+    return true;
   }
 
   void restart() {

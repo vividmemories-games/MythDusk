@@ -597,28 +597,33 @@ class _ActDot extends StatelessWidget {
       child: InkWell(
         customBorder: const StadiumBorder(),
         onTap: unlocked ? onTap : null,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color:
-                      unlocked ? MythoraColors.parchment : MythoraColors.muted,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: unlocked
+                        ? MythoraColors.parchment
+                        : MythoraColors.muted,
+                  ),
                 ),
-              ),
-              if (!unlocked) ...[
-                const SizedBox(width: 4),
-                const Icon(Icons.lock, size: 12, color: MythoraColors.muted),
-              ] else if (completed) ...[
-                const SizedBox(width: 4),
-                const Icon(Icons.check, size: 12, color: MythoraColors.amber),
+                if (!unlocked) ...[
+                  const SizedBox(width: 4),
+                  const Icon(Icons.lock, size: 12, color: MythoraColors.muted),
+                ] else if (completed) ...[
+                  const SizedBox(width: 4),
+                  const Icon(Icons.check, size: 12, color: MythoraColors.amber),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -802,9 +807,21 @@ class _NodePin extends StatelessWidget {
       );
     }
 
-    return IgnorePointer(
-      ignoring: fog == MapFogTier.shrouded || !unlocked,
-      child: GestureDetector(onTap: onTap, child: pin),
+    final hidden = fog != MapFogTier.clear;
+    final status = completed
+        ? 'completed'
+        : unlocked && !hidden
+            ? 'available'
+            : 'locked';
+    return Semantics(
+      button: unlocked && !hidden,
+      enabled: unlocked && !hidden,
+      label: '${hidden ? 'Unknown campaign node' : node.name}, $status',
+      excludeSemantics: true,
+      child: IgnorePointer(
+        ignoring: hidden || !unlocked,
+        child: GestureDetector(onTap: onTap, child: pin),
+      ),
     );
   }
 }

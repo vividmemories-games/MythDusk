@@ -20,6 +20,18 @@ class BattleHudBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statusBadges = <Widget>[
+      if (battle.enraged) const _PhaseBadge(label: 'Enraged', danger: true),
+      if (battle.movers.isNotEmpty)
+        _PhaseBadge(
+          label: battle.combatFx == CombatFx.wind ? 'Wind!' : 'Windy',
+          danger: battle.combatFx == CombatFx.wind,
+        ),
+      if (battle.combatFx == CombatFx.hazard ||
+          battle.hazardPulseCells.isNotEmpty)
+        const _PhaseBadge(label: 'Hazard!', danger: true),
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -39,25 +51,21 @@ class BattleHudBar extends StatelessWidget {
               accent: MythoraColors.amber,
             ),
             const Spacer(),
-            if (battle.enraged) ...[
-              const _PhaseBadge(label: 'Enraged', danger: true),
-              const SizedBox(width: 8),
-            ],
-            if (battle.movers.isNotEmpty) ...[
-              _PhaseBadge(
-                label: battle.combatFx == CombatFx.wind ? 'Wind!' : 'Windy',
-                danger: battle.combatFx == CombatFx.wind,
-              ),
-              const SizedBox(width: 8),
-            ],
-            if (battle.combatFx == CombatFx.hazard ||
-                battle.hazardPulseCells.isNotEmpty) ...[
-              const _PhaseBadge(label: 'Hazard!', danger: true),
-              const SizedBox(width: 8),
-            ],
             _PhaseBadge(label: _phaseLabel(battle)),
           ],
         ),
+        if (statusBadges.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              alignment: WrapAlignment.end,
+              children: statusBadges,
+            ),
+          ),
+        ],
         if (battle.objective != null) ...[
           const SizedBox(height: 6),
           Align(

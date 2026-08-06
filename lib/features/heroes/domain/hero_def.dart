@@ -201,8 +201,11 @@ abstract final class HeroCatalog {
 
   static const all = [mage, knight, ranger, priest, ninja];
 
-  static HeroDef byId(String id) =>
-      all.firstWhere((h) => h.id == id, orElse: () => mage);
+  static HeroDef byId(String id) {
+    final hero = tryById(id);
+    if (hero == null) throw StateError('Unknown hero id: $id');
+    return hero;
+  }
 
   static HeroDef? tryById(String id) {
     for (final h in all) {

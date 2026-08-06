@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/assets/game_assets.dart';
 import '../../campaign/data/campaign_repository.dart';
+import '../../campaign/domain/campaign_models.dart';
 import '../../profile/providers/mock_profile_provider.dart';
+import '../../../shared/presentation/content_error_screen.dart';
 
 class BattleResultArgs {
   const BattleResultArgs({
@@ -41,6 +43,7 @@ class BattleResultScreen extends ConsumerStatefulWidget {
 class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
   var _applied = false;
   var _grantedCoins = 0;
+  String? _contentError;
 
   @override
   void initState() {
@@ -65,30 +68,73 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
       if (mounted) setState(() => _grantedCoins = granted);
       return;
     }
-    final chapter = ref.read(campaignChapterProvider).valueOrNull;
-    final node = chapter?.nodeById(widget.args.nodeId);
-    final actIndex = chapter?.actForNode(widget.args.nodeId)?.index ?? 0;
-    await ref.read(profileProvider.notifier).applyVictory(
-          nodeId: widget.args.nodeId,
-          coinReward: widget.args.coinReward,
-          isBoss: node?.isBoss ?? false,
-          actIndex: actIndex,
-          nodePrepDrops: node?.prepDrops ?? const [],
-        );
-    if (mounted) setState(() => _grantedCoins = widget.args.coinReward);
+    try {
+      final chapter = await ref.read(campaignChapterProvider.future);
+      final node = chapter.nodeById(widget.args.nodeId);
+      final actIndex = chapter.actForNode(widget.args.nodeId)?.index ?? 0;
+      await ref.read(profileProvider.notifier).applyVictory(
+            nodeId: widget.args.nodeId,
+            coinReward: widget.args.coinReward,
+            isBoss: node.isBoss,
+            actIndex: actIndex,
+            nodePrepDrops: node.prepDrops,
+          );
+      if (mounted) setState(() => _grantedCoins = widget.args.coinReward);
+    } on Object {
+      if (!mounted) return;
+      setState(() {
+        _contentError =
+            'The completed campaign node could not be validated. No reward was granted.';
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_contentError case final error?) {
+      return ContentErrorScreen(
+        title: 'Result unavailable',
+        message: error,
+      );
+    }
+    if (widget.args.isWeekly) {
+      return _buildResult(context);
+    }
+    final chapterAsync = ref.watch(campaignChapterProvider);
+    return chapterAsync.when(
+      loading: () => const Scaffold(
+        backgroundColor: MythoraColors.ink,
+        body: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => const ContentErrorScreen(
+        title: 'Result unavailable',
+        message: 'Campaign content could not be loaded to validate this win.',
+      ),
+      data: (chapter) {
+        final node = chapter.tryNodeById(widget.args.nodeId);
+        if (node == null) {
+          return ContentErrorScreen(
+            title: 'Result unavailable',
+            message: 'Campaign node “${widget.args.nodeId}” does not exist.',
+          );
+        }
+        return _buildResult(context, chapter: chapter, currentNode: node);
+      },
+    );
+  }
+
+  Widget _buildResult(
+    BuildContext context, {
+    CampaignChapter? chapter,
+    CampaignNode? currentNode,
+  }) {
     final args = widget.args;
     final textTheme = Theme.of(context).textTheme;
-    final chapter = ref.watch(campaignChapterProvider).valueOrNull;
     final profile = ref.watch(profileProvider);
 
     String? nextNodeId;
-    if (args.won && !args.isWeekly && chapter != null) {
-      final current = chapter.nodeById(args.nodeId);
-      final next = chapter.nodes.where((n) => n.order == current.order + 1);
+    if (args.won && chapter != null && currentNode != null) {
+      final next = chapter.nodes.where((n) => n.order == currentNode.order + 1);
       if (next.isNotEmpty) nextNodeId = next.first.id;
     }
 
@@ -163,8 +209,7 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                         'Purse: ${profile.coins} coins',
                         style: textTheme.bodyMedium,
                       ),
-                      if (!args.isWeekly &&
-                          chapter?.nodeById(args.nodeId).isBoss != true) ...[
+                      if (!args.isWeekly && currentNode?.isBoss != true) ...[
                         const SizedBox(height: 6),
                         Text(
                           '+1 Vanguard Tonic (prep stash)',

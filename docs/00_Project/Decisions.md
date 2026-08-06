@@ -475,3 +475,26 @@ Legacy single-strip filenames (`map_ch_*.png` without `_aN`) remain **deprecated
 **Impact:** `EnemyEffect` parsing/serialization, enemy catalog definitions, weekly scaling, exhaustive battle resolution, content validation, and effect regression tests.
 
 **Status:** Accepted
+
+---
+
+## 2026-08-06 — Phase D testing readiness and strict content boundaries
+
+**Decision:** Unknown hero, enemy, chapter, act, and node identifiers no longer
+silently resolve to the first catalog entry. Campaign battle construction waits
+for validated chapter and board catalogs, invalid deep links render a reusable
+player-safe error screen, and campaign victory settlement revalidates its node
+before granting rewards. Persisted unknown hero IDs recover to Mage only at the
+profile migration boundary.
+
+Debug/dev battles gain a deterministic enemy-skill picker that executes the
+real enemy-turn pipeline. Critical campaign navigation, invalid deep links,
+leave/restart confirmations, compact briefing accessibility, and forced enemy
+effects now have widget or integration coverage. Transient battle status badges
+wrap onto a separate HUD line to avoid compact-phone overflow.
+
+**Impact:** Catalog and campaign lookup APIs, battle content readiness,
+briefing/result error handling, debug QA controls, campaign-pin semantics,
+responsive battle HUD, and the Phase D test suite.
+
+**Status:** Accepted

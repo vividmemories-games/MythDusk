@@ -433,8 +433,11 @@ abstract final class EnemyCatalog {
     weeklyBoss05,
   ];
 
-  static EnemyDef byId(String id) =>
-      all.firstWhere((e) => e.id == id, orElse: () => goblin);
+  static EnemyDef byId(String id) {
+    final enemy = tryById(id);
+    if (enemy == null) throw StateError('Unknown enemy id: $id');
+    return enemy;
+  }
 
   static EnemyDef? tryById(String id) {
     for (final e in all) {
