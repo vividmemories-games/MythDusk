@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mythora/features/battle/domain/battle_state.dart';
-import 'package:mythora/features/battle/domain/enemy_def.dart';
-import 'package:mythora/features/heroes/domain/hero_def.dart';
-import 'package:mythora/features/profile/providers/mock_profile_provider.dart';
-import 'package:mythora/features/weekly/domain/weekly_schedule.dart';
+import 'package:mythdusk/features/battle/domain/battle_state.dart';
+import 'package:mythdusk/features/battle/domain/enemy_def.dart';
+import 'package:mythdusk/features/heroes/domain/hero_def.dart';
+import 'package:mythdusk/features/profile/providers/mock_profile_provider.dart';
+import 'package:mythdusk/features/weekly/domain/weekly_schedule.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

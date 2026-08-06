@@ -7,7 +7,7 @@
 | **Authority** | Sizes, naming, export, AI workflow; visual identity → [Theme](../02_Design_System/Theme.md) |
 | **Related** | [Asset Bible README](README.md) · [Decisions](../00_Project/Decisions.md) · [Leonardo Prompt Pack](AB1_Leonardo_Prompt_Pack.md) |
 
-AB1 locks how Mythora assets are **named, sized, exported, reviewed, and wired into Flutter**. Art style lock: **chibi battle stage** (2026-07-11).
+AB1 locks how MythDusk assets are **named, sized, exported, reviewed, and wired into Flutter**. Art style lock: **chibi battle stage** (2026-07-11).
 
 ---
 
@@ -203,7 +203,7 @@ Same patterns as before: `skill_{id}.png`, `icon_resource_{id}.png`, `fx_{name}.
 
 ### 7.1 Nine-slice UI panels
 
-Prefer **Flutter `DecoratedBox` + `MythoraColors`**. If raster: fixed corners 48×48 @2x; document insets optionally.
+Prefer **Flutter `DecoratedBox` + `MythDuskColors`**. If raster: fixed corners 48×48 @2x; document insets optionally.
 
 ---
 
@@ -227,7 +227,7 @@ Board is **6×6**. Tiles must feel like the **same product** as chibi characters
 
 Each color tile includes:
 
-1. **Base icon** — fill close to `MythoraColors.tile*` ([Theme](../02_Design_System/Theme.md))
+1. **Base icon** — fill close to `MythDuskColors.tile*` ([Theme](../02_Design_System/Theme.md))
 2. **Inner highlight** — toy/gloss highlight
 3. **Shape overlay** (separate PNG):
 

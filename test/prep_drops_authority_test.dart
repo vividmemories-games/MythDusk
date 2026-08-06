@@ -1,8 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mythora/features/prep/domain/prep_item.dart';
-import 'package:mythora/features/profile/providers/mock_profile_provider.dart';
+import 'package:mythdusk/features/prep/domain/prep_item.dart';
+import 'package:mythdusk/features/profile/providers/mock_profile_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

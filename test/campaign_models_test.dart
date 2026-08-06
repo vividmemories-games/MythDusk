@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mythora/features/campaign/domain/campaign_models.dart';
+import 'package:mythdusk/features/campaign/domain/campaign_models.dart';
 
 void main() {
   final chapter = CampaignChapter.fromJson({

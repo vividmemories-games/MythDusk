@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mythora/features/heroes/domain/hero_def.dart';
-import 'package:mythora/features/prep/domain/prep_item.dart';
-import 'package:mythora/features/profile/domain/economy_balance.dart';
-import 'package:mythora/features/profile/providers/mock_profile_provider.dart';
+import 'package:mythdusk/features/heroes/domain/hero_def.dart';
+import 'package:mythdusk/features/prep/domain/prep_item.dart';
+import 'package:mythdusk/features/profile/domain/economy_balance.dart';
+import 'package:mythdusk/features/profile/providers/mock_profile_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -104,7 +104,7 @@ void main() {
 
     test('gem life refill respects cost and daily cap', () async {
       SharedPreferences.setMockInitialValues({
-        'mythora_profile_v2': jsonEncode(
+        'mythdusk_profile_v2': jsonEncode(
           const PlayerProfile(gems: 400, lives: 1).toJson(),
         ),
       });

@@ -103,7 +103,7 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
     final templates = templatesAsync.valueOrNull;
     if (chapter == null || overlays == null || templates == null) {
       return const Scaffold(
-        backgroundColor: MythoraColors.ink,
+        backgroundColor: MythDuskColors.ink,
         body: Center(child: CircularProgressIndicator()),
       );
     }
@@ -223,7 +223,7 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
             bgPath,
             fit: BoxFit.cover,
             errorBuilder: (_, __, ___) =>
-                const ColoredBox(color: MythoraColors.ink),
+                const ColoredBox(color: MythDuskColors.ink),
           ),
           // Light top vignette for HUD legibility; mid/bottom stay open so
           // the background owns the ground plane.
@@ -271,7 +271,7 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
                     Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: MythoraColors.ink.withValues(alpha: 0.78),
+                        color: MythDuskColors.ink.withValues(alpha: 0.78),
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(16),
                         ),
@@ -363,7 +363,7 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: MythoraColors.deepTeal,
+        backgroundColor: MythDuskColors.deepTeal,
         title: const Text('Leave battle?'),
         content: const Text(
           'Progress in this fight will be lost. A life is only spent on defeat.',
@@ -388,7 +388,7 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: MythoraColors.deepTeal,
+        backgroundColor: MythDuskColors.deepTeal,
         title: const Text('Restart battle?'),
         content: const Text(
           'The fight resets from the start. Prep already spent stays spent.',
@@ -415,7 +415,7 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
   ) async {
     final skill = await showModalBottomSheet<EnemySkill>(
       context: context,
-      backgroundColor: MythoraColors.deepTeal,
+      backgroundColor: MythDuskColors.deepTeal,
       builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -425,7 +425,7 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
               child: Text(
                 'Force ${battle.enemy.name} skill',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: MythoraColors.parchment,
+                      color: MythDuskColors.parchment,
                     ),
               ),
             ),
@@ -437,7 +437,7 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
                     ? null
                     : const Icon(
                         Icons.science_outlined,
-                        color: MythoraColors.amber,
+                        color: MythDuskColors.amber,
                       ),
                 onTap: () => Navigator.pop(sheetContext, candidate),
               ),
@@ -476,7 +476,7 @@ class _FloatingActionIcon extends StatelessWidget {
         label: semanticLabel,
         excludeSemantics: true,
         child: Material(
-          color: MythoraColors.ink.withValues(alpha: 0.5),
+          color: MythDuskColors.ink.withValues(alpha: 0.5),
           shape: CircleBorder(
             side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
           ),
@@ -486,7 +486,7 @@ class _FloatingActionIcon extends StatelessWidget {
             child: SizedBox(
               width: 48,
               height: 48,
-              child: Icon(icon, size: 22, color: MythoraColors.parchment),
+              child: Icon(icon, size: 22, color: MythDuskColors.parchment),
             ),
           ),
         ),
@@ -514,12 +514,12 @@ class _EndTurnButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           decoration: BoxDecoration(
             color: enabled
-                ? MythoraColors.deepTeal.withValues(alpha: 0.85)
-                : MythoraColors.ink.withValues(alpha: 0.35),
+                ? MythDuskColors.deepTeal.withValues(alpha: 0.85)
+                : MythDuskColors.ink.withValues(alpha: 0.35),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: enabled
-                  ? MythoraColors.amber.withValues(alpha: 0.55)
+                  ? MythDuskColors.amber.withValues(alpha: 0.55)
                   : Colors.white.withValues(alpha: 0.12),
             ),
           ),
@@ -529,7 +529,7 @@ class _EndTurnButton extends StatelessWidget {
               Icon(
                 Icons.skip_next_rounded,
                 size: 18,
-                color: enabled ? MythoraColors.amber : MythoraColors.muted,
+                color: enabled ? MythDuskColors.amber : MythDuskColors.muted,
               ),
               const SizedBox(height: 2),
               Text(
@@ -538,7 +538,7 @@ class _EndTurnButton extends StatelessWidget {
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   color:
-                      enabled ? MythoraColors.parchment : MythoraColors.muted,
+                      enabled ? MythDuskColors.parchment : MythDuskColors.muted,
                 ),
               ),
             ],
@@ -577,23 +577,23 @@ class _SkillButton extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: enabled
-                ? [MythoraColors.mist, MythoraColors.deepTeal]
+                ? [MythDuskColors.mist, MythDuskColors.deepTeal]
                 : [
-                    MythoraColors.deepTeal.withValues(alpha: 0.55),
-                    MythoraColors.ink.withValues(alpha: 0.55),
+                    MythDuskColors.deepTeal.withValues(alpha: 0.55),
+                    MythDuskColors.ink.withValues(alpha: 0.55),
                   ],
           ),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: enabled
-                ? MythoraColors.softGold
+                ? MythDuskColors.softGold
                 : Colors.white.withValues(alpha: 0.14),
             width: enabled ? 1.6 : 1,
           ),
           boxShadow: enabled
               ? [
                   BoxShadow(
-                    color: MythoraColors.softGold.withValues(alpha: 0.35),
+                    color: MythDuskColors.softGold.withValues(alpha: 0.35),
                     blurRadius: 10,
                     spreadRadius: 0.5,
                   ),
@@ -620,8 +620,8 @@ class _SkillButton extends StatelessWidget {
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                         color: enabled
-                            ? MythoraColors.softGold
-                            : MythoraColors.parchment,
+                            ? MythDuskColors.softGold
+                            : MythDuskColors.parchment,
                       ),
                     ),
                     const SizedBox(height: 3),
@@ -651,7 +651,7 @@ class _SkillButton extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 9,
-                          color: MythoraColors.ember,
+                          color: MythDuskColors.ember,
                         ),
                       ),
                     ],
@@ -682,11 +682,11 @@ class _CostChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(3, 2, 5, 2),
       decoration: BoxDecoration(
-        color: MythoraColors.ink.withValues(alpha: 0.45),
+        color: MythDuskColors.ink.withValues(alpha: 0.45),
         borderRadius: BorderRadius.circular(9),
         border: ok
             ? null
-            : Border.all(color: MythoraColors.ember.withValues(alpha: 0.7)),
+            : Border.all(color: MythDuskColors.ember.withValues(alpha: 0.7)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -706,7 +706,7 @@ class _CostChip extends StatelessWidget {
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w700,
-              color: ok ? MythoraColors.parchment : MythoraColors.ember,
+              color: ok ? MythDuskColors.parchment : MythDuskColors.ember,
             ),
           ),
         ],
@@ -736,7 +736,7 @@ class _StatusLine extends StatelessWidget {
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontSize: 11,
-                color: MythoraColors.muted,
+                color: MythDuskColors.muted,
               ),
         ),
       ),

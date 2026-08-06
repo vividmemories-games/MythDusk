@@ -8,7 +8,7 @@ Authority: product/engineering choices that override or clarify [PHASES](../PHAS
 
 ## 2026-07-10 — New Flutter app (not Dot Clash)
 
-**Decision:** Build Mythora as a standalone Flutter app at `Documents/Personal Projects/Mythora`.
+**Decision:** Build MythDusk as a standalone Flutter app at `Documents/Personal Projects/MythDusk`.
 
 **Reason:** Different genre, identity, and Firebase project needs; reuse patterns only.
 
@@ -112,7 +112,7 @@ Authority: product/engineering choices that override or clarify [PHASES](../PHAS
 
 ## 2026-07-11 — Art style: chibi battle stage (not painterly busts)
 
-**Decision:** Mythora production art is **chibi / super-deformed 2D** matched to a puzzle-RPG **battle stage**:
+**Decision:** MythDusk production art is **chibi / super-deformed 2D** matched to a puzzle-RPG **battle stage**:
 
 - Full-body hero (left) and enemy (right) on the upper battle half
 - HP bars stay on/near characters (characters do not replace numbers)
@@ -205,7 +205,7 @@ movesThisTurn = hero.movesPerTurn
 
 ## 2026-07-22 — Full-game build order (post–vertical slice)
 
-**Decision:** Treat Mythora as a **full game** built around the 200-level campaign spine — not an MVP-only scope. Agreed build order:
+**Decision:** Treat MythDusk as a **full game** built around the 200-level campaign spine — not an MVP-only scope. Agreed build order:
 
 | # | Phase | Scope |
 |--:|-------|--------|
@@ -233,7 +233,7 @@ movesThisTurn = hero.movesPerTurn
 | **Daily missions** | Checklist retention (e.g. clear N boards, match N greens/blues) — separate from Daily dungeon |
 | **Daily dungeon** | One rotating special fight |
 | **Weekly** | Mon–Fri objectives → weekend extreme boss; fail spends life |
-| **Challenge** | Async **friend duel** using normal Mythora loop (**rule A**): moves → match → resources/AP → skills; puzzle does **not** deal direct damage. Same balance as PvE at first. |
+| **Challenge** | Async **friend duel** using normal MythDusk loop (**rule A**): moves → match → resources/AP → skills; puzzle does **not** deal direct damage. Same balance as PvE at first. |
 | **Events** | Later; limited modifiers/cosmetics — not a second campaign |
 
 Defer early: realtime ranked PvP, guilds, season-pass sprawl.

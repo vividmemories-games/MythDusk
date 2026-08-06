@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mythora/features/battle/domain/enemy_def.dart';
-import 'package:mythora/features/campaign/data/campaign_repository.dart';
-import 'package:mythora/features/campaign/domain/campaign_models.dart';
-import 'package:mythora/features/heroes/domain/hero_def.dart';
-import 'package:mythora/features/profile/providers/mock_profile_provider.dart';
+import 'package:mythdusk/features/battle/domain/enemy_def.dart';
+import 'package:mythdusk/features/campaign/data/campaign_repository.dart';
+import 'package:mythdusk/features/campaign/domain/campaign_models.dart';
+import 'package:mythdusk/features/heroes/domain/hero_def.dart';
+import 'package:mythdusk/features/profile/providers/mock_profile_provider.dart';
 
 void main() {
   final chapter = CampaignChapter.fromJson({

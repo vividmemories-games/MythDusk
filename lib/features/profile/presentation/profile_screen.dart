@@ -26,7 +26,7 @@ class ProfileScreen extends ConsumerWidget {
         nextLife == null ? 'Full' : 'Next in ${_formatRegen(nextLife)}';
 
     return Scaffold(
-      backgroundColor: MythoraColors.ink,
+      backgroundColor: MythDuskColors.ink,
       appBar: AppBar(
         title: const Text('Profile'),
         leading: IconButton(
@@ -46,7 +46,7 @@ class ProfileScreen extends ConsumerWidget {
                 errorBuilder: (_, __, ___) => const Icon(
                   Icons.person,
                   size: 88,
-                  color: MythoraColors.muted,
+                  color: MythDuskColors.muted,
                 ),
               ),
             ),
@@ -61,7 +61,7 @@ class ProfileScreen extends ConsumerWidget {
             'Path rank · ${HubRankBadge.labelFor(clears)}',
             textAlign: TextAlign.center,
             style: textTheme.bodyMedium?.copyWith(
-              color: MythoraColors.softGold,
+              color: MythDuskColors.softGold,
             ),
           ),
           const SizedBox(height: 16),
@@ -70,26 +70,26 @@ class ProfileScreen extends ConsumerWidget {
               children: [
                 _StatRow(
                   icon: Icons.monetization_on,
-                  iconColor: MythoraColors.amber,
+                  iconColor: MythDuskColors.amber,
                   label: 'Coins',
                   value: '${profile.coins}',
                 ),
-                const Divider(color: MythoraColors.mist, height: 18),
+                const Divider(color: MythDuskColors.mist, height: 18),
                 _StatRow(
                   icon: Icons.diamond,
                   iconColor: const Color(0xFF5B9BD5),
                   label: 'Gems',
                   value: '${profile.gems}',
                 ),
-                const Divider(color: MythoraColors.mist, height: 18),
+                const Divider(color: MythDuskColors.mist, height: 18),
                 _StatRow(
                   icon: Icons.favorite,
-                  iconColor: MythoraColors.ember,
+                  iconColor: MythDuskColors.ember,
                   label: 'Lives',
                   value: '${profile.lives} / ${EconomyBalance.maxLives}',
                   subtitle: livesDetail,
                 ),
-                const Divider(color: MythoraColors.mist, height: 18),
+                const Divider(color: MythDuskColors.mist, height: 18),
                 _StatRow(
                   icon: Icons.flag_outlined,
                   iconColor: HubColors.frameGold,
@@ -111,7 +111,7 @@ class ProfileScreen extends ConsumerWidget {
                     '${p.actTitle} · ${p.chapterTitle}',
                     style: const TextStyle(
                       fontWeight: FontWeight.w700,
-                      color: MythoraColors.parchment,
+                      color: MythDuskColors.parchment,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -128,7 +128,7 @@ class ProfileScreen extends ConsumerWidget {
                           : (p.completedInChapter / p.totalInChapter)
                               .clamp(0.0, 1.0),
                       minHeight: 8,
-                      backgroundColor: MythoraColors.mist,
+                      backgroundColor: MythDuskColors.mist,
                       color: HubColors.glow,
                     ),
                   ),
@@ -137,7 +137,7 @@ class ProfileScreen extends ConsumerWidget {
             ),
             loading: () => const _Panel(
               child: Text('Loading campaign…',
-                  style: TextStyle(color: MythoraColors.muted)),
+                  style: TextStyle(color: MythDuskColors.muted)),
             ),
             error: (_, __) => _Panel(
               child: Text(
@@ -166,7 +166,7 @@ class ProfileScreen extends ConsumerWidget {
                               id.assetPath,
                               errorBuilder: (_, __, ___) => const Icon(
                                 Icons.science,
-                                color: MythoraColors.muted,
+                                color: MythDuskColors.muted,
                               ),
                             ),
                           ),
@@ -175,7 +175,7 @@ class ProfileScreen extends ConsumerWidget {
                             '×${profile.prepCount(id)}',
                             style: const TextStyle(
                               fontSize: 12,
-                              color: MythoraColors.parchment,
+                              color: MythDuskColors.parchment,
                             ),
                           ),
                         ],
@@ -214,8 +214,8 @@ class ProfileScreen extends ConsumerWidget {
           OutlinedButton(
             onPressed: () => context.push('/shop'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: MythoraColors.parchment,
-              side: const BorderSide(color: MythoraColors.mist),
+              foregroundColor: MythDuskColors.parchment,
+              side: const BorderSide(color: MythDuskColors.mist),
             ),
             child: const Text('Shop'),
           ),
@@ -223,8 +223,8 @@ class ProfileScreen extends ConsumerWidget {
           OutlinedButton(
             onPressed: () => context.push('/settings'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: MythoraColors.parchment,
-              side: const BorderSide(color: MythoraColors.mist),
+              foregroundColor: MythDuskColors.parchment,
+              side: const BorderSide(color: MythDuskColors.mist),
             ),
             child: const Text('Settings'),
           ),
@@ -299,7 +299,7 @@ class _StatRow extends StatelessWidget {
                 label,
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
-                  color: MythoraColors.parchment,
+                  color: MythDuskColors.parchment,
                 ),
               ),
               if (subtitle != null)
@@ -316,7 +316,7 @@ class _StatRow extends StatelessWidget {
           value,
           style: const TextStyle(
             fontWeight: FontWeight.w800,
-            color: MythoraColors.softGold,
+            color: MythDuskColors.softGold,
           ),
         ),
       ],

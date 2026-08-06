@@ -7,7 +7,7 @@
 | **Authority** | Extends [Vision](../00_Project/Vision.md) · [GAMEPLAY](../GAMEPLAY.md) · [Decisions](../00_Project/Decisions.md) |
 | **Art prompts** | [Master Prompts](../06_Asset_Bible/Master_Prompts.md) — one Leonardo prompt per artwork ID below |
 
-This is the **master content plan** for Mythora’s first 200-level campaign, weekly mode shell, home hub, meta prep, and the artwork inventory required to ship it.
+This is the **master content plan** for MythDusk’s first 200-level campaign, weekly mode shell, home hub, meta prep, and the artwork inventory required to ship it.
 
 ---
 

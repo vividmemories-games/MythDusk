@@ -29,7 +29,7 @@ class BattleTutorialOverlay extends ConsumerWidget {
       right: 12,
       bottom: 110,
       child: Material(
-        color: MythoraColors.ink.withValues(alpha: 0.92),
+        color: MythDuskColors.ink.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(14),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
@@ -40,7 +40,7 @@ class BattleTutorialOverlay extends ConsumerWidget {
               Text(
                 caption,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: MythoraColors.parchment,
+                      color: MythDuskColors.parchment,
                       fontSize: 13,
                       height: 1.35,
                     ),

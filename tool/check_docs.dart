@@ -3,7 +3,7 @@
 
 import 'dart:io';
 
-/// Validates Mythora docs: relative markdown links + code consistency checks.
+/// Validates MythDusk docs: relative markdown links + code consistency checks.
 ///
 /// Run: `dart run tool/check_docs.dart`
 void main() {

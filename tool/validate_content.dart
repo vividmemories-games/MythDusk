@@ -4,16 +4,16 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:mythora/core/assets/game_assets.dart';
-import 'package:mythora/features/battle/domain/enemy_def.dart';
-import 'package:mythora/features/battle/domain/enemy_effect.dart';
-import 'package:mythora/features/campaign/domain/campaign_models.dart';
-import 'package:mythora/features/heroes/domain/hero_def.dart';
-import 'package:mythora/features/prep/domain/prep_item.dart';
-import 'package:mythora/features/puzzle/domain/board_template.dart';
-import 'package:mythora/features/puzzle/domain/level_board_config.dart';
-import 'package:mythora/features/puzzle/domain/overlay_def.dart';
-import 'package:mythora/features/puzzle/domain/tile_color.dart';
+import 'package:mythdusk/core/assets/game_assets.dart';
+import 'package:mythdusk/features/battle/domain/enemy_def.dart';
+import 'package:mythdusk/features/battle/domain/enemy_effect.dart';
+import 'package:mythdusk/features/campaign/domain/campaign_models.dart';
+import 'package:mythdusk/features/heroes/domain/hero_def.dart';
+import 'package:mythdusk/features/prep/domain/prep_item.dart';
+import 'package:mythdusk/features/puzzle/domain/board_template.dart';
+import 'package:mythdusk/features/puzzle/domain/level_board_config.dart';
+import 'package:mythdusk/features/puzzle/domain/overlay_def.dart';
+import 'package:mythdusk/features/puzzle/domain/tile_color.dart';
 
 const _resourceIds = {
   'attack',

@@ -68,7 +68,7 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
     final chapterAsync = ref.watch(campaignChapterProvider);
     return chapterAsync.when(
       loading: () => const Scaffold(
-        backgroundColor: MythoraColors.ink,
+        backgroundColor: MythDuskColors.ink,
         body: Center(child: CircularProgressIndicator()),
       ),
       error: (_, __) => const ContentErrorScreen(
@@ -108,7 +108,7 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
     final heaviest = enemy.heaviestSkill;
 
     return Scaffold(
-      backgroundColor: MythoraColors.ink,
+      backgroundColor: MythDuskColors.ink,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -121,13 +121,13 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
                     onPressed: () => context.pop(),
                     tooltip: 'Back to campaign',
                     icon: const Icon(Icons.arrow_back,
-                        color: MythoraColors.parchment),
+                        color: MythDuskColors.parchment),
                   ),
                   Expanded(
                     child: Text(
                       node.name,
                       style: textTheme.headlineMedium?.copyWith(
-                        color: MythoraColors.parchment,
+                        color: MythDuskColors.parchment,
                       ),
                     ),
                   ),
@@ -151,7 +151,7 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
                             errorBuilder: (_, __, ___) => const Icon(
                               Icons.pest_control,
                               size: 40,
-                              color: MythoraColors.ember,
+                              color: MythDuskColors.ember,
                             ),
                           ),
                         ),
@@ -163,7 +163,7 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
                               Text(
                                 enemy.name,
                                 style: textTheme.titleMedium?.copyWith(
-                                  color: MythoraColors.softGold,
+                                  color: MythDuskColors.softGold,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -172,7 +172,7 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
                                     ? 'A foe on the dusk road.'
                                     : enemy.blurb,
                                 style: textTheme.bodyMedium?.copyWith(
-                                  color: MythoraColors.muted,
+                                  color: MythDuskColors.muted,
                                   fontSize: 13,
                                 ),
                               ),
@@ -181,7 +181,7 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
                                 'Likely: ${heaviest.intentLabel}',
                                 style: textTheme.bodyMedium?.copyWith(
                                   fontSize: 12,
-                                  color: MythoraColors.ember,
+                                  color: MythDuskColors.ember,
                                 ),
                               ),
                               Text(
@@ -189,7 +189,7 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
                                 '${node.isBoss ? ' · Boss' : ''}',
                                 style: textTheme.bodyMedium?.copyWith(
                                   fontSize: 12,
-                                  color: MythoraColors.parchment,
+                                  color: MythDuskColors.parchment,
                                 ),
                               ),
                             ],
@@ -205,12 +205,12 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
                       children: [
                         Text('Board',
                             style: textTheme.titleMedium
-                                ?.copyWith(color: MythoraColors.softGold)),
+                                ?.copyWith(color: MythDuskColors.softGold)),
                         const SizedBox(height: 4),
                         Text(
                           _boardRules(board),
                           style: textTheme.bodyMedium?.copyWith(
-                            color: MythoraColors.parchment,
+                            color: MythDuskColors.parchment,
                             fontSize: 13,
                           ),
                         ),
@@ -219,7 +219,7 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
                           'Reward: ${node.coinReward} coins'
                           '${node.prepDrops.isEmpty ? '' : ' · prep drop chance'}',
                           style: textTheme.bodyMedium?.copyWith(
-                            color: MythoraColors.muted,
+                            color: MythDuskColors.muted,
                             fontSize: 12,
                           ),
                         ),
@@ -234,7 +234,7 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
                         Text(
                           'Hero: ${hero.name}',
                           style: textTheme.titleMedium
-                              ?.copyWith(color: MythoraColors.softGold),
+                              ?.copyWith(color: MythDuskColors.softGold),
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -242,7 +242,7 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
                               .map((s) => '${s.name} (${s.apCost} AP)')
                               .join(' · '),
                           style: textTheme.bodyMedium?.copyWith(
-                            color: MythoraColors.muted,
+                            color: MythDuskColors.muted,
                             fontSize: 12,
                           ),
                         ),
@@ -253,13 +253,13 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
                   Text(
                     'Select aids (optional)',
                     style: textTheme.titleMedium
-                        ?.copyWith(color: MythoraColors.parchment),
+                        ?.copyWith(color: MythDuskColors.parchment),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Up to ${PrepBalance.maxEquipped}. Spent when battle starts.',
                     style: textTheme.bodyMedium?.copyWith(
-                      color: MythoraColors.muted,
+                      color: MythDuskColors.muted,
                       fontSize: 12,
                     ),
                   ),
@@ -276,8 +276,8 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Material(
                         color: selected
-                            ? MythoraColors.mist
-                            : MythoraColors.deepTeal.withValues(alpha: 0.7),
+                            ? MythDuskColors.mist
+                            : MythDuskColors.deepTeal.withValues(alpha: 0.7),
                         borderRadius: BorderRadius.circular(12),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12),
@@ -321,8 +321,8 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
                                         style: textTheme.bodyMedium?.copyWith(
                                           fontSize: 11,
                                           color: secondWindBlocked
-                                              ? MythoraColors.ember
-                                              : MythoraColors.muted,
+                                              ? MythDuskColors.ember
+                                              : MythDuskColors.muted,
                                         ),
                                       ),
                                     ],
@@ -333,8 +333,8 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
                                       ? Icons.check_circle
                                       : Icons.circle_outlined,
                                   color: selected
-                                      ? MythoraColors.amber
-                                      : MythoraColors.muted,
+                                      ? MythDuskColors.amber
+                                      : MythDuskColors.muted,
                                 ),
                               ],
                             ),
@@ -375,7 +375,7 @@ class _Card extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: MythoraColors.deepTeal.withValues(alpha: 0.55),
+        color: MythDuskColors.deepTeal.withValues(alpha: 0.55),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),

@@ -1,4 +1,4 @@
-# Mythora — Phases & Locked Decisions
+# MythDusk — Phases & Locked Decisions
 
 | Field | Value |
 |-------|-------|
@@ -12,9 +12,9 @@ Living decision log: [00_Project/Decisions.md](00_Project/Decisions.md).
 
 | Decision | Choice |
 |----------|--------|
-| Name | **Mythora** |
+| Name | **MythDusk** |
 | App approach | **New Flutter app** (not inside Dot Clash) |
-| Path | `Documents/Personal Projects/Mythora` |
+| Path | `Documents/Personal Projects/MythDusk` |
 | Stack | Flutter, Riverpod, go_router; Firebase later |
 | Architecture patterns | Feature-first like Dot Clash (`domain/` / `data/` / `providers/` / `presentation/`) |
 | Visual identity | **Not** Dot Clash neon — dusk adventure (teal/ink + amber/gold) |
@@ -38,7 +38,7 @@ Living decision log: [00_Project/Decisions.md](00_Project/Decisions.md).
 
 - Neon UI / Dot Clash theme tokens
 - Dots & Boxes rules or board painter
-- Dot Clash Firebase projects (Mythora gets its own when wired)
+- Dot Clash Firebase projects (MythDusk gets its own when wired)
 
 ---
 
@@ -132,4 +132,4 @@ docs/                 # see docs/README.md
 
 ## Identity rule
 
-Someone who played Dot Clash should not recognize Mythora as the same product after removing the logo. Different palette, type, iconography, and metaphor (fantasy shards / heroes, not neon notebook dots).
+Someone who played Dot Clash should not recognize MythDusk as the same product after removing the logo. Different palette, type, iconography, and metaphor (fantasy shards / heroes, not neon notebook dots).

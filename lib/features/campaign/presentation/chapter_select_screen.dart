@@ -18,7 +18,7 @@ class ChapterSelectScreen extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: MythoraColors.ink,
+      backgroundColor: MythDuskColors.ink,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         title: const Text('Campaign'),
@@ -37,8 +37,8 @@ class ChapterSelectScreen extends ConsumerWidget {
               final selected = entry.id == selectedId;
               return Material(
                 color: selected
-                    ? MythoraColors.deepTeal
-                    : MythoraColors.deepTeal.withValues(alpha: 0.55),
+                    ? MythDuskColors.deepTeal
+                    : MythDuskColors.deepTeal.withValues(alpha: 0.55),
                 borderRadius: BorderRadius.circular(14),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(14),
@@ -59,14 +59,14 @@ class ChapterSelectScreen extends ConsumerWidget {
                       children: [
                         CircleAvatar(
                           backgroundColor: unlocked
-                              ? MythoraColors.amber.withValues(alpha: 0.25)
-                              : MythoraColors.mist.withValues(alpha: 0.2),
+                              ? MythDuskColors.amber.withValues(alpha: 0.25)
+                              : MythDuskColors.mist.withValues(alpha: 0.2),
                           child: Text(
                             '${entry.order}',
                             style: textTheme.titleMedium?.copyWith(
                               color: unlocked
-                                  ? MythoraColors.amber
-                                  : MythoraColors.muted,
+                                  ? MythDuskColors.amber
+                                  : MythDuskColors.muted,
                             ),
                           ),
                         ),
@@ -79,8 +79,8 @@ class ChapterSelectScreen extends ConsumerWidget {
                                 entry.title,
                                 style: textTheme.titleMedium?.copyWith(
                                   color: unlocked
-                                      ? MythoraColors.parchment
-                                      : MythoraColors.muted,
+                                      ? MythDuskColors.parchment
+                                      : MythDuskColors.muted,
                                 ),
                               ),
                               if (entry.subtitle.isNotEmpty)
@@ -88,7 +88,7 @@ class ChapterSelectScreen extends ConsumerWidget {
                                   entry.subtitle,
                                   style: textTheme.bodyMedium?.copyWith(
                                     fontSize: 12,
-                                    color: MythoraColors.softGold
+                                    color: MythDuskColors.softGold
                                         .withValues(alpha: unlocked ? 1 : 0.5),
                                   ),
                                 ),
@@ -97,7 +97,7 @@ class ChapterSelectScreen extends ConsumerWidget {
                                   'Clear the previous chapter finale',
                                   style: textTheme.bodyMedium?.copyWith(
                                     fontSize: 11,
-                                    color: MythoraColors.muted,
+                                    color: MythDuskColors.muted,
                                   ),
                                 ),
                             ],
@@ -110,8 +110,8 @@ class ChapterSelectScreen extends ConsumerWidget {
                                   : Icons.chevron_right)
                               : Icons.lock_outline,
                           color: unlocked
-                              ? MythoraColors.amber
-                              : MythoraColors.muted,
+                              ? MythDuskColors.amber
+                              : MythDuskColors.muted,
                         ),
                       ],
                     ),

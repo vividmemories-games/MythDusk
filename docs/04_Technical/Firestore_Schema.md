@@ -1,7 +1,7 @@
 # Firestore Schema (planned)
 
 Status: **design only — nothing deployed.** The app currently persists
-`PlayerProfile` locally via SharedPreferences (`mythora_profile_v2` key,
+`PlayerProfile` locally via SharedPreferences (`mythdusk_profile_v2` key,
 `schemaVersion: 3`). This doc pins the Firestore shape so the local model
 migrates cleanly when Firebase is wired.
 

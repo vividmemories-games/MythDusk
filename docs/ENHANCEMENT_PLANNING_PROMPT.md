@@ -1,11 +1,11 @@
-# Mythora — Functionality & Usability Planning Brief
-You are working on **Mythora**, a Flutter + Riverpod + go_router, turn-based
+# MythDusk — Functionality & Usability Planning Brief
+You are working on **MythDusk**, a Flutter + Riverpod + go_router, turn-based
 puzzle RPG. Read `AGENTS.md` and the relevant repository files before proposing
 anything.
 
 ## Task
 
-Create a practical, phased implementation plan to improve Mythora's
+Create a practical, phased implementation plan to improve MythDusk's
 functionality, usability, accessibility, and campaign variety.
 
 **Do not implement changes yet.** First inspect the current working tree,

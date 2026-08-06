@@ -95,4 +95,4 @@ production builds.
 
 ## Firebase (later)
 
-Own Mythora project — do not reuse Dot Clash or Labyrinth Firebase. Auth, Firestore content, Cloud Functions settlement per agent Firebase safety rules.
+Own MythDusk project — do not reuse Dot Clash or Labyrinth Firebase. Auth, Firestore content, Cloud Functions settlement per agent Firebase safety rules.

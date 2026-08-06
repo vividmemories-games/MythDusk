@@ -3,13 +3,13 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mythora/features/puzzle/domain/board_builder.dart';
-import 'package:mythora/features/puzzle/domain/board_template.dart';
-import 'package:mythora/features/puzzle/domain/level_board_config.dart';
-import 'package:mythora/features/puzzle/domain/overlay_def.dart';
-import 'package:mythora/features/puzzle/domain/puzzle_engine.dart';
-import 'package:mythora/features/puzzle/domain/tile_color.dart';
-import 'package:mythora/features/puzzle/domain/tile_spawn_weights.dart';
+import 'package:mythdusk/features/puzzle/domain/board_builder.dart';
+import 'package:mythdusk/features/puzzle/domain/board_template.dart';
+import 'package:mythdusk/features/puzzle/domain/level_board_config.dart';
+import 'package:mythdusk/features/puzzle/domain/overlay_def.dart';
+import 'package:mythdusk/features/puzzle/domain/puzzle_engine.dart';
+import 'package:mythdusk/features/puzzle/domain/tile_color.dart';
+import 'package:mythdusk/features/puzzle/domain/tile_spawn_weights.dart';
 
 void main() {
   late OverlayCatalog overlays;

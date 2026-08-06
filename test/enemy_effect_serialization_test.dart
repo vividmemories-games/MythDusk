@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mythora/features/battle/domain/enemy_def.dart';
-import 'package:mythora/features/battle/domain/enemy_effect.dart';
+import 'package:mythdusk/features/battle/domain/enemy_def.dart';
+import 'package:mythdusk/features/battle/domain/enemy_effect.dart';
 
 void main() {
   group('EnemyEffect serialization', () {

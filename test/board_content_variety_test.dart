@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mythora/features/campaign/domain/campaign_models.dart';
-import 'package:mythora/features/puzzle/domain/level_board_config.dart';
+import 'package:mythdusk/features/campaign/domain/campaign_models.dart';
+import 'package:mythdusk/features/puzzle/domain/level_board_config.dart';
 
 String _boardFingerprint(LevelBoardConfig cfg) {
   final movers = [

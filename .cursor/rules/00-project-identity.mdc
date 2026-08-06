@@ -1,13 +1,13 @@
 ---
-description: Mythora project identity and non-negotiable product principles.
+description: MythDusk project identity and non-negotiable product principles.
 globs:
   - "**/*"
 alwaysApply: true
 ---
 
-# Mythora Project Identity
+# MythDusk Project Identity
 
-Mythora is a Flutter + Firebase turn-based Puzzle RPG designed for a solo developer.
+MythDusk is a Flutter + Firebase turn-based Puzzle RPG designed for a solo developer.
 
 Core product direction:
 - System-heavy, not art-heavy.

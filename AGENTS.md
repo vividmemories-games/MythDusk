@@ -1,8 +1,8 @@
 # AGENTS.md
 
-# Relicbound AI Agent Instructions
+# MythDusk AI Agent Instructions
 
-This file is the source of truth for AI coding agents working on **Relicbound**, a Flutter + Firebase turn-based Puzzle RPG.
+This file is the source of truth for AI coding agents working on **MythDusk**, a Flutter + Firebase turn-based Puzzle RPG.
 
 Agents must treat these instructions as binding unless the human project owner explicitly overrides them.
 
@@ -10,14 +10,15 @@ Agents must treat these instructions as binding unless the human project owner e
 
 ## 1. Project Summary
 
-**Working title:** Relicbound  
+**Product name:** MythDusk  
+**Former working titles:** Mythora, Relicbound  
 **Genre:** Turn-based Puzzle RPG  
 **Platform:** iOS and Android  
 **Frontend:** Flutter  
 **Backend:** Firebase  
 **Development style:** Solo-developer friendly, data-driven, system-heavy, low-art-dependency.
 
-Relicbound is designed around a combat loop where the puzzle board generates tactical resources instead of dealing direct damage.
+MythDusk is designed around a combat loop where the puzzle board generates tactical resources instead of dealing direct damage.
 
 The game should scale through:
 - Heroes

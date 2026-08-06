@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mythora/features/battle/domain/battle_state.dart';
-import 'package:mythora/features/battle/domain/enemy_def.dart';
-import 'package:mythora/features/heroes/domain/hero_def.dart';
+import 'package:mythdusk/features/battle/domain/battle_state.dart';
+import 'package:mythdusk/features/battle/domain/enemy_def.dart';
+import 'package:mythdusk/features/heroes/domain/hero_def.dart';
 
 void main() {
   group('endPlayerTurn', () {

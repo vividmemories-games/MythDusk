@@ -21,7 +21,7 @@ class ContentErrorScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MythoraColors.ink,
+      backgroundColor: MythDuskColors.ink,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -34,14 +34,14 @@ class ContentErrorScreen extends StatelessWidget {
                   const Icon(
                     Icons.error_outline,
                     size: 52,
-                    color: MythoraColors.ember,
+                    color: MythDuskColors.ember,
                   ),
                   const SizedBox(height: 16),
                   Text(
                     title,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: MythoraColors.parchment,
+                          color: MythDuskColors.parchment,
                         ),
                   ),
                   const SizedBox(height: 8),
@@ -49,7 +49,7 @@ class ContentErrorScreen extends StatelessWidget {
                     message,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: MythoraColors.muted,
+                          color: MythDuskColors.muted,
                         ),
                   ),
                   const SizedBox(height: 20),

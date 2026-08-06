@@ -10,7 +10,7 @@ Future<void> showComingSoonSheet(
 }) {
   return showModalBottomSheet<void>(
     context: context,
-    backgroundColor: MythoraColors.deepTeal,
+    backgroundColor: MythDuskColors.deepTeal,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -27,7 +27,7 @@ Future<void> showComingSoonSheet(
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: MythoraColors.mist,
+                    color: MythDuskColors.mist,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -46,7 +46,7 @@ Future<void> showComingSoonSheet(
               Text(
                 'Coming before closed testing — not live yet.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: MythoraColors.softGold,
+                      color: MythDuskColors.softGold,
                       fontSize: 12,
                     ),
               ),

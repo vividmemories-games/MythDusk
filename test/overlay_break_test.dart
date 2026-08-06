@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mythora/features/puzzle/domain/board_cell.dart';
-import 'package:mythora/features/puzzle/domain/overlay_def.dart';
-import 'package:mythora/features/puzzle/domain/puzzle_board.dart';
-import 'package:mythora/features/puzzle/domain/puzzle_engine.dart';
-import 'package:mythora/features/puzzle/domain/tile_color.dart';
-import 'package:mythora/features/puzzle/domain/tile_id_gen.dart';
+import 'package:mythdusk/features/puzzle/domain/board_cell.dart';
+import 'package:mythdusk/features/puzzle/domain/overlay_def.dart';
+import 'package:mythdusk/features/puzzle/domain/puzzle_board.dart';
+import 'package:mythdusk/features/puzzle/domain/puzzle_engine.dart';
+import 'package:mythdusk/features/puzzle/domain/tile_color.dart';
+import 'package:mythdusk/features/puzzle/domain/tile_id_gen.dart';
 
 PuzzleBoard _board(List<List<BoardCell>> rows) {
   final height = rows.length;

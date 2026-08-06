@@ -283,10 +283,10 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
 
   final SharedPreferences _prefs;
 
-  static const _key = 'mythora_profile_v2';
+  static const _key = 'mythdusk_profile_v2';
 
   static PlayerProfile _load(SharedPreferences prefs) {
-    final raw = prefs.getString(_key) ?? prefs.getString('mythora_profile_v1');
+    final raw = prefs.getString(_key) ?? prefs.getString('mythdusk_profile_v1');
     if (raw == null) return const PlayerProfile();
     try {
       final decoded = jsonDecode(raw) as Map<String, dynamic>;

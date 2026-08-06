@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mythora/features/puzzle/domain/board_cell.dart';
-import 'package:mythora/features/puzzle/domain/board_movers.dart';
-import 'package:mythora/features/puzzle/domain/level_board_config.dart';
-import 'package:mythora/features/puzzle/domain/overlay_def.dart';
-import 'package:mythora/features/puzzle/domain/puzzle_board.dart';
-import 'package:mythora/features/puzzle/domain/tile_color.dart';
+import 'package:mythdusk/features/puzzle/domain/board_cell.dart';
+import 'package:mythdusk/features/puzzle/domain/board_movers.dart';
+import 'package:mythdusk/features/puzzle/domain/level_board_config.dart';
+import 'package:mythdusk/features/puzzle/domain/overlay_def.dart';
+import 'package:mythdusk/features/puzzle/domain/puzzle_board.dart';
+import 'package:mythdusk/features/puzzle/domain/tile_color.dart';
 
 PuzzleBoard _rowBoard(List<BoardCell> row) {
   return PuzzleBoard(width: row.length, height: 1, cells: row);

@@ -10,7 +10,7 @@ alwaysApply: true
 
 # Gameplay Data Model Rules
 
-Mythora must be data-driven.
+MythDusk must be data-driven.
 
 Any configurable gameplay definition should support:
 - `id`

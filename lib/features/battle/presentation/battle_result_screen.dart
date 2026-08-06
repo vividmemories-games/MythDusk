@@ -103,7 +103,7 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
     final chapterAsync = ref.watch(campaignChapterProvider);
     return chapterAsync.when(
       loading: () => const Scaffold(
-        backgroundColor: MythoraColors.ink,
+        backgroundColor: MythDuskColors.ink,
         body: Center(child: CircularProgressIndicator()),
       ),
       error: (_, __) => const ContentErrorScreen(
@@ -166,7 +166,7 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                 textAlign: TextAlign.center,
                 style: textTheme.displayLarge?.copyWith(
                   fontSize: 40,
-                  color: args.won ? MythoraColors.amber : MythoraColors.ember,
+                  color: args.won ? MythDuskColors.amber : MythDuskColors.ember,
                 ),
               ),
               const SizedBox(height: 12),
@@ -184,9 +184,9 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: MythoraColors.deepTeal,
+                    color: MythDuskColors.deepTeal,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: MythoraColors.mist),
+                    border: Border.all(color: MythDuskColors.mist),
                   ),
                   child: Column(
                     children: [
@@ -201,7 +201,7 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                                     ? 'Already claimed today'
                                     : '+${args.isWeekly ? _grantedCoins : args.coinReward} coins')),
                         style: textTheme.headlineMedium?.copyWith(
-                          color: MythoraColors.softGold,
+                          color: MythDuskColors.softGold,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -214,7 +214,7 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                         Text(
                           '+1 Vanguard Tonic (prep stash)',
                           style: textTheme.bodyMedium?.copyWith(
-                            color: MythoraColors.softGold,
+                            color: MythDuskColors.softGold,
                             fontSize: 12,
                           ),
                         ),
@@ -241,8 +241,8 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                   args.isWeekly ? '/weekly' : '/campaign',
                 ),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: MythoraColors.parchment,
-                  side: const BorderSide(color: MythoraColors.mist),
+                  foregroundColor: MythDuskColors.parchment,
+                  side: const BorderSide(color: MythDuskColors.mist),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 child: Text(args.isWeekly ? 'Weekly' : 'Campaign map'),

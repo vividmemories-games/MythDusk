@@ -54,7 +54,7 @@ Reject: skin pores, adult proportions, cinematic busts, busy environments.
 
 ## 2. Universal negative prompt
 
-Paste for **every** Mythora generation:
+Paste for **every** MythDusk generation:
 
 ```text
 text, words, letters, numbers, watermark, logo, signature, username, frame, border, UI, caption,
@@ -608,7 +608,7 @@ After 5 style-board images are approved:
 
 1. **Training & Datasets** → New Dataset
 2. Upload all 5 style-board PNGs (+ good same-session rejects, max ~15)
-3. Name: `Mythora_Dusk_Chibi`
+3. Name: `MythDusk_Chibi`
 4. Train on platform-recommended base for Elements
 5. Strength **0.55–0.70** characters; **0.45–0.55** tiles/icons
 

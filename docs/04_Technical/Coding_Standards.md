@@ -6,7 +6,7 @@
 | **Last Updated** | 2026-07-10 |
 | **Related** | [Architecture](Architecture.md) · `AGENTS.md` · `.cursor/rules/01-flutter-architecture.mdc` |
 
-Adapted from Labyrinth Legends coding standards — Mythora feature layout and combat domain.
+Adapted from Labyrinth Legends coding standards — MythDusk feature layout and combat domain.
 
 ## Philosophy
 

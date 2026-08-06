@@ -26,7 +26,7 @@ class WeeklyScreen extends ConsumerWidget {
     final enemy = EnemyCatalog.byId(challenge.enemyId);
 
     return Scaffold(
-      backgroundColor: MythoraColors.ink,
+      backgroundColor: MythDuskColors.ink,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         title: const Text('Weekly'),
@@ -42,7 +42,7 @@ class WeeklyScreen extends ConsumerWidget {
                     ? 'Weekend'
                     : _weekdayLabel(challenge.dayKey),
                 style: textTheme.bodyMedium?.copyWith(
-                  color: MythoraColors.softGold,
+                  color: MythDuskColors.softGold,
                 ),
               ),
               const SizedBox(height: 6),
@@ -63,7 +63,7 @@ class WeeklyScreen extends ConsumerWidget {
                     errorBuilder: (_, __, ___) => const Icon(
                       Icons.sports_mma,
                       size: 72,
-                      color: MythoraColors.muted,
+                      color: MythDuskColors.muted,
                     ),
                   ),
                 ),
@@ -78,9 +78,9 @@ class WeeklyScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: MythoraColors.deepTeal.withValues(alpha: 0.85),
+                  color: MythDuskColors.deepTeal.withValues(alpha: 0.85),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: MythoraColors.mist),
+                  border: Border.all(color: MythDuskColors.mist),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,7 +103,7 @@ class WeeklyScreen extends ConsumerWidget {
                         'QA override: ${WeeklySchedule.dayKey(override)}',
                         style: textTheme.bodyMedium?.copyWith(
                           fontSize: 12,
-                          color: MythoraColors.amber,
+                          color: MythDuskColors.amber,
                         ),
                       ),
                     ],
@@ -128,8 +128,8 @@ class WeeklyScreen extends ConsumerWidget {
                 OutlinedButton(
                   onPressed: () => _showQaOverride(context, ref),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: MythoraColors.parchment,
-                    side: const BorderSide(color: MythoraColors.mist),
+                    foregroundColor: MythDuskColors.parchment,
+                    side: const BorderSide(color: MythDuskColors.mist),
                   ),
                   child: const Text('QA: set day'),
                 ),
@@ -188,7 +188,7 @@ class WeeklyScreen extends ConsumerWidget {
     final now = DateTime.now();
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: MythoraColors.deepTeal,
+      backgroundColor: MythDuskColors.deepTeal,
       builder: (context) {
         return SafeArea(
           child: Padding(

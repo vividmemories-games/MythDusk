@@ -13,7 +13,7 @@ Future<void> main() async {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
       ],
-      child: const MythoraApp(),
+      child: const MythDuskApp(),
     ),
   );
 }

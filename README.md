@@ -1,4 +1,4 @@
-# Mythora
+# MythDusk
 
 Turn-based **puzzle RPG** for iOS & Android.
 
@@ -38,4 +38,4 @@ flutter run
 Home → **Twilight Road** (5 nodes) → battle with cascades + rockets/bombs → victory rewards → unlock next. Local persisted profile.
 
 
-Agent rules: `AGENTS.md` and `.cursor/rules/` (product name **Mythora**; some files still mention the Relicbound working title).
+Agent rules: `AGENTS.md` and `.cursor/rules/` (product name **MythDusk**; former working titles Mythora / Relicbound).

@@ -1,14 +1,14 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mythora/features/battle/domain/battle_state.dart';
-import 'package:mythora/features/battle/domain/enemy_def.dart';
-import 'package:mythora/features/battle/domain/enemy_effect.dart';
-import 'package:mythora/features/heroes/domain/hero_def.dart';
-import 'package:mythora/features/puzzle/domain/board_cell.dart';
-import 'package:mythora/features/puzzle/domain/puzzle_board.dart';
-import 'package:mythora/features/puzzle/domain/tile_color.dart';
-import 'package:mythora/features/puzzle/domain/tile_id_gen.dart';
+import 'package:mythdusk/features/battle/domain/battle_state.dart';
+import 'package:mythdusk/features/battle/domain/enemy_def.dart';
+import 'package:mythdusk/features/battle/domain/enemy_effect.dart';
+import 'package:mythdusk/features/heroes/domain/hero_def.dart';
+import 'package:mythdusk/features/puzzle/domain/board_cell.dart';
+import 'package:mythdusk/features/puzzle/domain/puzzle_board.dart';
+import 'package:mythdusk/features/puzzle/domain/tile_color.dart';
+import 'package:mythdusk/features/puzzle/domain/tile_id_gen.dart';
 
 void main() {
   test('mire smother intent mentions poison overlay', () {

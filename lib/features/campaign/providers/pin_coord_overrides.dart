@@ -27,7 +27,7 @@ class PinCoordOverridesNotifier extends StateNotifier<Map<String, PinCoord>> {
   PinCoordOverridesNotifier(this._prefs) : super(_load(_prefs));
 
   final SharedPreferences _prefs;
-  static const _key = 'mythora_pin_coord_overrides_v1';
+  static const _key = 'mythdusk_pin_coord_overrides_v1';
 
   static Map<String, PinCoord> _load(SharedPreferences prefs) {
     final raw = prefs.getString(_key);

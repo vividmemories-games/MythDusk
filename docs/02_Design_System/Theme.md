@@ -15,7 +15,7 @@ Dusk adventure: deep teal / ink surfaces, parchment text, amber / soft-gold acce
 
 **Not** Dot Clash neon. **Not** Labyrinth Legends stone-citadel LLDL. **Not** photoreal / cinematic bust portraits.
 
-## Color tokens (`MythoraColors`)
+## Color tokens (`MythDuskColors`)
 
 | Token | Hex | Use |
 |-------|-----|-----|

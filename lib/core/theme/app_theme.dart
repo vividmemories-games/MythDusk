@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// Dusk-adventure identity for Mythora.
+/// Dusk-adventure identity for MythDusk.
 ///
 /// Intentionally distinct from Dot Clash neon (no cyan/magenta glow theme).
-abstract final class MythoraColors {
+abstract final class MythDuskColors {
   static const ink = Color(0xFF0B1C24);
   static const deepTeal = Color(0xFF123A44);
   static const mist = Color(0xFF1E4D57);
@@ -24,23 +24,23 @@ abstract final class AppTheme {
   static ThemeData get dusk {
     const scheme = ColorScheme(
       brightness: Brightness.dark,
-      primary: MythoraColors.amber,
-      onPrimary: MythoraColors.ink,
-      secondary: MythoraColors.softGold,
-      onSecondary: MythoraColors.ink,
-      error: MythoraColors.ember,
-      onError: MythoraColors.parchment,
-      surface: MythoraColors.deepTeal,
-      onSurface: MythoraColors.parchment,
+      primary: MythDuskColors.amber,
+      onPrimary: MythDuskColors.ink,
+      secondary: MythDuskColors.softGold,
+      onSecondary: MythDuskColors.ink,
+      error: MythDuskColors.ember,
+      onError: MythDuskColors.parchment,
+      surface: MythDuskColors.deepTeal,
+      onSurface: MythDuskColors.parchment,
     );
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
-      scaffoldBackgroundColor: MythoraColors.ink,
+      scaffoldBackgroundColor: MythDuskColors.ink,
       appBarTheme: const AppBarTheme(
-        backgroundColor: MythoraColors.ink,
-        foregroundColor: MythoraColors.parchment,
+        backgroundColor: MythDuskColors.ink,
+        foregroundColor: MythDuskColors.parchment,
         elevation: 0,
         centerTitle: true,
       ),
@@ -49,35 +49,35 @@ abstract final class AppTheme {
           fontFamily: 'Georgia',
           fontSize: 40,
           fontWeight: FontWeight.w700,
-          color: MythoraColors.parchment,
+          color: MythDuskColors.parchment,
         ),
         headlineMedium: TextStyle(
           fontFamily: 'Georgia',
           fontSize: 24,
           fontWeight: FontWeight.w600,
-          color: MythoraColors.parchment,
+          color: MythDuskColors.parchment,
         ),
         titleMedium: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: MythoraColors.parchment,
+          color: MythDuskColors.parchment,
         ),
         bodyMedium: TextStyle(
           fontSize: 14,
           height: 1.4,
-          color: MythoraColors.muted,
+          color: MythDuskColors.muted,
         ),
         labelLarge: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.4,
-          color: MythoraColors.ink,
+          color: MythDuskColors.ink,
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: MythoraColors.amber,
-          foregroundColor: MythoraColors.ink,
+          backgroundColor: MythDuskColors.amber,
+          foregroundColor: MythDuskColors.ink,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

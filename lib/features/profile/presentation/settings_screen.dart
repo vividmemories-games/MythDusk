@@ -15,7 +15,7 @@ class SettingsScreen extends ConsumerWidget {
     final notifier = ref.read(profileProvider.notifier);
 
     return Scaffold(
-      backgroundColor: MythoraColors.ink,
+      backgroundColor: MythDuskColors.ink,
       appBar: AppBar(
         title: const Text('Settings'),
         leading: IconButton(
@@ -30,24 +30,24 @@ class SettingsScreen extends ConsumerWidget {
             contentPadding: EdgeInsets.zero,
             leading: const Icon(
               Icons.person_outline,
-              color: MythoraColors.softGold,
+              color: MythDuskColors.softGold,
             ),
             title: const Text('Profile'),
             subtitle: const Text('Progress, upgrades, and prep'),
             trailing: const Icon(
               Icons.chevron_right,
-              color: MythoraColors.muted,
+              color: MythDuskColors.muted,
             ),
             onTap: () => context.push('/profile'),
           ),
-          const Divider(color: MythoraColors.mist),
+          const Divider(color: MythDuskColors.mist),
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             title: const Text('Match hints'),
             subtitle: const Text(
               'Highlight a move after 5 seconds of idle play',
             ),
-            activeThumbColor: MythoraColors.amber,
+            activeThumbColor: MythDuskColors.amber,
             value: profile.hintsEnabled,
             onChanged: notifier.setHintsEnabled,
           ),
@@ -55,7 +55,7 @@ class SettingsScreen extends ConsumerWidget {
             contentPadding: EdgeInsets.zero,
             title: const Text('Sound'),
             subtitle: const Text('Battle and UI sound effects (coming soon)'),
-            activeThumbColor: MythoraColors.amber,
+            activeThumbColor: MythDuskColors.amber,
             value: profile.soundEnabled,
             onChanged: notifier.setSoundEnabled,
           ),
@@ -63,7 +63,7 @@ class SettingsScreen extends ConsumerWidget {
             contentPadding: EdgeInsets.zero,
             title: const Text('Haptics'),
             subtitle: const Text('Light vibration on matches (coming soon)'),
-            activeThumbColor: MythoraColors.amber,
+            activeThumbColor: MythDuskColors.amber,
             value: profile.hapticsEnabled,
             onChanged: notifier.setHapticsEnabled,
           ),

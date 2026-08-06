@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mythora/core/router/app_router.dart';
-import 'package:mythora/features/campaign/data/campaign_repository.dart';
-import 'package:mythora/features/campaign/domain/campaign_models.dart';
-import 'package:mythora/features/campaign/presentation/briefing_screen.dart';
-import 'package:mythora/features/profile/providers/mock_profile_provider.dart';
+import 'package:mythdusk/core/router/app_router.dart';
+import 'package:mythdusk/features/campaign/data/campaign_repository.dart';
+import 'package:mythdusk/features/campaign/domain/campaign_models.dart';
+import 'package:mythdusk/features/campaign/presentation/briefing_screen.dart';
+import 'package:mythdusk/features/profile/providers/mock_profile_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 CampaignChapter _stubChapter() {

@@ -166,11 +166,11 @@ class _BoardSlotBackdrop extends StatelessWidget {
     final top = row * (cellH + gap);
     Color? fill;
     if (cell.masked) {
-      fill = MythoraColors.ink.withValues(alpha: 0.55);
+      fill = MythDuskColors.ink.withValues(alpha: 0.55);
     } else if (cell.isSolidObstacle) {
       fill = const Color(0xFF5A6A72);
     } else {
-      fill = MythoraColors.deepTeal.withValues(alpha: 0.25);
+      fill = MythDuskColors.deepTeal.withValues(alpha: 0.25);
     }
     return Positioned(
       left: left,
@@ -182,7 +182,7 @@ class _BoardSlotBackdrop extends StatelessWidget {
           color: fill,
           borderRadius: BorderRadius.circular(cellW * 0.22),
           border: cell.isSolidObstacle
-              ? Border.all(color: MythoraColors.mist.withValues(alpha: 0.7))
+              ? Border.all(color: MythDuskColors.mist.withValues(alpha: 0.7))
               : null,
         ),
         child: cell.isSolidObstacle
@@ -190,7 +190,7 @@ class _BoardSlotBackdrop extends StatelessWidget {
                 child: Icon(
                   Icons.terrain,
                   size: cellW * 0.4,
-                  color: MythoraColors.parchment.withValues(alpha: 0.7),
+                  color: MythDuskColors.parchment.withValues(alpha: 0.7),
                 ),
               )
             : null,
@@ -261,8 +261,8 @@ class _WindLaneState extends State<_WindLane>
     final towardRight =
         widget.direction == 'right' || widget.direction == 'down';
     final accent = widget.pulsing
-        ? MythoraColors.softGold.withValues(alpha: 0.7)
-        : MythoraColors.mist.withValues(alpha: 0.28);
+        ? MythDuskColors.softGold.withValues(alpha: 0.7)
+        : MythDuskColors.mist.withValues(alpha: 0.28);
 
     return Positioned(
       left: 0,
@@ -389,10 +389,10 @@ class _WindGustOverlay extends StatelessWidget {
                                     ? Alignment.centerRight
                                     : Alignment.centerLeft,
                                 colors: [
-                                  MythoraColors.softGold.withValues(alpha: 0),
-                                  MythoraColors.parchment
+                                  MythDuskColors.softGold.withValues(alpha: 0),
+                                  MythDuskColors.parchment
                                       .withValues(alpha: 0.35),
-                                  MythoraColors.softGold.withValues(alpha: 0),
+                                  MythDuskColors.softGold.withValues(alpha: 0),
                                 ],
                               ),
                             ),
@@ -572,12 +572,12 @@ class _BoardTileState extends State<_BoardTile> {
                   borderRadius: BorderRadius.circular(8),
                   border: widget.selected
                       ? Border.all(
-                          color: MythoraColors.parchment,
+                          color: MythDuskColors.parchment,
                           width: 2,
                         )
                       : widget.hinted
                           ? Border.all(
-                              color: MythoraColors.softGold,
+                              color: MythDuskColors.softGold,
                               width: 2.5,
                             )
                           : widget.hazardPulse
@@ -589,7 +589,7 @@ class _BoardTileState extends State<_BoardTile> {
                   boxShadow: [
                     if (widget.hinted && !widget.selected)
                       BoxShadow(
-                        color: MythoraColors.softGold.withValues(alpha: 0.55),
+                        color: MythDuskColors.softGold.withValues(alpha: 0.55),
                         blurRadius: 10,
                         spreadRadius: 1,
                       ),
@@ -644,7 +644,7 @@ class _BoardTileState extends State<_BoardTile> {
                                         ? Icons.science
                                         : Icons.grass,
                                     size: widget.cellW * 0.28,
-                                    color: MythoraColors.parchment,
+                                    color: MythDuskColors.parchment,
                                   ),
                                 ),
                               ),
@@ -691,7 +691,7 @@ class _BoardTileState extends State<_BoardTile> {
           if (flash > 0.01) {
             painted = ColorFiltered(
               colorFilter: ColorFilter.mode(
-                MythoraColors.softGold.withValues(alpha: flash),
+                MythDuskColors.softGold.withValues(alpha: flash),
                 BlendMode.srcATop,
               ),
               child: painted,
@@ -801,7 +801,7 @@ class _TileArt extends StatelessWidget {
     if (color == null) {
       return DecoratedBox(
         decoration: BoxDecoration(
-          color: MythoraColors.ink,
+          color: MythDuskColors.ink,
           borderRadius: BorderRadius.circular(6),
         ),
       );
@@ -817,12 +817,12 @@ class _TileArt extends StatelessWidget {
   Widget _gemFallback() {
     return ColoredBox(
       color: switch (color) {
-        TileColor.red => MythoraColors.tileRed,
-        TileColor.blue => MythoraColors.tileBlue,
-        TileColor.green => MythoraColors.tileGreen,
-        TileColor.yellow => MythoraColors.tileYellow,
-        TileColor.purple => MythoraColors.tilePurple,
-        null => MythoraColors.ink,
+        TileColor.red => MythDuskColors.tileRed,
+        TileColor.blue => MythDuskColors.tileBlue,
+        TileColor.green => MythDuskColors.tileGreen,
+        TileColor.yellow => MythDuskColors.tileYellow,
+        TileColor.purple => MythDuskColors.tilePurple,
+        null => MythDuskColors.ink,
       },
     );
   }

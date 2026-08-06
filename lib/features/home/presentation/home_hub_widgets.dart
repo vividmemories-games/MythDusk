@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../core/assets/game_assets.dart';
 import '../../../core/theme/app_theme.dart';
 
-/// Hub accents from the Mythora home mockup (gold frames + teal glow).
+/// Hub accents from the MythDusk home mockup (gold frames + teal glow).
 abstract final class HubColors {
   static const glow = Color(0xFF3ECFCB);
   static const glowDim = Color(0xFF2A9A96);
@@ -49,14 +49,14 @@ class HubResourceChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: iconColor ?? MythoraColors.amber),
+          Icon(icon, size: 14, color: iconColor ?? MythDuskColors.amber),
           const SizedBox(width: 4),
           Text(
             label,
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: MythoraColors.parchment,
+              color: MythDuskColors.parchment,
             ),
           ),
         ],
@@ -156,7 +156,7 @@ class _RailButton extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.w700,
-                          color: MythoraColors.parchment,
+                          color: MythDuskColors.parchment,
                         ),
                       ),
                     ],
@@ -170,9 +170,9 @@ class _RailButton extends StatelessWidget {
                       width: 9,
                       height: 9,
                       decoration: BoxDecoration(
-                        color: MythoraColors.ember,
+                        color: MythDuskColors.ember,
                         shape: BoxShape.circle,
-                        border: Border.all(color: MythoraColors.ink, width: 1),
+                        border: Border.all(color: MythDuskColors.ink, width: 1),
                       ),
                     ),
                   ),
@@ -265,7 +265,7 @@ class HubRankBadge extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w800,
-                color: MythoraColors.softGold,
+                color: MythDuskColors.softGold,
                 height: 1.15,
               ),
             ),
@@ -308,7 +308,7 @@ class HubPrepSlot extends StatelessWidget {
                   fit: BoxFit.contain,
                   errorBuilder: (_, __, ___) => const Icon(
                     Icons.science_outlined,
-                    color: MythoraColors.muted,
+                    color: MythDuskColors.muted,
                   ),
                 ),
               ),
@@ -320,7 +320,7 @@ class HubPrepSlot extends StatelessWidget {
             style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              color: MythoraColors.parchment,
+              color: MythDuskColors.parchment,
             ),
           ),
         ],
@@ -344,7 +344,7 @@ class HubLockedPrepSlot extends StatelessWidget {
           child: const SizedBox(
             width: 62,
             height: 68,
-            child: Icon(Icons.lock_outline, color: MythoraColors.muted),
+            child: Icon(Icons.lock_outline, color: MythDuskColors.muted),
           ),
         ),
         const SizedBox(height: 2),
@@ -356,7 +356,7 @@ class HubLockedPrepSlot extends StatelessWidget {
             maxLines: 2,
             style: const TextStyle(
               fontSize: 8,
-              color: MythoraColors.muted,
+              color: MythDuskColors.muted,
               height: 1.1,
             ),
           ),
@@ -602,7 +602,7 @@ class _ModeTab extends StatelessWidget {
                 label,
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
-                  color: active ? HubColors.glow : MythoraColors.parchment,
+                  color: active ? HubColors.glow : MythDuskColors.parchment,
                 ),
               ),
               if (active)
@@ -694,7 +694,7 @@ class HubProgressBar extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w800,
-                              color: MythoraColors.parchment,
+                              color: MythDuskColors.parchment,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -706,7 +706,7 @@ class HubProgressBar extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 11,
-                              color: MythoraColors.muted,
+                              color: MythDuskColors.muted,
                             ),
                           ),
                         ],
@@ -733,7 +733,7 @@ class HubProgressBar extends StatelessWidget {
                   borderRadius: BorderRadius.circular(5),
                   child: Stack(
                     children: [
-                      Container(height: 9, color: MythoraColors.mist),
+                      Container(height: 9, color: MythDuskColors.mist),
                       FractionallySizedBox(
                         widthFactor: t,
                         child: Container(
@@ -845,7 +845,7 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = active ? HubColors.glow : MythoraColors.muted;
+    final color = active ? HubColors.glow : MythDuskColors.muted;
     return InkWell(
       onTap: onTap,
       onLongPress: onLongPress,

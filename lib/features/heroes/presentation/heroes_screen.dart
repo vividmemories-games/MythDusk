@@ -69,7 +69,7 @@ class _HeroesScreenState extends ConsumerState<HeroesScreen> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: MythoraColors.ink,
+      backgroundColor: MythDuskColors.ink,
       appBar: AppBar(
         title: const Text('Heroes'),
         leading: IconButton(
@@ -83,7 +83,7 @@ class _HeroesScreenState extends ConsumerState<HeroesScreen> {
               child: HubResourceChip(
                 label: '${profile.coins}',
                 icon: Icons.monetization_on,
-                iconColor: MythoraColors.amber,
+                iconColor: MythDuskColors.amber,
               ),
             ),
           ),
@@ -109,7 +109,7 @@ class _HeroesScreenState extends ConsumerState<HeroesScreen> {
                     errorBuilder: (_, __, ___) => const Icon(
                       Icons.person,
                       size: 96,
-                      color: MythoraColors.muted,
+                      color: MythDuskColors.muted,
                     ),
                   ),
                 );
@@ -160,7 +160,7 @@ class _HeroesScreenState extends ConsumerState<HeroesScreen> {
             textAlign: TextAlign.center,
             style: textTheme.bodyMedium?.copyWith(
               fontSize: 12,
-              color: unlocked ? HubColors.glow : MythoraColors.muted,
+              color: unlocked ? HubColors.glow : MythDuskColors.muted,
             ),
           ),
           if (unlocked && !isSelected) ...[
@@ -229,7 +229,7 @@ class _SkillCard extends StatelessWidget {
             skill.name,
             style: const TextStyle(
               fontWeight: FontWeight.w700,
-              color: MythoraColors.parchment,
+              color: MythDuskColors.parchment,
             ),
           ),
           const SizedBox(height: 4),
@@ -237,7 +237,7 @@ class _SkillCard extends StatelessWidget {
             costs,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontSize: 12,
-                  color: MythoraColors.softGold,
+                  color: MythDuskColors.softGold,
                 ),
           ),
           if (effects.isNotEmpty)
@@ -291,7 +291,7 @@ class _UpgradeRow extends ConsumerWidget {
                   _label,
                   style: const TextStyle(
                     fontWeight: FontWeight.w700,
-                    color: MythoraColors.parchment,
+                    color: MythDuskColors.parchment,
                   ),
                 ),
                 Text(

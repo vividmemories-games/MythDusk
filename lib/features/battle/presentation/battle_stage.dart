@@ -51,7 +51,7 @@ class BattleStage extends StatelessWidget {
               subtitle: battle.shield > 0 ? 'shield ${battle.shield}' : null,
               hp: battle.heroHp,
               maxHp: battle.hero.maxHp,
-              barColor: MythoraColors.amber,
+              barColor: MythDuskColors.amber,
               flash: heroHit || casting,
               castGlow: casting,
               shake: heroHit,
@@ -71,7 +71,7 @@ class BattleStage extends StatelessWidget {
               name: battle.enemy.name,
               hp: battle.enemyHp,
               maxHp: battle.enemy.maxHp,
-              barColor: MythoraColors.ember,
+              barColor: MythDuskColors.ember,
               flash: enemyHit,
               shake: enemyHit,
               showHitFx: enemyHit,
@@ -175,13 +175,13 @@ class _FighterSlot extends StatelessWidget {
                     errorBuilder: (_, __, ___) => const Icon(
                       Icons.person,
                       size: 72,
-                      color: MythoraColors.muted,
+                      color: MythDuskColors.muted,
                     ),
                   );
 
                   if (flash) {
                     final tint = castGlow
-                        ? MythoraColors.softGold.withValues(alpha: 0.45)
+                        ? MythDuskColors.softGold.withValues(alpha: 0.45)
                         : barColor.withValues(alpha: 0.35);
                     sprite = ColorFiltered(
                       colorFilter: ColorFilter.mode(tint, BlendMode.srcATop),
@@ -212,7 +212,7 @@ class _FighterSlot extends StatelessWidget {
                               child: Icon(
                                 Icons.auto_awesome,
                                 size: 36,
-                                color: MythoraColors.softGold
+                                color: MythDuskColors.softGold
                                     .withValues(alpha: 0.85),
                               ),
                             ),
@@ -225,7 +225,7 @@ class _FighterSlot extends StatelessWidget {
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color:
-                                    MythoraColors.ember.withValues(alpha: 0.65),
+                                    MythDuskColors.ember.withValues(alpha: 0.65),
                                 width: 2,
                               ),
                             ),
@@ -328,7 +328,7 @@ class _HpPlate extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(8, 4, 8, 5),
       decoration: BoxDecoration(
-        color: MythoraColors.ink.withValues(alpha: 0.55),
+        color: MythDuskColors.ink.withValues(alpha: 0.55),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
       ),
@@ -371,8 +371,8 @@ class _HpPlate extends StatelessWidget {
                 return LinearProgressIndicator(
                   value: value,
                   minHeight: 5,
-                  backgroundColor: MythoraColors.mist,
-                  color: flash ? MythoraColors.parchment : barColor,
+                  backgroundColor: MythDuskColors.mist,
+                  color: flash ? MythDuskColors.parchment : barColor,
                 );
               },
             ),
@@ -398,16 +398,16 @@ class _ThreatBadge extends StatelessWidget {
     Widget badge = Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: MythoraColors.ink.withValues(alpha: pulsing ? 0.85 : 0.7),
+        color: MythDuskColors.ink.withValues(alpha: pulsing ? 0.85 : 0.7),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: MythoraColors.ember.withValues(alpha: pulsing ? 0.95 : 0.55),
+          color: MythDuskColors.ember.withValues(alpha: pulsing ? 0.95 : 0.55),
           width: pulsing ? 2 : 1,
         ),
         boxShadow: pulsing
             ? [
                 BoxShadow(
-                  color: MythoraColors.ember.withValues(alpha: 0.45),
+                  color: MythDuskColors.ember.withValues(alpha: 0.45),
                   blurRadius: 10,
                   spreadRadius: 1,
                 ),
@@ -417,14 +417,14 @@ class _ThreatBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.bolt, size: 14, color: MythoraColors.ember),
+          const Icon(Icons.bolt, size: 14, color: MythDuskColors.ember),
           const SizedBox(width: 4),
           Text(
             threat.damage > 0 ? '${threat.damage}' : '!',
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w800,
-              color: MythoraColors.ember,
+              color: MythDuskColors.ember,
             ),
           ),
         ],

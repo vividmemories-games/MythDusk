@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Project** | Mythora |
+| **Project** | MythDusk |
 | **Status** | Active |
 | **Last Updated** | 2026-07-10 |
 | **Authority** | Highest for product intent |
@@ -10,11 +10,11 @@
 
 ## Purpose
 
-Why Mythora exists and what it must become. Mechanics live in [GAMEPLAY.md](../GAMEPLAY.md); this document states intent and non-goals.
+Why MythDusk exists and what it must become. Mechanics live in [GAMEPLAY.md](../GAMEPLAY.md); this document states intent and non-goals.
 
 ## Elevator pitch
 
-**Mythora** is a turn-based puzzle RPG: match tiles to generate **resources**, spend **AP** on hero skills, and survive enemy turns. The board never deals damage directly.
+**MythDusk** is a turn-based puzzle RPG: match tiles to generate **resources**, spend **AP** on hero skills, and survive enemy turns. The board never deals damage directly.
 
 ## Pillars
 
@@ -42,4 +42,4 @@ A player can finish a stub battle and feel the loop: match → resources/AP → 
 
 ## Naming
 
-Product name is **Mythora** (formerly working titles Relicbound / design-doc aliases). Code, store, and docs should prefer Mythora.
+Product name is **MythDusk** (formerly Mythora / Relicbound). Code, store, and docs should prefer MythDusk.

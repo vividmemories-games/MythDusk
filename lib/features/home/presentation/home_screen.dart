@@ -41,7 +41,7 @@ class HomeScreen extends ConsumerWidget {
               GameAssets.homeBackgroundFallback,
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) =>
-                  const ColoredBox(color: MythoraColors.ink),
+                  const ColoredBox(color: MythDuskColors.ink),
             ),
           ),
           // Soft vignette so UI stays readable without flattening the art.
@@ -286,7 +286,7 @@ class HomeScreen extends ConsumerWidget {
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: MythoraColors.deepTeal,
+        backgroundColor: MythDuskColors.deepTeal,
         title: Text(title),
         content: Text(
           '$regenText\n\n'
@@ -354,7 +354,7 @@ class HomeScreen extends ConsumerWidget {
   void _showQaToolsSheet(BuildContext context, WidgetRef ref) {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: MythoraColors.deepTeal,
+      backgroundColor: MythDuskColors.deepTeal,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -372,7 +372,7 @@ class HomeScreen extends ConsumerWidget {
               ListTile(
                 leading: const Icon(
                   Icons.lock_open,
-                  color: MythoraColors.amber,
+                  color: MythDuskColors.amber,
                 ),
                 title: const Text('Unlock all campaign content'),
                 onTap: () {
@@ -383,7 +383,7 @@ class HomeScreen extends ConsumerWidget {
               ListTile(
                 leading: const Icon(
                   Icons.restart_alt,
-                  color: MythoraColors.ember,
+                  color: MythDuskColors.ember,
                 ),
                 title: const Text('Reset local progress'),
                 onTap: () {
@@ -427,11 +427,11 @@ class _HubHeader extends StatelessWidget {
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Mythora',
+                  'MythDusk',
                   maxLines: 1,
                   style: Theme.of(context).textTheme.displayLarge?.copyWith(
                         fontSize: 29,
-                        color: MythoraColors.parchment,
+                        color: MythDuskColors.parchment,
                         height: 1.05,
                       ),
                 ),
@@ -449,7 +449,7 @@ class _HubHeader extends StatelessWidget {
                     HubResourceChip(
                       label: '$coins',
                       icon: Icons.monetization_on,
-                      iconColor: MythoraColors.amber,
+                      iconColor: MythDuskColors.amber,
                     ),
                     const SizedBox(width: 4),
                     HubResourceChip(
@@ -461,7 +461,7 @@ class _HubHeader extends StatelessWidget {
                     HubResourceChip(
                       label: livesLabel,
                       icon: Icons.favorite,
-                      iconColor: MythoraColors.ember,
+                      iconColor: MythDuskColors.ember,
                       onTap: onLivesTap,
                     ),
                   ],
@@ -487,7 +487,7 @@ class _HubHeader extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontSize: 11,
-                color: MythoraColors.muted,
+                color: MythDuskColors.muted,
               ),
         ),
       ],
@@ -542,7 +542,7 @@ class _HeroStage extends StatelessWidget {
                       errorBuilder: (_, __, ___) => Icon(
                         Icons.person,
                         size: height * 0.45,
-                        color: MythoraColors.muted,
+                        color: MythDuskColors.muted,
                       ),
                     ),
                   ),
@@ -568,7 +568,7 @@ class _HeroStage extends StatelessWidget {
                 hero.name,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontSize: 22,
-                      color: MythoraColors.parchment,
+                      color: MythDuskColors.parchment,
                     ),
               ),
             ),
@@ -585,7 +585,7 @@ class _HeroStage extends StatelessWidget {
         Text(
           'Tap for heroes',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: MythoraColors.muted,
+                color: MythDuskColors.muted,
                 fontSize: 11,
               ),
         ),

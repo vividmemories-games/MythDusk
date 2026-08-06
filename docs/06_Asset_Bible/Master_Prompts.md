@@ -1,4 +1,4 @@
-# Master Prompts — Leonardo (Mythora)
+# Master Prompts — Leonardo (MythDusk)
 
 
 | Field            | Value                                                                                                      |

@@ -1,4 +1,4 @@
-# Mythora — Gameplay Design (v0.1)
+# MythDusk — Gameplay Design (v0.1)
 
 | Field | Value |
 |-------|-------|
@@ -6,8 +6,8 @@
 | **Last Updated** | 2026-07-10 |
 | **Related** | [Vision](00_Project/Vision.md) · [PHASES](PHASES.md) · [Decisions](00_Project/Decisions.md) · [Heroes](01_Game_Design/Heroes.md) · [Enemies](01_Game_Design/Enemies.md) · [Balancing Bible](01_Game_Design/Balancing_Bible.md) |
 
-Product name: **Mythora**  
-Source design: `Mythora_Gameplay_Design_v0.1.md` (formerly working title Relicbound)
+Product name: **MythDusk**  
+Source design: `MythDusk_Gameplay_Design_v0.1.md` (formerly Mythora / Relicbound)
 
 ## Genre
 

@@ -41,14 +41,14 @@ class BattleHudBar extends StatelessWidget {
               iconPath: GameAssets.iconMoves,
               value: '${battle.movesLeft}',
               label: 'MOVES',
-              accent: MythoraColors.softGold,
+              accent: MythDuskColors.softGold,
             ),
             const SizedBox(width: 8),
             _HudChip(
               iconPath: GameAssets.iconAp,
               value: '${battle.ap}/${battle.hero.maxAp}',
               label: 'AP',
-              accent: MythoraColors.amber,
+              accent: MythDuskColors.amber,
             ),
             const Spacer(),
             _PhaseBadge(label: _phaseLabel(battle)),
@@ -123,7 +123,7 @@ class _HudChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(8, 3, 12, 3),
       decoration: BoxDecoration(
-        color: MythoraColors.ink.withValues(alpha: 0.55),
+        color: MythDuskColors.ink.withValues(alpha: 0.55),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: accent.withValues(alpha: 0.45)),
       ),
@@ -153,7 +153,7 @@ class _HudChip extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontSize: 14,
                       height: 1.0,
-                      color: MythoraColors.parchment,
+                      color: MythDuskColors.parchment,
                     ),
               ),
               Text(
@@ -196,7 +196,7 @@ class _ResourceChip extends StatelessWidget {
     final chip = Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
       decoration: BoxDecoration(
-        color: MythoraColors.ink.withValues(alpha: 0.5),
+        color: MythDuskColors.ink.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: Colors.white.withValues(alpha: 0.08),
@@ -222,7 +222,7 @@ class _ResourceChip extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontSize: 14,
-                    color: MythoraColors.parchment,
+                    color: MythDuskColors.parchment,
                   ),
             ),
           ),
@@ -251,11 +251,11 @@ class _PhaseBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = danger ? MythoraColors.ember : MythoraColors.softGold;
+    final accent = danger ? MythDuskColors.ember : MythDuskColors.softGold;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: MythoraColors.deepTeal.withValues(alpha: 0.7),
+        color: MythDuskColors.deepTeal.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: accent.withValues(alpha: 0.45),

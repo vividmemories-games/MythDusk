@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mythora/core/theme/app_theme.dart';
-import 'package:mythora/features/home/presentation/home_progress.dart';
-import 'package:mythora/features/home/presentation/home_screen.dart';
-import 'package:mythora/features/profile/providers/mock_profile_provider.dart';
+import 'package:mythdusk/core/theme/app_theme.dart';
+import 'package:mythdusk/features/home/presentation/home_progress.dart';
+import 'package:mythdusk/features/home/presentation/home_screen.dart';
+import 'package:mythdusk/features/profile/providers/mock_profile_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -71,7 +71,7 @@ void main() {
       (tester) async {
     await pumpHome(tester);
 
-    expect(find.text('Mythora'), findsOneWidget);
+    expect(find.text('MythDusk'), findsOneWidget);
     expect(
       find.text('Forge powerful combos. Write your legend.'),
       findsOneWidget,
@@ -103,7 +103,7 @@ void main() {
   testWidgets('home hub does not overflow on a compact phone', (tester) async {
     await pumpHome(tester, size: const Size(360, 640));
 
-    expect(find.text('Mythora'), findsOneWidget);
+    expect(find.text('MythDusk'), findsOneWidget);
     expect(find.text('Enter Campaign'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

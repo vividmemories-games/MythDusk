@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mythora/features/battle/domain/battle_state.dart';
-import 'package:mythora/features/campaign/domain/campaign_models.dart';
-import 'package:mythora/features/puzzle/domain/board_movers.dart';
-import 'package:mythora/features/puzzle/domain/level_board_config.dart';
+import 'package:mythdusk/features/battle/domain/battle_state.dart';
+import 'package:mythdusk/features/campaign/domain/campaign_models.dart';
+import 'package:mythdusk/features/puzzle/domain/board_movers.dart';
+import 'package:mythdusk/features/puzzle/domain/level_board_config.dart';
 
 void main() {
   test('Howling Ridge ramps movers; finale uses dual row shove', () {

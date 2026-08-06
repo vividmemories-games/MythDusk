@@ -13,7 +13,7 @@ Future<bool> showPrepPickerSheet(
   final result = await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: MythoraColors.deepTeal,
+    backgroundColor: MythDuskColors.deepTeal,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -69,8 +69,8 @@ class _PrepPickerSheetState extends ConsumerState<PrepPickerSheet> {
               padding: const EdgeInsets.only(bottom: 8),
               child: Material(
                 color: selected
-                    ? MythoraColors.mist
-                    : MythoraColors.ink.withValues(alpha: 0.55),
+                    ? MythDuskColors.mist
+                    : MythDuskColors.ink.withValues(alpha: 0.55),
                 borderRadius: BorderRadius.circular(12),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(12),
@@ -113,7 +113,7 @@ class _PrepPickerSheetState extends ConsumerState<PrepPickerSheet> {
                                 style: textTheme.bodyMedium?.copyWith(
                                   fontSize: 12,
                                   color: secondWindBlocked
-                                      ? MythoraColors.ember
+                                      ? MythDuskColors.ember
                                       : null,
                                 ),
                               ),
@@ -123,8 +123,8 @@ class _PrepPickerSheetState extends ConsumerState<PrepPickerSheet> {
                         Icon(
                           selected ? Icons.check_circle : Icons.circle_outlined,
                           color: selected
-                              ? MythoraColors.amber
-                              : MythoraColors.muted,
+                              ? MythDuskColors.amber
+                              : MythDuskColors.muted,
                         ),
                       ],
                     ),

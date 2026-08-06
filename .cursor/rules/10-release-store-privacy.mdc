@@ -11,7 +11,7 @@ alwaysApply: false
 
 # Release, Store, and Privacy Rules
 
-Mythora targets iOS and Android.
+MythDusk targets iOS and Android.
 
 Authentication may include:
 - Guest

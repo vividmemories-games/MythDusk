@@ -17,7 +17,7 @@ class ShopScreen extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: MythoraColors.ink,
+      backgroundColor: MythDuskColors.ink,
       appBar: AppBar(
         title: const Text('Shop'),
         leading: IconButton(
@@ -31,7 +31,7 @@ class ShopScreen extends ConsumerWidget {
               child: HubResourceChip(
                 label: '${profile.coins}',
                 icon: Icons.monetization_on,
-                iconColor: MythoraColors.amber,
+                iconColor: MythDuskColors.amber,
               ),
             ),
           ),
@@ -83,7 +83,7 @@ class _ShopRow extends ConsumerWidget {
               id.assetPath,
               fit: BoxFit.contain,
               errorBuilder: (_, __, ___) =>
-                  const Icon(Icons.science, color: MythoraColors.muted),
+                  const Icon(Icons.science, color: MythDuskColors.muted),
             ),
           ),
           const SizedBox(width: 12),
@@ -95,7 +95,7 @@ class _ShopRow extends ConsumerWidget {
                   id.displayName,
                   style: const TextStyle(
                     fontWeight: FontWeight.w700,
-                    color: MythoraColors.parchment,
+                    color: MythDuskColors.parchment,
                   ),
                 ),
                 Text(

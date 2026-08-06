@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mythora/features/battle/domain/battle_tutorial.dart';
+import 'package:mythdusk/features/battle/domain/battle_tutorial.dart';
 
 void main() {
   test('nextBeat walks ordered list then returns null', () {

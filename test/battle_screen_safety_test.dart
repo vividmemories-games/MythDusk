@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mythora/features/battle/presentation/battle_screen.dart';
-import 'package:mythora/features/battle/providers/battle_provider.dart';
-import 'package:mythora/features/campaign/data/campaign_repository.dart';
-import 'package:mythora/features/campaign/domain/campaign_models.dart';
-import 'package:mythora/features/profile/providers/mock_profile_provider.dart';
-import 'package:mythora/features/puzzle/data/board_catalog_repository.dart';
-import 'package:mythora/features/puzzle/domain/board_template.dart';
-import 'package:mythora/features/puzzle/domain/overlay_def.dart';
+import 'package:mythdusk/features/battle/presentation/battle_screen.dart';
+import 'package:mythdusk/features/battle/providers/battle_provider.dart';
+import 'package:mythdusk/features/campaign/data/campaign_repository.dart';
+import 'package:mythdusk/features/campaign/domain/campaign_models.dart';
+import 'package:mythdusk/features/profile/providers/mock_profile_provider.dart';
+import 'package:mythdusk/features/puzzle/data/board_catalog_repository.dart';
+import 'package:mythdusk/features/puzzle/domain/board_template.dart';
+import 'package:mythdusk/features/puzzle/domain/overlay_def.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

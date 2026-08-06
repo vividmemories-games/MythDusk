@@ -8,7 +8,7 @@
 
 ## Philosophy
 
-Premium feel first. Monetization supports convenience and cosmetics — not pay-to-win combat power. Align with Mythora monetization rules (no unlimited paid revives, no client-side currency grants in production).
+Premium feel first. Monetization supports convenience and cosmetics — not pay-to-win combat power. Align with MythDusk monetization rules (no unlimited paid revives, no client-side currency grants in production).
 
 **Authoritative numbers:** [Balancing_Bible.md](Balancing_Bible.md) §4–5. This page is a short pointer for product/UX.
 

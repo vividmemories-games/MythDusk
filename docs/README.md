@@ -1,4 +1,4 @@
-# Mythora Documentation
+# MythDusk Documentation
 
 **Source of truth** for product intent, combat rules, balance stubs, design language, and engineering contracts.
 
@@ -75,4 +75,4 @@ Checks relative markdown links and a few code/doc consistency assertions.
 
 ## What we did **not** copy from Labyrinth Legends
 
-Maze path rules, level JSON schema, LLDL stone-citadel language, GP workshop series, and the large `99_Reviews` archive. Steal process; rewrite content for Mythora.
+Maze path rules, level JSON schema, LLDL stone-citadel language, GP workshop series, and the large `99_Reviews` archive. Steal process; rewrite content for MythDusk.

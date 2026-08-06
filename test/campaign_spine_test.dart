@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mythora/features/battle/domain/enemy_def.dart';
-import 'package:mythora/features/campaign/data/campaign_repository.dart';
-import 'package:mythora/features/campaign/domain/campaign_models.dart';
+import 'package:mythdusk/features/battle/domain/enemy_def.dart';
+import 'package:mythdusk/features/campaign/data/campaign_repository.dart';
+import 'package:mythdusk/features/campaign/domain/campaign_models.dart';
 
 void main() {
   test('campaign_index lists 10 chapters in order', () async {

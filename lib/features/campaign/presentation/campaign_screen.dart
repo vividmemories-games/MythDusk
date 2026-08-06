@@ -33,7 +33,7 @@ class _CampaignScreenState extends ConsumerState<CampaignScreen> {
     final overrides = ref.watch(pinCoordOverridesProvider);
 
     return Scaffold(
-      backgroundColor: MythoraColors.ink,
+      backgroundColor: MythDuskColors.ink,
       body: chapterAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Failed to load campaign: $e')),
@@ -71,7 +71,7 @@ class _CampaignScreenState extends ConsumerState<CampaignScreen> {
                         fit: BoxFit.cover,
                         alignment: Alignment.center,
                         errorBuilder: (_, __, ___) =>
-                            const ColoredBox(color: MythoraColors.ink),
+                            const ColoredBox(color: MythDuskColors.ink),
                       ),
                     ),
                     if (fogTopY > 0)
@@ -157,7 +157,7 @@ class _CampaignScreenState extends ConsumerState<CampaignScreen> {
                       right: 12,
                       bottom: 16,
                       child: Material(
-                        color: MythoraColors.ink.withValues(alpha: 0.88),
+                        color: MythDuskColors.ink.withValues(alpha: 0.88),
                         borderRadius: BorderRadius.circular(12),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
@@ -169,7 +169,7 @@ class _CampaignScreenState extends ConsumerState<CampaignScreen> {
                             'drag onto pads · reset=act · long-press reset=all',
                             textAlign: TextAlign.center,
                             style: const TextStyle(
-                              color: MythoraColors.parchment,
+                              color: MythDuskColors.parchment,
                               fontSize: 12,
                             ),
                           ),
@@ -399,7 +399,7 @@ class _MapHeader extends StatelessWidget {
             Row(
               children: [
                 Material(
-                  color: MythoraColors.ink.withValues(alpha: 0.55),
+                  color: MythDuskColors.ink.withValues(alpha: 0.55),
                   shape: CircleBorder(
                     side:
                         BorderSide(color: Colors.white.withValues(alpha: 0.12)),
@@ -413,7 +413,7 @@ class _MapHeader extends StatelessWidget {
                       child: Icon(
                         Icons.arrow_back,
                         size: 20,
-                        color: MythoraColors.parchment,
+                        color: MythDuskColors.parchment,
                       ),
                     ),
                   ),
@@ -424,10 +424,10 @@ class _MapHeader extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                     decoration: BoxDecoration(
-                      color: MythoraColors.ink.withValues(alpha: 0.55),
+                      color: MythDuskColors.ink.withValues(alpha: 0.55),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: MythoraColors.softGold.withValues(alpha: 0.3),
+                        color: MythDuskColors.softGold.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Text(
@@ -435,7 +435,7 @@ class _MapHeader extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: MythoraColors.parchment,
+                            color: MythDuskColors.parchment,
                           ),
                     ),
                   ),
@@ -444,12 +444,12 @@ class _MapHeader extends StatelessWidget {
                 if (onToggleEdit != null)
                   Material(
                     color: editMode
-                        ? MythoraColors.amber.withValues(alpha: 0.35)
-                        : MythoraColors.ink.withValues(alpha: 0.55),
+                        ? MythDuskColors.amber.withValues(alpha: 0.35)
+                        : MythDuskColors.ink.withValues(alpha: 0.55),
                     shape: CircleBorder(
                       side: BorderSide(
                         color: editMode
-                            ? MythoraColors.amber
+                            ? MythDuskColors.amber
                             : Colors.white.withValues(alpha: 0.12),
                       ),
                     ),
@@ -463,8 +463,8 @@ class _MapHeader extends StatelessWidget {
                           Icons.open_with,
                           size: 18,
                           color: editMode
-                              ? MythoraColors.amber
-                              : MythoraColors.parchment,
+                              ? MythDuskColors.amber
+                              : MythDuskColors.parchment,
                         ),
                       ),
                     ),
@@ -472,7 +472,7 @@ class _MapHeader extends StatelessWidget {
                 if (editMode) ...[
                   const SizedBox(width: 6),
                   Material(
-                    color: MythoraColors.ink.withValues(alpha: 0.55),
+                    color: MythDuskColors.ink.withValues(alpha: 0.55),
                     shape: CircleBorder(
                       side: BorderSide(
                         color: Colors.white.withValues(alpha: 0.12),
@@ -487,14 +487,14 @@ class _MapHeader extends StatelessWidget {
                         child: Icon(
                           Icons.copy_outlined,
                           size: 18,
-                          color: MythoraColors.parchment,
+                          color: MythDuskColors.parchment,
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 6),
                   Material(
-                    color: MythoraColors.ink.withValues(alpha: 0.55),
+                    color: MythDuskColors.ink.withValues(alpha: 0.55),
                     shape: CircleBorder(
                       side: BorderSide(
                         color: Colors.white.withValues(alpha: 0.12),
@@ -509,14 +509,14 @@ class _MapHeader extends StatelessWidget {
                         child: Icon(
                           Icons.copy_all_outlined,
                           size: 18,
-                          color: MythoraColors.parchment,
+                          color: MythDuskColors.parchment,
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 6),
                   Material(
-                    color: MythoraColors.ink.withValues(alpha: 0.55),
+                    color: MythDuskColors.ink.withValues(alpha: 0.55),
                     shape: CircleBorder(
                       side: BorderSide(
                         color: Colors.white.withValues(alpha: 0.12),
@@ -532,7 +532,7 @@ class _MapHeader extends StatelessWidget {
                         child: Icon(
                           Icons.restart_alt,
                           size: 18,
-                          color: MythoraColors.parchment,
+                          color: MythDuskColors.parchment,
                         ),
                       ),
                     ),
@@ -586,12 +586,12 @@ class _ActDot extends StatelessWidget {
       _ => 'IV',
     };
     final border = selected
-        ? MythoraColors.softGold
+        ? MythDuskColors.softGold
         : completed
-            ? MythoraColors.amber
-            : MythoraColors.muted.withValues(alpha: 0.45);
+            ? MythDuskColors.amber
+            : MythDuskColors.muted.withValues(alpha: 0.45);
     return Material(
-      color: MythoraColors.ink.withValues(alpha: unlocked ? 0.65 : 0.35),
+      color: MythDuskColors.ink.withValues(alpha: unlocked ? 0.65 : 0.35),
       shape: StadiumBorder(
           side: BorderSide(color: border, width: selected ? 2 : 1)),
       child: InkWell(
@@ -611,16 +611,16 @@ class _ActDot extends StatelessWidget {
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: unlocked
-                        ? MythoraColors.parchment
-                        : MythoraColors.muted,
+                        ? MythDuskColors.parchment
+                        : MythDuskColors.muted,
                   ),
                 ),
                 if (!unlocked) ...[
                   const SizedBox(width: 4),
-                  const Icon(Icons.lock, size: 12, color: MythoraColors.muted),
+                  const Icon(Icons.lock, size: 12, color: MythDuskColors.muted),
                 ] else if (completed) ...[
                   const SizedBox(width: 4),
-                  const Icon(Icons.check, size: 12, color: MythoraColors.amber),
+                  const Icon(Icons.check, size: 12, color: MythDuskColors.amber),
                 ],
               ],
             ),
@@ -659,16 +659,16 @@ class _NodePin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ringColor = editMode
-        ? MythoraColors.softGold
+        ? MythDuskColors.softGold
         : completed
-            ? MythoraColors.amber
+            ? MythDuskColors.amber
             : isCurrent
-                ? MythoraColors.softGold
-                : MythoraColors.muted.withValues(alpha: 0.5);
+                ? MythDuskColors.softGold
+                : MythDuskColors.muted.withValues(alpha: 0.5);
 
     Widget portrait = ClipOval(
       child: ColoredBox(
-        color: MythoraColors.ink.withValues(alpha: 0.45),
+        color: MythDuskColors.ink.withValues(alpha: 0.45),
         child: Padding(
           padding: const EdgeInsets.all(4),
           child: Image.asset(
@@ -676,8 +676,8 @@ class _NodePin extends StatelessWidget {
             fit: BoxFit.contain,
             alignment: Alignment.bottomCenter,
             errorBuilder: (_, __, ___) => const ColoredBox(
-              color: MythoraColors.deepTeal,
-              child: Icon(Icons.flag, color: MythoraColors.parchment),
+              color: MythDuskColors.deepTeal,
+              child: Icon(Icons.flag, color: MythDuskColors.parchment),
             ),
           ),
         ),
@@ -717,7 +717,7 @@ class _NodePin extends StatelessWidget {
               height: size * scale,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: MythoraColors.ink.withValues(alpha: 0.35),
+                color: MythDuskColors.ink.withValues(alpha: 0.35),
                 border: Border.all(
                   color: ringColor.withValues(
                     alpha: fog == MapFogTier.shrouded ? 0.35 : 1,
@@ -727,7 +727,7 @@ class _NodePin extends StatelessWidget {
                 boxShadow: [
                   if (isCurrent || editMode)
                     BoxShadow(
-                      color: MythoraColors.softGold.withValues(alpha: 0.55),
+                      color: MythDuskColors.softGold.withValues(alpha: 0.55),
                       blurRadius: 16,
                       spreadRadius: 1,
                     )
@@ -749,7 +749,7 @@ class _NodePin extends StatelessWidget {
                       child: Icon(
                         Icons.lock,
                         size: 20,
-                        color: MythoraColors.parchment,
+                        color: MythDuskColors.parchment,
                       ),
                     ),
                   if (completed && !editMode)
@@ -759,7 +759,7 @@ class _NodePin extends StatelessWidget {
                       child: Icon(
                         Icons.check_circle,
                         size: 20,
-                        color: MythoraColors.amber,
+                        color: MythDuskColors.amber,
                       ),
                     ),
                 ],
@@ -771,7 +771,7 @@ class _NodePin extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: MythoraColors.ink.withValues(alpha: 0.7),
+                color: MythDuskColors.ink.withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: ringColor.withValues(alpha: 0.5),
@@ -790,8 +790,8 @@ class _NodePin extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontSize: 10,
                       color: unlocked
-                          ? MythoraColors.parchment
-                          : MythoraColors.muted,
+                          ? MythDuskColors.parchment
+                          : MythDuskColors.muted,
                     ),
               ),
             ),

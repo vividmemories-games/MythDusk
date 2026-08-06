@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mythora/features/battle/domain/enemy_def.dart';
-import 'package:mythora/features/battle/providers/battle_provider.dart';
+import 'package:mythdusk/features/battle/domain/enemy_def.dart';
+import 'package:mythdusk/features/battle/providers/battle_provider.dart';
 
 void main() {
   test('QA hook forces a real enemy skill through the normal turn pipeline',
