@@ -620,7 +620,8 @@ class _ActDot extends StatelessWidget {
                   const Icon(Icons.lock, size: 12, color: MythDuskColors.muted),
                 ] else if (completed) ...[
                   const SizedBox(width: 4),
-                  const Icon(Icons.check, size: 12, color: MythDuskColors.amber),
+                  const Icon(Icons.check,
+                      size: 12, color: MythDuskColors.amber),
                 ],
               ],
             ),

@@ -224,8 +224,8 @@ class _FighterSlot extends StatelessWidget {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color:
-                                    MythDuskColors.ember.withValues(alpha: 0.65),
+                                color: MythDuskColors.ember
+                                    .withValues(alpha: 0.65),
                                 width: 2,
                               ),
                             ),
