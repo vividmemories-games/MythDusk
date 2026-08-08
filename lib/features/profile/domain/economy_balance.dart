@@ -24,6 +24,22 @@ abstract final class EconomyBalance {
     upgradeStatShield,
   ];
 
+  /// Zeroed hp/damage/shield map for a hero with no personality training yet.
+  static Map<String, int> emptyUpgradeLevels() => {
+        for (final k in upgradeStatKeys) k: 0,
+      };
+
+  /// Clamps unknown keys out and bounds tiers to 0–[upgradeMaxTiers].
+  static Map<String, int> sanitizeUpgradeLevels(Map<String, dynamic>? raw) {
+    final out = emptyUpgradeLevels();
+    if (raw == null) return out;
+    for (final e in raw.entries) {
+      if (!upgradeStatKeys.contains(e.key)) continue;
+      out[e.key] = (e.value as num).toInt().clamp(0, upgradeMaxTiers);
+    }
+    return out;
+  }
+
   /// Coin cost to purchase the next tier (1-indexed tier → cost).
   static const upgradeTierCoinCost = {
     1: 100,

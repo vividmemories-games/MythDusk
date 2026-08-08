@@ -246,6 +246,14 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
                             fontSize: 12,
                           ),
                         ),
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton(
+                            onPressed: () => context.push('/heroes'),
+                            child: const Text('Edit loadout'),
+                          ),
+                        ),
                       ],
                     ),
                   ),

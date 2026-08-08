@@ -136,10 +136,19 @@ void main() {
       expect(rich.state.gemLifeRefillCount, 3);
     });
 
-    test('purchaseUpgrade clamps at 6 tiers and applies cost', () async {
+    test('purchaseUpgrade is per-hero and clamps at 6 tiers', () async {
       expect(
-          notifier.purchaseUpgrade(EconomyBalance.upgradeStatDamage), isTrue);
-      expect(notifier.state.upgradeLevel(EconomyBalance.upgradeStatDamage), 1);
+        notifier.purchaseUpgrade(EconomyBalance.upgradeStatDamage),
+        isTrue,
+      );
+      expect(
+        notifier.state.upgradeLevel(EconomyBalance.upgradeStatDamage, 'mage'),
+        1,
+      );
+      expect(
+          notifier.state
+              .upgradeLevel(EconomyBalance.upgradeStatDamage, 'knight'),
+          0);
       expect(notifier.state.coins, 500 - 100);
 
       await notifier.applyVictory(nodeId: 'coin_dump', coinReward: 5000);
@@ -147,13 +156,36 @@ void main() {
         notifier.purchaseUpgrade(EconomyBalance.upgradeStatDamage);
       }
       expect(
-        notifier.state.upgradeLevel(EconomyBalance.upgradeStatDamage),
+        notifier.state.upgradeLevel(EconomyBalance.upgradeStatDamage, 'mage'),
         EconomyBalance.upgradeMaxTiers,
       );
       expect(
-        notifier.state.combatHero().skills.first.damage,
+        notifier.state.combatHero('mage').skills.first.damage,
         (HeroCatalog.mage.skills.first.damage * 1.30).round(),
       );
+      expect(
+        notifier.state.combatHero('knight').skills.first.damage,
+        HeroCatalog.knight.skills.first.damage,
+      );
+    });
+
+    test('legacy upgradeLevels migrate onto unlocked heroes only', () {
+      final migrated = PlayerProfile.fromJson({
+        'completedNodeIds': List.generate(5, (i) => 'n$i'),
+        'upgradeLevels': {
+          EconomyBalance.upgradeStatHp: 2,
+          EconomyBalance.upgradeStatDamage: 3,
+          EconomyBalance.upgradeStatShield: 1,
+        },
+      });
+      expect(
+          migrated.upgradeLevel(EconomyBalance.upgradeStatDamage, 'mage'), 3);
+      expect(
+          migrated.upgradeLevel(EconomyBalance.upgradeStatDamage, 'knight'), 3);
+      expect(
+          migrated.upgradeLevel(EconomyBalance.upgradeStatDamage, 'ranger'), 0);
+      expect(migrated.toJson().containsKey('upgradeLevels'), isFalse);
+      expect(migrated.toJson()['schemaVersion'], PlayerProfile.schemaVersion);
     });
   });
 }

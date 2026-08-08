@@ -648,7 +648,7 @@ fantasy wolf not photo, no gore, no UI
 
 - **Path:** `assets/heroes/hero_knight.png`
 - **Size:** 1024 × 1024
-- **Notes:** ~Level 50 unlock
+- **Notes:** ~Level 5 unlock (retention M1 curve)
 - **Negative:** universal character/icon
 
 ```text

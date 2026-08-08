@@ -30,6 +30,7 @@ void main() {
         .routes
         .whereType<GoRoute>();
     expect(routes.any((r) => r.path == '/heroes'), isTrue);
+    expect(routes.any((r) => r.path == '/hero_unlock/:heroId'), isTrue);
     expect(routes.any((r) => r.path == '/profile'), isTrue);
     expect(routes.any((r) => r.path == '/shop'), isTrue);
     expect(routes.any((r) => r.path == '/settings'), isTrue);
@@ -66,7 +67,7 @@ void main() {
     await tester.drag(find.byType(ListView), const Offset(0, -500));
     await tester.pumpAndSettle();
     expect(find.text('Skills'), findsOneWidget);
-    expect(find.text('Upgrades'), findsOneWidget);
+    expect(find.text('Personality'), findsOneWidget);
     expect(find.text('Max HP'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

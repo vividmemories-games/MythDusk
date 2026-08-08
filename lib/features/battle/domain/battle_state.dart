@@ -597,6 +597,7 @@ class BattleController {
 
   bool canCast(SkillDef skill) {
     if (state.phase != BattlePhase.playerTurn) return false;
+    if (!state.hero.hasSkill(skill.id)) return false;
     if (state.ap < skill.apCost) return false;
     for (final entry in skill.resourceCosts.entries) {
       if ((state.resources[entry.key] ?? 0) < entry.value) return false;

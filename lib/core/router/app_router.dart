@@ -6,6 +6,7 @@ import '../../features/battle/presentation/battle_screen.dart';
 import '../../features/campaign/presentation/briefing_screen.dart';
 import '../../features/campaign/presentation/campaign_screen.dart';
 import '../../features/campaign/presentation/chapter_select_screen.dart';
+import '../../features/heroes/presentation/hero_unlock_celebration_screen.dart';
 import '../../features/heroes/presentation/heroes_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
@@ -27,6 +28,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/heroes',
         name: 'heroes',
         builder: (context, state) => const HeroesScreen(),
+      ),
+      GoRoute(
+        path: '/hero_unlock/:heroId',
+        name: 'hero_unlock',
+        builder: (context, state) {
+          final heroId = state.pathParameters['heroId']!;
+          return HeroUnlockCelebrationScreen(heroId: heroId);
+        },
       ),
       GoRoute(
         path: '/profile',

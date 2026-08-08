@@ -6,6 +6,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/assets/game_assets.dart';
 import '../../campaign/data/campaign_repository.dart';
 import '../../campaign/domain/campaign_models.dart';
+import '../../heroes/domain/hero_def.dart';
 import '../../profile/providers/mock_profile_provider.dart';
 import '../../../shared/presentation/content_error_screen.dart';
 
@@ -224,10 +225,34 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                 ),
               ],
               const Spacer(),
+              if (args.won &&
+                  !args.isWeekly &&
+                  profile.pendingUnlockCelebrations.isNotEmpty) ...[
+                FilledButton(
+                  onPressed: () {
+                    final heroId = profile.pendingUnlockCelebrations.first;
+                    context.go('/hero_unlock/$heroId');
+                  },
+                  child: Text(
+                    'Meet ${HeroCatalog.tryById(profile.pendingUnlockCelebrations.first)?.name ?? 'hero'}',
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
               if (args.won && nextNodeId != null)
                 FilledButton(
-                  onPressed: () => _goBattle(nextNodeId!),
-                  child: const Text('Next battle'),
+                  onPressed: profile.pendingUnlockCelebrations.isNotEmpty
+                      ? () {
+                          final heroId =
+                              profile.pendingUnlockCelebrations.first;
+                          context.go('/hero_unlock/$heroId');
+                        }
+                      : () => _goBattle(nextNodeId!),
+                  child: Text(
+                    profile.pendingUnlockCelebrations.isNotEmpty
+                        ? 'Continue'
+                        : 'Next battle',
+                  ),
                 ),
               if (args.won && nextNodeId != null) const SizedBox(height: 10),
               if (!args.won)
@@ -237,9 +262,14 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                 ),
               if (!args.won) const SizedBox(height: 10),
               OutlinedButton(
-                onPressed: () => context.go(
-                  args.isWeekly ? '/weekly' : '/campaign',
-                ),
+                onPressed: () {
+                  final pending = profile.pendingUnlockCelebrations;
+                  if (args.won && !args.isWeekly && pending.isNotEmpty) {
+                    context.go('/hero_unlock/${pending.first}');
+                    return;
+                  }
+                  context.go(args.isWeekly ? '/weekly' : '/campaign');
+                },
                 style: OutlinedButton.styleFrom(
                   foregroundColor: MythDuskColors.parchment,
                   side: const BorderSide(color: MythDuskColors.mist),
@@ -249,7 +279,14 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
               ),
               const SizedBox(height: 10),
               TextButton(
-                onPressed: () => context.go('/'),
+                onPressed: () {
+                  final pending = profile.pendingUnlockCelebrations;
+                  if (args.won && !args.isWeekly && pending.isNotEmpty) {
+                    context.go('/hero_unlock/${pending.first}');
+                    return;
+                  }
+                  context.go('/');
+                },
                 child: const Text('Home'),
               ),
             ],

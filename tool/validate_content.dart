@@ -155,6 +155,10 @@ class ContentValidator {
           }
         }
       }
+      if (hero.skills.length < 2) {
+        _error(
+            'HeroCatalog', '${hero.id} needs at least 2 skills for loadouts');
+      }
       _requireAsset(GameAssets.hero(hero.id), 'hero ${hero.id}');
     }
     _checkUniqueValues(skillIds, 'HeroCatalog', 'skill id');

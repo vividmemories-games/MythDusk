@@ -308,7 +308,9 @@ Expected campaign pace band: roughly **400–700 coins/hour** of active play (su
 | 5 | 450 |
 | 6 | 600 |
 
-Applied once when building `BattleState.initial` (scaled `HeroDef`), not in widgets. Profile field: `upgradeLevels` map (`hp` / `damage` / `shield` → 0–6).
+Applied once when building `BattleState.initial` (scaled `HeroDef`), not in widgets. Profile field: `upgradeLevelsByHero` map (`heroId` → `{hp,damage,shield}` → 0–6). Legacy account-global `upgradeLevels` migrate onto every currently unlocked hero; newly unlocked heroes start at 0.
+
+**Dynamic difficulty:** Stages do **not** scale by equipped hero power. Mage remains the on-level reference. Stronger personalities are intended power fantasy on easier nodes — do not auto-buff enemies 10–15% for upgraded heroes.
 
 ---
 
@@ -352,7 +354,7 @@ Future remote document shape:
 5. Prep sheet appears on trash and weekly; empty loadout can always start.
 6. Weekend weekly feels clearly harder than its campaign counterpart (~2× HP/damage).
 7. F2P can recover lives via regen without obligatory gem spend; gem refill stays under 3/day.
-8. Max upgrades feel helpful (~30%) but do not delete prep pressure entirely.
+8. Max **per-hero** personality upgrades feel helpful (~30%) but do not delete prep pressure entirely; switching heroes does not carry the same tiers.
 9. Prep inventory neither floods uselessly nor forces gem buys by mid-Ch2.
 
 Record material formula changes in [Decisions](../00_Project/Decisions.md).

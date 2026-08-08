@@ -15,11 +15,30 @@ import 'coming_soon_sheet.dart';
 import 'home_hub_widgets.dart';
 import 'home_progress.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  var _checkedUnlockCelebration = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _checkedUnlockCelebration) return;
+      _checkedUnlockCelebration = true;
+      final pending = ref.read(profileProvider).pendingUnlockCelebrations;
+      if (pending.isEmpty) return;
+      context.go('/hero_unlock/${pending.first}');
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final profile = ref.watch(profileProvider);
     final selected = profile.selectedHero;
     final nextLife = profile.timeUntilNextLife();

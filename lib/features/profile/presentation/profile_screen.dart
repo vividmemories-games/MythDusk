@@ -190,7 +190,15 @@ class ProfileScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Combat upgrades', style: textTheme.titleMedium),
+                Text('Personality (selected hero)',
+                    style: textTheme.titleMedium),
+                Text(
+                  profile.selectedHero.name,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: MythDuskColors.softGold,
+                    fontSize: 12,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 for (final stat in EconomyBalance.upgradeStatKeys)
                   Padding(
@@ -202,6 +210,10 @@ class ProfileScreen extends ConsumerWidget {
                       style: textTheme.bodyMedium,
                     ),
                   ),
+                Text(
+                  'Train other heroes on the Heroes screen.',
+                  style: textTheme.bodyMedium?.copyWith(fontSize: 12),
+                ),
               ],
             ),
           ),

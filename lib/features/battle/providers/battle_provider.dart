@@ -23,17 +23,23 @@ final battleProvider = StateNotifierProvider.autoDispose
   final upgradeSnapshot = ref.watch(
     profileProvider.select(
       (p) => (
-        p.upgradeLevel(EconomyBalance.upgradeStatHp),
-        p.upgradeLevel(EconomyBalance.upgradeStatDamage),
-        p.upgradeLevel(EconomyBalance.upgradeStatShield),
+        p.upgradeLevel(EconomyBalance.upgradeStatHp, heroId),
+        p.upgradeLevel(EconomyBalance.upgradeStatDamage, heroId),
+        p.upgradeLevel(EconomyBalance.upgradeStatShield, heroId),
       ),
     ),
   );
-  final hero = HeroCatalog.byId(heroId).withCombatMultipliers(
-    hpMult: EconomyBalance.multiplierFor(upgradeSnapshot.$1),
-    damageMult: EconomyBalance.multiplierFor(upgradeSnapshot.$2),
-    shieldMult: EconomyBalance.multiplierFor(upgradeSnapshot.$3),
+  final equippedIds = ref.watch(
+    profileProvider.select((p) => p.equippedSkillIdsFor(heroId).join(',')),
   );
+  final hero = HeroCatalog.byId(heroId)
+      .withCombatMultipliers(
+        hpMult: EconomyBalance.multiplierFor(upgradeSnapshot.$1),
+        damageMult: EconomyBalance.multiplierFor(upgradeSnapshot.$2),
+        shieldMult: EconomyBalance.multiplierFor(upgradeSnapshot.$3),
+      )
+      .withEquippedSkillIds(
+          equippedIds.split(',').where((id) => id.isNotEmpty).toList());
 
   final isWeekly = nodeId == WeeklyBalance.battleNodeId;
   if (isWeekly) {

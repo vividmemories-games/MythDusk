@@ -106,13 +106,40 @@ void main() {
   });
 
   group('HeroUnlocks', () {
-    test('mage free; others gated at 50/100/150/200', () {
+    test('mage free; others gated at 5/15/30/50', () {
       expect(HeroUnlocks.isUnlocked('mage', 0), isTrue);
-      expect(HeroUnlocks.isUnlocked('knight', 49), isFalse);
-      expect(HeroUnlocks.isUnlocked('knight', 50), isTrue);
-      expect(HeroUnlocks.isUnlocked('ranger', 100), isTrue);
-      expect(HeroUnlocks.isUnlocked('priest', 149), isFalse);
-      expect(HeroUnlocks.isUnlocked('ninja', 200), isTrue);
+      expect(HeroUnlocks.isUnlocked('knight', 4), isFalse);
+      expect(HeroUnlocks.isUnlocked('knight', 5), isTrue);
+      expect(HeroUnlocks.isUnlocked('ranger', 14), isFalse);
+      expect(HeroUnlocks.isUnlocked('ranger', 15), isTrue);
+      expect(HeroUnlocks.isUnlocked('priest', 29), isFalse);
+      expect(HeroUnlocks.isUnlocked('priest', 30), isTrue);
+      expect(HeroUnlocks.isUnlocked('ninja', 49), isFalse);
+      expect(HeroUnlocks.isUnlocked('ninja', 50), isTrue);
+    });
+
+    test('pending celebrations skip mage and already-seen ids', () {
+      expect(
+        HeroUnlocks.pendingUnlockCelebrations(
+          completedNodeCount: 5,
+          seenCelebrationIds: {},
+        ),
+        ['knight'],
+      );
+      expect(
+        HeroUnlocks.pendingUnlockCelebrations(
+          completedNodeCount: 50,
+          seenCelebrationIds: {'knight', 'ranger'},
+        ),
+        ['priest', 'ninja'],
+      );
+      expect(
+        HeroUnlocks.pendingUnlockCelebrations(
+          completedNodeCount: 50,
+          seenCelebrationIds: {'knight', 'ranger', 'priest', 'ninja'},
+        ),
+        isEmpty,
+      );
     });
   });
 }

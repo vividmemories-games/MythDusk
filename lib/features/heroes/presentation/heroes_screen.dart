@@ -175,21 +175,47 @@ class _HeroesScreenState extends ConsumerState<HeroesScreen> {
           ],
           const SizedBox(height: 20),
           Text('Skills', style: textTheme.titleMedium),
-          const SizedBox(height: 8),
-          for (final skill in viewed.skills) ...[
-            _SkillCard(skill: skill),
-            const SizedBox(height: 8),
-          ],
-          const SizedBox(height: 12),
-          Text('Upgrades', style: textTheme.titleMedium),
           Text(
-            '+5% per tier · max 6 tiers (+30%). Applies in battle for the '
-            'selected hero.',
+            unlocked
+                ? 'Equip exactly two for battle. Tap an unequipped skill to swap it in.'
+                : 'Unlock this hero to edit their loadout.',
+            style: textTheme.bodyMedium?.copyWith(fontSize: 12),
+          ),
+          const SizedBox(height: 8),
+          Builder(
+            builder: (context) {
+              final scaled = profile.scaledHero(hero.id);
+              final equipped = profile.equippedSkillIdsFor(hero.id);
+              return Column(
+                children: [
+                  for (final skill in scaled.skills) ...[
+                    _SkillCard(
+                      skill: skill,
+                      equipped: equipped.contains(skill.id),
+                      canEdit: unlocked,
+                      onToggle: unlocked
+                          ? () => ref
+                              .read(profileProvider.notifier)
+                              .toggleEquippedSkill(hero.id, skill.id)
+                          : null,
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          Text('Personality', style: textTheme.titleMedium),
+          Text(
+            unlocked
+                ? 'Train ${viewed.name} only — upgrades do not transfer between heroes.'
+                : 'Unlock this hero to train their personality stats.',
             style: textTheme.bodyMedium?.copyWith(fontSize: 12),
           ),
           const SizedBox(height: 8),
           for (final stat in EconomyBalance.upgradeStatKeys) ...[
-            _UpgradeRow(stat: stat),
+            _UpgradeRow(stat: stat, heroId: hero.id, canEdit: unlocked),
             const SizedBox(height: 8),
           ],
         ],
@@ -199,9 +225,17 @@ class _HeroesScreenState extends ConsumerState<HeroesScreen> {
 }
 
 class _SkillCard extends StatelessWidget {
-  const _SkillCard({required this.skill});
+  const _SkillCard({
+    required this.skill,
+    required this.equipped,
+    required this.canEdit,
+    this.onToggle,
+  });
 
   final SkillDef skill;
+  final bool equipped;
+  final bool canEdit;
+  final VoidCallback? onToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -215,48 +249,85 @@ class _SkillCard extends StatelessWidget {
       if (skill.shield > 0) '+${skill.shield} shield',
     ].join(' · ');
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: HubColors.panel,
+    return Material(
+      color: HubColors.panel,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: HubColors.frameGold.withValues(alpha: 0.4)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            skill.name,
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              color: MythDuskColors.parchment,
+        onTap: onToggle,
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: equipped
+                  ? HubColors.glow
+                  : HubColors.frameGold.withValues(alpha: 0.4),
+              width: equipped ? 1.5 : 1,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            costs,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontSize: 12,
-                  color: MythDuskColors.softGold,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      skill.name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: MythDuskColors.parchment,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      costs,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontSize: 12,
+                            color: MythDuskColors.softGold,
+                          ),
+                    ),
+                    if (effects.isNotEmpty)
+                      Text(
+                        effects,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontSize: 12,
+                            ),
+                      ),
+                  ],
                 ),
-          ),
-          if (effects.isNotEmpty)
-            Text(
-              effects,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontSize: 12,
+              ),
+              if (canEdit)
+                Padding(
+                  padding: const EdgeInsets.only(left: 8, top: 2),
+                  child: Text(
+                    equipped ? 'Equipped' : 'Tap to equip',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: equipped ? HubColors.glow : MythDuskColors.muted,
+                    ),
                   ),
-            ),
-        ],
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
 class _UpgradeRow extends ConsumerWidget {
-  const _UpgradeRow({required this.stat});
+  const _UpgradeRow({
+    required this.stat,
+    required this.heroId,
+    required this.canEdit,
+  });
 
   final String stat;
+  final String heroId;
+  final bool canEdit;
 
   String get _label => switch (stat) {
         EconomyBalance.upgradeStatHp => 'Max HP',
@@ -268,11 +339,11 @@ class _UpgradeRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(profileProvider);
-    final level = profile.upgradeLevel(stat);
+    final level = profile.upgradeLevel(stat, heroId);
     final cost = EconomyBalance.coinCostForNextTier(level);
     final mult = EconomyBalance.multiplierFor(level);
     final pct = ((mult - 1) * 100).round();
-    final canBuy = cost > 0 && profile.coins >= cost;
+    final canBuy = canEdit && cost > 0 && profile.coins >= cost;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -304,13 +375,13 @@ class _UpgradeRow extends ConsumerWidget {
             ),
           ),
           FilledButton(
-            onPressed: cost < 0
+            onPressed: !canEdit || cost < 0
                 ? null
                 : canBuy
                     ? () {
                         final ok = ref
                             .read(profileProvider.notifier)
-                            .purchaseUpgrade(stat);
+                            .purchaseUpgrade(stat, heroId: heroId);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(

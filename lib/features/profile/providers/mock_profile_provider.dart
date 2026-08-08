@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../heroes/domain/hero_def.dart';
+import '../../heroes/domain/hero_loadout.dart';
 import '../../heroes/domain/hero_unlocks.dart';
 import '../../prep/domain/prep_item.dart';
 import '../../battle/domain/battle_tutorial.dart';
@@ -23,12 +24,9 @@ class PlayerProfile {
     this.lastLifeRegenAt,
     this.gemLifeRefillDay = '',
     this.gemLifeRefillCount = 0,
-    this.upgradeLevels = const {
-      EconomyBalance.upgradeStatHp: 0,
-      EconomyBalance.upgradeStatDamage: 0,
-      EconomyBalance.upgradeStatShield: 0,
-    },
+    this.upgradeLevelsByHero = const {},
     this.selectedHeroId = 'mage',
+    this.equippedSkillIdsByHero = const {},
     this.completedNodeIds = const {},
     this.prepInventory = const {
       PrepItemId.vanguardTonic: 2,
@@ -42,6 +40,7 @@ class PlayerProfile {
     this.hapticsEnabled = true,
     this.tutorialBeatsSeen = const {},
     this.firstBattleTutorialDone = false,
+    this.seenUnlockCelebrationIds = const {},
   });
 
   final String displayName;
@@ -56,10 +55,14 @@ class PlayerProfile {
   final String gemLifeRefillDay;
   final int gemLifeRefillCount;
 
-  /// Stat line → tier 0–[EconomyBalance.upgradeMaxTiers].
-  final Map<String, int> upgradeLevels;
+  /// heroId → {hp,damage,shield} tiers 0–[EconomyBalance.upgradeMaxTiers].
+  final Map<String, Map<String, int>> upgradeLevelsByHero;
 
   final String selectedHeroId;
+
+  /// heroId → equipped skill ids (exactly two after sanitize).
+  final Map<String, List<String>> equippedSkillIdsByHero;
+
   final Set<String> completedNodeIds;
   final Map<PrepItemId, int> prepInventory;
 
@@ -79,11 +82,42 @@ class PlayerProfile {
   /// True after the first-battle tutorial is finished or skipped.
   final bool firstBattleTutorialDone;
 
+  /// Hero IDs whose unlock celebration has already been shown.
+  final Set<String> seenUnlockCelebrationIds;
+
   HeroDef get selectedHero => HeroCatalog.byId(selectedHeroId);
 
   int prepCount(PrepItemId id) => prepInventory[id] ?? 0;
 
-  int upgradeLevel(String stat) => upgradeLevels[stat] ?? 0;
+  /// Personality upgrade tier for [stat] on [heroId] (defaults to selected).
+  int upgradeLevel(String stat, [String? heroId]) {
+    return upgradeLevelsFor(heroId ?? selectedHeroId)[stat] ?? 0;
+  }
+
+  /// Sanitized upgrade map for a hero (zeros if never trained).
+  Map<String, int> upgradeLevelsFor(String heroId) {
+    return EconomyBalance.sanitizeUpgradeLevels(
+      upgradeLevelsByHero[heroId] == null
+          ? null
+          : Map<String, dynamic>.from(upgradeLevelsByHero[heroId]!),
+    );
+  }
+
+  /// Sanitized equipped skill ids for [heroId] (defaults to first two).
+  List<String> equippedSkillIdsFor(String heroId) {
+    final hero = HeroCatalog.byId(heroId);
+    return HeroLoadout.sanitize(
+      hero: hero,
+      raw: equippedSkillIdsByHero[heroId],
+    );
+  }
+
+  /// Unlocked heroes whose celebration has not been shown yet.
+  List<String> get pendingUnlockCelebrations =>
+      HeroUnlocks.pendingUnlockCelebrations(
+        completedNodeCount: completedNodeIds.length,
+        seenCelebrationIds: seenUnlockCelebrationIds,
+      );
 
   bool get secondWindAvailableToday {
     final today = _todayKey();
@@ -105,20 +139,27 @@ class PlayerProfile {
     );
   }
 
-  /// Hero with coin-upgrade multipliers applied (battle entry).
-  HeroDef combatHero([String? heroId]) {
-    final base = HeroCatalog.byId(heroId ?? selectedHeroId);
+  /// Catalog hero with that hero's personality upgrades (all skills).
+  HeroDef scaledHero([String? heroId]) {
+    final id = heroId ?? selectedHeroId;
+    final base = HeroCatalog.byId(id);
     return base.withCombatMultipliers(
       hpMult: EconomyBalance.multiplierFor(
-        upgradeLevel(EconomyBalance.upgradeStatHp),
+        upgradeLevel(EconomyBalance.upgradeStatHp, id),
       ),
       damageMult: EconomyBalance.multiplierFor(
-        upgradeLevel(EconomyBalance.upgradeStatDamage),
+        upgradeLevel(EconomyBalance.upgradeStatDamage, id),
       ),
       shieldMult: EconomyBalance.multiplierFor(
-        upgradeLevel(EconomyBalance.upgradeStatShield),
+        upgradeLevel(EconomyBalance.upgradeStatShield, id),
       ),
     );
+  }
+
+  /// Hero with coin-upgrade multipliers and equipped skill loadout (battle).
+  HeroDef combatHero([String? heroId]) {
+    final id = heroId ?? selectedHeroId;
+    return scaledHero(id).withEquippedSkillIds(equippedSkillIdsFor(id));
   }
 
   PlayerProfile copyWith({
@@ -130,8 +171,9 @@ class PlayerProfile {
     bool clearLastLifeRegenAt = false,
     String? gemLifeRefillDay,
     int? gemLifeRefillCount,
-    Map<String, int>? upgradeLevels,
+    Map<String, Map<String, int>>? upgradeLevelsByHero,
     String? selectedHeroId,
+    Map<String, List<String>>? equippedSkillIdsByHero,
     Set<String>? completedNodeIds,
     Map<PrepItemId, int>? prepInventory,
     String? secondWindUsedDay,
@@ -141,6 +183,7 @@ class PlayerProfile {
     bool? hapticsEnabled,
     Set<String>? tutorialBeatsSeen,
     bool? firstBattleTutorialDone,
+    Set<String>? seenUnlockCelebrationIds,
   }) {
     return PlayerProfile(
       displayName: displayName ?? this.displayName,
@@ -152,8 +195,10 @@ class PlayerProfile {
           : (lastLifeRegenAt ?? this.lastLifeRegenAt),
       gemLifeRefillDay: gemLifeRefillDay ?? this.gemLifeRefillDay,
       gemLifeRefillCount: gemLifeRefillCount ?? this.gemLifeRefillCount,
-      upgradeLevels: upgradeLevels ?? this.upgradeLevels,
+      upgradeLevelsByHero: upgradeLevelsByHero ?? this.upgradeLevelsByHero,
       selectedHeroId: selectedHeroId ?? this.selectedHeroId,
+      equippedSkillIdsByHero:
+          equippedSkillIdsByHero ?? this.equippedSkillIdsByHero,
       completedNodeIds: completedNodeIds ?? this.completedNodeIds,
       prepInventory: prepInventory ?? this.prepInventory,
       secondWindUsedDay: secondWindUsedDay ?? this.secondWindUsedDay,
@@ -165,13 +210,15 @@ class PlayerProfile {
       tutorialBeatsSeen: tutorialBeatsSeen ?? this.tutorialBeatsSeen,
       firstBattleTutorialDone:
           firstBattleTutorialDone ?? this.firstBattleTutorialDone,
+      seenUnlockCelebrationIds:
+          seenUnlockCelebrationIds ?? this.seenUnlockCelebrationIds,
     );
   }
 
   /// Bump when the persisted shape changes; readers stay tolerant of older
   /// payloads. Mirrors the planned Firestore `users` doc (see
   /// docs/04_Technical/Firestore_Schema.md).
-  static const schemaVersion = 7;
+  static const schemaVersion = 10;
 
   Map<String, dynamic> toJson() => {
         'schemaVersion': schemaVersion,
@@ -182,8 +229,14 @@ class PlayerProfile {
         'lastLifeRegenAt': lastLifeRegenAt?.toIso8601String(),
         'gemLifeRefillDay': gemLifeRefillDay,
         'gemLifeRefillCount': gemLifeRefillCount,
-        'upgradeLevels': upgradeLevels,
+        'upgradeLevelsByHero': {
+          for (final e in upgradeLevelsByHero.entries)
+            e.key: Map<String, int>.from(e.value),
+        },
         'selectedHeroId': selectedHeroId,
+        'equippedSkillIdsByHero': {
+          for (final e in equippedSkillIdsByHero.entries) e.key: e.value,
+        },
         'completedNodeIds': completedNodeIds.toList(),
         'prepInventory': {
           for (final e in prepInventory.entries) e.key.storageKey: e.value,
@@ -195,6 +248,7 @@ class PlayerProfile {
         'hapticsEnabled': hapticsEnabled,
         'tutorialBeatsSeen': tutorialBeatsSeen.toList(),
         'firstBattleTutorialDone': firstBattleTutorialDone,
+        'seenUnlockCelebrationIds': seenUnlockCelebrationIds.toList(),
       };
 
   factory PlayerProfile.fromJson(Map<String, dynamic> json) {
@@ -218,16 +272,28 @@ class PlayerProfile {
       prep[PrepItemId.secondWind] = 1;
     }
 
-    final rawUpgrades = json['upgradeLevels'] as Map<String, dynamic>?;
-    final upgrades = <String, int>{
-      for (final k in EconomyBalance.upgradeStatKeys) k: 0,
-    };
-    if (rawUpgrades != null) {
-      for (final e in rawUpgrades.entries) {
-        if (EconomyBalance.upgradeStatKeys.contains(e.key)) {
-          upgrades[e.key] =
-              (e.value as num).toInt().clamp(0, EconomyBalance.upgradeMaxTiers);
-        }
+    final rawUpgradesByHero =
+        json['upgradeLevelsByHero'] as Map<String, dynamic>?;
+    final legacyUpgrades = json['upgradeLevels'] as Map<String, dynamic>?;
+    final upgradesByHero = <String, Map<String, int>>{};
+
+    if (rawUpgradesByHero != null) {
+      for (final e in rawUpgradesByHero.entries) {
+        final hero = HeroCatalog.tryById(e.key);
+        if (hero == null) continue;
+        final raw = e.value is Map<String, dynamic>
+            ? e.value as Map<String, dynamic>
+            : Map<String, dynamic>.from(e.value as Map);
+        upgradesByHero[hero.id] = EconomyBalance.sanitizeUpgradeLevels(raw);
+      }
+    } else if (legacyUpgrades != null) {
+      // M2a migration: copy account-global tiers onto every currently unlocked
+      // hero. Heroes unlocked later start at 0/0/0.
+      final legacy = EconomyBalance.sanitizeUpgradeLevels(legacyUpgrades);
+      final clears = ids.length;
+      for (final hero in HeroCatalog.all) {
+        if (!HeroUnlocks.isUnlocked(hero.id, clears)) continue;
+        upgradesByHero[hero.id] = Map<String, int>.from(legacy);
       }
     }
 
@@ -242,6 +308,19 @@ class PlayerProfile {
     // this explicit migration boundary; runtime catalog lookups stay strict.
     final selectedHeroId = HeroCatalog.tryById(storedHeroId)?.id ?? 'mage';
 
+    final rawLoadouts = json['equippedSkillIdsByHero'] as Map<String, dynamic>?;
+    final loadouts = <String, List<String>>{};
+    if (rawLoadouts != null) {
+      for (final e in rawLoadouts.entries) {
+        final hero = HeroCatalog.tryById(e.key);
+        if (hero == null) continue;
+        final rawIds =
+            (e.value as List<dynamic>?)?.map((id) => id as String).toList() ??
+                const <String>[];
+        loadouts[hero.id] = HeroLoadout.sanitize(hero: hero, raw: rawIds);
+      }
+    }
+
     return PlayerProfile(
       displayName: json['displayName'] as String? ?? 'Wanderer',
       coins: json['coins'] as int? ?? 500,
@@ -250,8 +329,9 @@ class PlayerProfile {
       lastLifeRegenAt: regenAt,
       gemLifeRefillDay: json['gemLifeRefillDay'] as String? ?? '',
       gemLifeRefillCount: json['gemLifeRefillCount'] as int? ?? 0,
-      upgradeLevels: upgrades,
+      upgradeLevelsByHero: upgradesByHero,
       selectedHeroId: selectedHeroId,
+      equippedSkillIdsByHero: loadouts,
       completedNodeIds: ids,
       prepInventory: prep,
       secondWindUsedDay: json['secondWindUsedDay'] as String? ?? '',
@@ -265,6 +345,11 @@ class PlayerProfile {
           {},
       firstBattleTutorialDone:
           json['firstBattleTutorialDone'] as bool? ?? false,
+      seenUnlockCelebrationIds:
+          (json['seenUnlockCelebrationIds'] as List<dynamic>?)
+                  ?.map((e) => e as String)
+                  .toSet() ??
+              {},
     );
   }
 
@@ -328,6 +413,29 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
     _persist();
   }
 
+  /// Sets a validated two-skill loadout for [heroId].
+  void setEquippedSkills(String heroId, List<String> skillIds) {
+    final hero = HeroCatalog.tryById(heroId);
+    if (hero == null) return;
+    final sanitized = HeroLoadout.sanitize(hero: hero, raw: skillIds);
+    final next = Map<String, List<String>>.from(state.equippedSkillIdsByHero);
+    next[heroId] = sanitized;
+    state = state.copyWith(equippedSkillIdsByHero: next);
+    _persist();
+  }
+
+  /// Tap-to-equip helper for Heroes UI (keeps exactly two equipped).
+  void toggleEquippedSkill(String heroId, String skillId) {
+    final hero = HeroCatalog.tryById(heroId);
+    if (hero == null) return;
+    final nextIds = HeroLoadout.toggleEquip(
+      hero: hero,
+      current: state.equippedSkillIdsFor(heroId),
+      skillId: skillId,
+    );
+    setEquippedSkills(heroId, nextIds);
+  }
+
   void setHintsEnabled(bool value) {
     state = state.copyWith(hintsEnabled: value);
     _persist();
@@ -363,6 +471,15 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
     _persist();
   }
 
+  /// Marks a hero unlock celebration as shown (idempotent).
+  void markUnlockCelebrationSeen(String heroId) {
+    if (state.seenUnlockCelebrationIds.contains(heroId)) return;
+    state = state.copyWith(
+      seenUnlockCelebrationIds: {...state.seenUnlockCelebrationIds, heroId},
+    );
+    _persist();
+  }
+
   /// Consume equipped prep before a battle. Returns false if inventory short.
   bool consumePrep(List<PrepItemId> equipped) {
     final inv = Map<PrepItemId, int>.from(state.prepInventory);
@@ -381,17 +498,22 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
     _persist();
   }
 
-  /// Purchase next upgrade tier for [stat]. Returns false if capped / broke.
-  bool purchaseUpgrade(String stat, [DateTime? now]) {
+  /// Purchase next upgrade tier for [stat] on [heroId] (defaults to selected).
+  bool purchaseUpgrade(String stat, {String? heroId}) {
     if (!EconomyBalance.upgradeStatKeys.contains(stat)) return false;
-    final current = state.upgradeLevel(stat);
+    final id = heroId ?? state.selectedHeroId;
+    if (HeroCatalog.tryById(id) == null) return false;
+    final current = state.upgradeLevel(stat, id);
     final cost = EconomyBalance.coinCostForNextTier(current);
     if (cost < 0 || state.coins < cost) return false;
-    final levels = Map<String, int>.from(state.upgradeLevels);
-    levels[stat] = current + 1;
+    final heroLevels = Map<String, int>.from(state.upgradeLevelsFor(id));
+    heroLevels[stat] = current + 1;
+    final byHero =
+        Map<String, Map<String, int>>.from(state.upgradeLevelsByHero);
+    byHero[id] = heroLevels;
     state = state.copyWith(
       coins: state.coins - cost,
-      upgradeLevels: levels,
+      upgradeLevelsByHero: byHero,
     );
     _persist();
     return true;

@@ -498,3 +498,53 @@ briefing/result error handling, debug QA controls, campaign-pin semantics,
 responsive battle HUD, and the Phase D test suite.
 
 **Status:** Accepted
+
+---
+
+## 2026-08-07 — M1 earlier hero unlocks + celebration
+
+**Decision:** Lower hero unlock clears to Mage 0 / Knight 5 / Ranger 15 /
+Priest 30 / Ninja 50. Show a skippable spell-break celebration
+(`/hero_unlock/:heroId`) once per newly unlocked hero via
+`seenUnlockCelebrationIds` on profile schema v8. Trigger from campaign result
+navigation and Home when pending celebrations exist. Do not retune Balancing
+Bible combat numbers in this milestone; watch Priest/Ninja power with earlier
+access.
+
+**Impact:** `HeroUnlocks`, `PlayerProfile` / `ProfileNotifier`, celebration
+screen + router, battle result / home wiring, Content Architecture unlock
+table, unlock celebration tests.
+
+**Status:** Accepted
+
+---
+
+## 2026-08-07 — M2 third skills + equip-two loadouts
+
+**Decision:** Every hero has three catalog skills; battles equip exactly two.
+Third skills are tactical sidegrades (shield/heal/alternate resource), not strict
+DPS upgrades. Persist `equippedSkillIdsByHero` on profile schema v9; sanitize
+unknown IDs to defaults (first two catalog skills). Tap-to-equip on Heroes swaps
+the oldest equipped slot. `BattleController.canCast` requires the skill to be in
+the battle hero kit. Briefing shows the equipped pair with an Edit loadout link.
+
+**Impact:** `HeroCatalog` / `HeroLoadout`, `PlayerProfile`, battle provider +
+cast guard, Heroes / Briefing UI, content validator (≥2 skills), loadout tests.
+
+**Status:** Accepted
+
+---
+
+## 2026-08-07 — M2a per-hero personality upgrades
+
+**Decision:** Replace account-global `upgradeLevels` with
+`upgradeLevelsByHero` (schema v10). Same +5%/tier and coin costs. Legacy
+global tiers copy onto every hero unlocked at migration time; later unlocks
+start at 0/0/0. Heroes UI trains the viewed hero only. Stages do **not**
+scale difficulty by equipped hero power (Mage remains the Bible on-level
+reference).
+
+**Impact:** `PlayerProfile` / `purchaseUpgrade`, battle upgrade watch,
+Heroes / Profile copy, Balancing Bible §5.3, economy migration tests.
+
+**Status:** Accepted

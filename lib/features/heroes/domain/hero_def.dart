@@ -16,6 +16,8 @@ class HeroDef {
   final int maxAp;
   final int maxHp;
   final List<String> primaryResources;
+
+  /// Full kit in catalog; battle instances may be filtered to the equipped pair.
   final List<SkillDef> skills;
 
   /// Applies coin-upgrade multipliers (Balancing Bible §5.3).
@@ -46,6 +48,27 @@ class HeroDef {
       ],
     );
   }
+
+  /// Keeps only [skillIds] (order preserved). Unknown ids are skipped.
+  HeroDef withEquippedSkillIds(List<String> skillIds) {
+    final byId = {for (final s in skills) s.id: s};
+    final equipped = <SkillDef>[
+      for (final id in skillIds)
+        if (byId[id] case final skill?) skill,
+    ];
+    if (equipped.isEmpty) return this;
+    return HeroDef(
+      id: id,
+      name: name,
+      movesPerTurn: movesPerTurn,
+      maxAp: maxAp,
+      maxHp: maxHp,
+      primaryResources: primaryResources,
+      skills: equipped,
+    );
+  }
+
+  bool hasSkill(String skillId) => skills.any((s) => s.id == skillId);
 }
 
 class SkillDef {
@@ -71,6 +94,8 @@ class SkillDef {
 }
 
 /// Placeholder roster — numbers from docs/GAMEPLAY.md.
+///
+/// Each hero has three skills; battles equip exactly two ([HeroLoadout]).
 abstract final class HeroCatalog {
   static const mage = HeroDef(
     id: 'mage',
@@ -93,6 +118,14 @@ abstract final class HeroCatalog {
         apCost: 1,
         resourceCosts: {'mana': 4},
         damage: 12,
+      ),
+      SkillDef(
+        id: 'frost_ward',
+        name: 'Frost Ward',
+        apCost: 2,
+        resourceCosts: {'mana': 6},
+        damage: 0,
+        shield: 18,
       ),
     ],
   );
@@ -120,6 +153,14 @@ abstract final class HeroCatalog {
         damage: 0,
         shield: 20,
       ),
+      SkillDef(
+        id: 'rallying_cry',
+        name: 'Rallying Cry',
+        apCost: 1,
+        resourceCosts: {'shield': 5},
+        damage: 0,
+        heal: 12,
+      ),
     ],
   );
 
@@ -144,6 +185,14 @@ abstract final class HeroCatalog {
         apCost: 2,
         resourceCosts: {'attack': 8},
         damage: 26,
+      ),
+      SkillDef(
+        id: 'natures_salve',
+        name: "Nature's Salve",
+        apCost: 1,
+        resourceCosts: {'healing': 6},
+        damage: 0,
+        heal: 14,
       ),
     ],
   );
@@ -171,6 +220,14 @@ abstract final class HeroCatalog {
         damage: 0,
         heal: 22,
       ),
+      SkillDef(
+        id: 'holy_barrier',
+        name: 'Holy Barrier',
+        apCost: 2,
+        resourceCosts: {'mana': 6},
+        damage: 0,
+        shield: 18,
+      ),
     ],
   );
 
@@ -195,6 +252,14 @@ abstract final class HeroCatalog {
         apCost: 2,
         resourceCosts: {'ultimate': 6},
         damage: 28,
+      ),
+      SkillDef(
+        id: 'smoke_bomb',
+        name: 'Smoke Bomb',
+        apCost: 1,
+        resourceCosts: {'ultimate': 4},
+        damage: 0,
+        shield: 14,
       ),
     ],
   );

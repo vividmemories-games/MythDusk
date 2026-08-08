@@ -32,7 +32,7 @@ This is the **master content plan** for MythDusk’s first 200-level campaign, w
 | Boss sightings | Chapter levels **5 / 10 / 15 / 20** |
 | Boss outcome | Flees at 5, 10, 15 → **dies** at 20 |
 | Regular levels | Trash enemies + chapter board rule; grant prep items / coins |
-| Hero unlocks | ~levels **50 / 100 / 150 / 200** (4 unlocks); Mage starter |
+| Hero unlocks | ~levels **5 / 15 / 30 / 50** (4 unlocks); Mage starter |
 
 ### Decade beat sheet (each chapter)
 
