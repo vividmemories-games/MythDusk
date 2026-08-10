@@ -23,7 +23,10 @@
           "coinReward": 48,
           "order": 0,
           "mapX": 0.364,
-          "mapY": 0.855
+          "mapY": 0.855,
+          "board": {
+            "templateId": "board_open_6x6"
+          }
         },
         {
           "id": "ch_mirror_n02",
@@ -32,7 +35,15 @@
           "coinReward": 50,
           "order": 1,
           "mapX": 0.655,
-          "mapY": 0.714
+          "mapY": 0.714,
+          "board": {
+            "templateId": "board_open_6x6",
+            "spawnWeights": {
+              "blue": 1.4,
+              "yellow": 1.2,
+              "red": 0.6
+            }
+          }
         },
         {
           "id": "ch_mirror_n03",
@@ -44,7 +55,10 @@
           "mapY": 0.581,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "ch_mirror_n04",
@@ -53,11 +67,18 @@
           "coinReward": 54,
           "order": 3,
           "mapX": 0.533,
-          "mapY": 0.374
+          "mapY": 0.374,
+          "board": {
+            "templateId": "board_vine_corners_01",
+            "spawnWeights": {
+              "purple": 1.3,
+              "blue": 1.2
+            }
+          }
         },
         {
           "id": "ch_mirror_n05",
-          "name": "Lake Wraith \u2014 Form 1",
+          "name": "Lake Wraith — Form 1",
           "enemyId": "lake_wraith",
           "coinReward": 100,
           "order": 4,
@@ -65,7 +86,20 @@
           "bossForm": 1,
           "mapX": 0.404,
           "mapY": 0.214,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_open_6x6",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  2
+                ],
+                "direction": "left",
+                "everyNTurns": 3
+              }
+            ]
+          }
         }
       ]
     },
@@ -81,7 +115,10 @@
           "coinReward": 58,
           "order": 5,
           "mapX": 0.44,
-          "mapY": 0.851
+          "mapY": 0.851,
+          "board": {
+            "templateId": "board_open_6x6"
+          }
         },
         {
           "id": "ch_mirror_n07",
@@ -90,7 +127,15 @@
           "coinReward": 60,
           "order": 6,
           "mapX": 0.484,
-          "mapY": 0.695
+          "mapY": 0.695,
+          "board": {
+            "templateId": "board_open_6x6",
+            "spawnWeights": {
+              "blue": 1.4,
+              "yellow": 1.2,
+              "red": 0.6
+            }
+          }
         },
         {
           "id": "ch_mirror_n08",
@@ -102,7 +147,10 @@
           "mapY": 0.54,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "ch_mirror_n09",
@@ -111,11 +159,18 @@
           "coinReward": 64,
           "order": 8,
           "mapX": 0.488,
-          "mapY": 0.35
+          "mapY": 0.35,
+          "board": {
+            "templateId": "board_vine_corners_01",
+            "spawnWeights": {
+              "purple": 1.3,
+              "blue": 1.2
+            }
+          }
         },
         {
           "id": "ch_mirror_n10",
-          "name": "Lake Wraith \u2014 Form 2",
+          "name": "Lake Wraith — Form 2",
           "enemyId": "lake_wraith",
           "coinReward": 110,
           "order": 9,
@@ -123,7 +178,20 @@
           "bossForm": 2,
           "mapX": 0.493,
           "mapY": 0.196,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_open_6x6",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  2
+                ],
+                "direction": "left",
+                "everyNTurns": 3
+              }
+            ]
+          }
         }
       ]
     },
@@ -139,7 +207,10 @@
           "coinReward": 68,
           "order": 10,
           "mapX": 0.37,
-          "mapY": 0.812
+          "mapY": 0.812,
+          "board": {
+            "templateId": "board_open_6x6"
+          }
         },
         {
           "id": "ch_mirror_n12",
@@ -148,7 +219,15 @@
           "coinReward": 70,
           "order": 11,
           "mapX": 0.47,
-          "mapY": 0.644
+          "mapY": 0.644,
+          "board": {
+            "templateId": "board_open_6x6",
+            "spawnWeights": {
+              "blue": 1.4,
+              "yellow": 1.2,
+              "red": 0.6
+            }
+          }
         },
         {
           "id": "ch_mirror_n13",
@@ -160,7 +239,10 @@
           "mapY": 0.484,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "ch_mirror_n14",
@@ -169,11 +251,18 @@
           "coinReward": 74,
           "order": 13,
           "mapX": 0.41,
-          "mapY": 0.332
+          "mapY": 0.332,
+          "board": {
+            "templateId": "board_vine_corners_01",
+            "spawnWeights": {
+              "purple": 1.3,
+              "blue": 1.2
+            }
+          }
         },
         {
           "id": "ch_mirror_n15",
-          "name": "Lake Wraith \u2014 Form 3",
+          "name": "Lake Wraith — Form 3",
           "enemyId": "lake_wraith",
           "coinReward": 120,
           "order": 14,
@@ -181,7 +270,20 @@
           "bossForm": 3,
           "mapX": 0.606,
           "mapY": 0.163,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_open_6x6",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  2
+                ],
+                "direction": "left",
+                "everyNTurns": 3
+              }
+            ]
+          }
         }
       ]
     },
@@ -197,7 +299,10 @@
           "coinReward": 78,
           "order": 15,
           "mapX": 0.45,
-          "mapY": 0.867
+          "mapY": 0.867,
+          "board": {
+            "templateId": "board_open_6x6"
+          }
         },
         {
           "id": "ch_mirror_n17",
@@ -206,7 +311,15 @@
           "coinReward": 80,
           "order": 16,
           "mapX": 0.657,
-          "mapY": 0.727
+          "mapY": 0.727,
+          "board": {
+            "templateId": "board_open_6x6",
+            "spawnWeights": {
+              "blue": 1.4,
+              "yellow": 1.2,
+              "red": 0.6
+            }
+          }
         },
         {
           "id": "ch_mirror_n18",
@@ -218,7 +331,10 @@
           "mapY": 0.55,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "ch_mirror_n19",
@@ -227,11 +343,18 @@
           "coinReward": 84,
           "order": 18,
           "mapX": 0.502,
-          "mapY": 0.338
+          "mapY": 0.338,
+          "board": {
+            "templateId": "board_vine_corners_01",
+            "spawnWeights": {
+              "purple": 1.3,
+              "blue": 1.2
+            }
+          }
         },
         {
           "id": "ch_mirror_n20",
-          "name": "Lake Wraith \u2014 Form 4",
+          "name": "Lake Wraith — Form 4",
           "enemyId": "lake_wraith",
           "coinReward": 130,
           "order": 19,
@@ -239,7 +362,20 @@
           "bossForm": 4,
           "mapX": 0.751,
           "mapY": 0.193,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_open_6x6",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  2
+                ],
+                "direction": "left",
+                "everyNTurns": 3
+              }
+            ]
+          }
         }
       ]
     }

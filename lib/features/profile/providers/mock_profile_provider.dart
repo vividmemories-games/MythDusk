@@ -3,11 +3,17 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../battle/domain/battle_objective.dart';
+import '../../battle/domain/battle_tutorial.dart';
+import '../../campaign/data/chapter_medal_catalog.dart';
+import '../../campaign/domain/chapter_medal.dart';
+import '../../daily/domain/daily_schedule.dart';
+import '../../expedition/domain/expedition_models.dart';
 import '../../heroes/domain/hero_def.dart';
 import '../../heroes/domain/hero_loadout.dart';
 import '../../heroes/domain/hero_unlocks.dart';
+import '../../mastery/domain/mastery_catalog.dart';
 import '../../prep/domain/prep_item.dart';
-import '../../battle/domain/battle_tutorial.dart';
 import '../domain/economy_balance.dart';
 
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -35,12 +41,21 @@ class PlayerProfile {
     },
     this.secondWindUsedDay = '',
     this.weeklyLastCompletedDay = '',
+    this.dailyLastCompletedDay = '',
+    this.claimedDailyMedalIds = const {},
     this.hintsEnabled = true,
     this.soundEnabled = true,
     this.hapticsEnabled = true,
     this.tutorialBeatsSeen = const {},
     this.firstBattleTutorialDone = false,
     this.seenUnlockCelebrationIds = const {},
+    this.chapterMedalCounters = const {},
+    this.claimedChapterMedalIds = const {},
+    this.activeExpedition,
+    this.masteryProgressByHero = const {},
+    this.claimedMasteryIds = const {},
+    this.unlockedMasterySkillIds = const {},
+    this.claimedCosmeticIds = const {},
   });
 
   final String displayName;
@@ -72,6 +87,12 @@ class PlayerProfile {
   /// `yyyy-MM-dd` of last weekly reward claim (empty = never).
   final String weeklyLastCompletedDay;
 
+  /// `yyyy-MM-dd` of last Daily Contract completion (empty = never).
+  final String dailyLastCompletedDay;
+
+  /// Claimed Daily medal ids (include dayKey prefix; idempotent).
+  final Set<String> claimedDailyMedalIds;
+
   final bool hintsEnabled;
   final bool soundEnabled;
   final bool hapticsEnabled;
@@ -85,7 +106,34 @@ class PlayerProfile {
   /// Hero IDs whose unlock celebration has already been shown.
   final Set<String> seenUnlockCelebrationIds;
 
+  /// chapterId → cumulative medal counters.
+  final Map<String, ChapterMedalCounters> chapterMedalCounters;
+
+  /// Claimed chapter medal definition ids.
+  final Set<String> claimedChapterMedalIds;
+
+  /// Active Relic Expedition run (null when idle).
+  final ExpeditionRunState? activeExpedition;
+
+  /// heroId → mastery counters.
+  final Map<String, HeroMasteryCounters> masteryProgressByHero;
+
+  /// Claimed mastery definition ids.
+  final Set<String> claimedMasteryIds;
+
+  /// Skill ids unlocked via mastery (skill 4).
+  final Set<String> unlockedMasterySkillIds;
+
+  /// Cosmetic stub ids (titles / frames).
+  final Set<String> claimedCosmeticIds;
+
   HeroDef get selectedHero => HeroCatalog.byId(selectedHeroId);
+
+  ChapterMedalCounters medalCountersFor(String chapterId) =>
+      chapterMedalCounters[chapterId] ?? const ChapterMedalCounters();
+
+  bool isChapterMedalClaimed(String medalId) =>
+      claimedChapterMedalIds.contains(medalId);
 
   int prepCount(PrepItemId id) => prepInventory[id] ?? 0;
 
@@ -109,8 +157,23 @@ class PlayerProfile {
     return HeroLoadout.sanitize(
       hero: hero,
       raw: equippedSkillIdsByHero[heroId],
+      unlockedExtraSkillIds: unlockedMasterySkillIds,
     );
   }
+
+  /// Catalog skills the player may equip for [heroId].
+  List<SkillDef> availableSkillsFor(String heroId) {
+    return HeroLoadout.availableSkills(
+      HeroCatalog.byId(heroId),
+      unlockedMasterySkillIds,
+    );
+  }
+
+  HeroMasteryCounters masteryFor(String heroId) =>
+      masteryProgressByHero[heroId] ?? const HeroMasteryCounters();
+
+  bool isMasteryClaimed(String masteryId) =>
+      claimedMasteryIds.contains(masteryId);
 
   /// Unlocked heroes whose celebration has not been shown yet.
   List<String> get pendingUnlockCelebrations =>
@@ -139,21 +202,22 @@ class PlayerProfile {
     );
   }
 
-  /// Catalog hero with that hero's personality upgrades (all skills).
+  /// Catalog hero with that hero's personality upgrades (available skills).
   HeroDef scaledHero([String? heroId]) {
     final id = heroId ?? selectedHeroId;
     final base = HeroCatalog.byId(id);
-    return base.withCombatMultipliers(
-      hpMult: EconomyBalance.multiplierFor(
-        upgradeLevel(EconomyBalance.upgradeStatHp, id),
-      ),
-      damageMult: EconomyBalance.multiplierFor(
-        upgradeLevel(EconomyBalance.upgradeStatDamage, id),
-      ),
-      shieldMult: EconomyBalance.multiplierFor(
-        upgradeLevel(EconomyBalance.upgradeStatShield, id),
-      ),
-    );
+    final available = availableSkillsFor(id);
+    return base.withSkills(available).withCombatMultipliers(
+          hpMult: EconomyBalance.multiplierFor(
+            upgradeLevel(EconomyBalance.upgradeStatHp, id),
+          ),
+          damageMult: EconomyBalance.multiplierFor(
+            upgradeLevel(EconomyBalance.upgradeStatDamage, id),
+          ),
+          shieldMult: EconomyBalance.multiplierFor(
+            upgradeLevel(EconomyBalance.upgradeStatShield, id),
+          ),
+        );
   }
 
   /// Hero with coin-upgrade multipliers and equipped skill loadout (battle).
@@ -178,12 +242,22 @@ class PlayerProfile {
     Map<PrepItemId, int>? prepInventory,
     String? secondWindUsedDay,
     String? weeklyLastCompletedDay,
+    String? dailyLastCompletedDay,
+    Set<String>? claimedDailyMedalIds,
     bool? hintsEnabled,
     bool? soundEnabled,
     bool? hapticsEnabled,
     Set<String>? tutorialBeatsSeen,
     bool? firstBattleTutorialDone,
     Set<String>? seenUnlockCelebrationIds,
+    Map<String, ChapterMedalCounters>? chapterMedalCounters,
+    Set<String>? claimedChapterMedalIds,
+    ExpeditionRunState? activeExpedition,
+    bool clearActiveExpedition = false,
+    Map<String, HeroMasteryCounters>? masteryProgressByHero,
+    Set<String>? claimedMasteryIds,
+    Set<String>? unlockedMasterySkillIds,
+    Set<String>? claimedCosmeticIds,
   }) {
     return PlayerProfile(
       displayName: displayName ?? this.displayName,
@@ -204,6 +278,9 @@ class PlayerProfile {
       secondWindUsedDay: secondWindUsedDay ?? this.secondWindUsedDay,
       weeklyLastCompletedDay:
           weeklyLastCompletedDay ?? this.weeklyLastCompletedDay,
+      dailyLastCompletedDay:
+          dailyLastCompletedDay ?? this.dailyLastCompletedDay,
+      claimedDailyMedalIds: claimedDailyMedalIds ?? this.claimedDailyMedalIds,
       hintsEnabled: hintsEnabled ?? this.hintsEnabled,
       soundEnabled: soundEnabled ?? this.soundEnabled,
       hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
@@ -212,13 +289,25 @@ class PlayerProfile {
           firstBattleTutorialDone ?? this.firstBattleTutorialDone,
       seenUnlockCelebrationIds:
           seenUnlockCelebrationIds ?? this.seenUnlockCelebrationIds,
+      chapterMedalCounters: chapterMedalCounters ?? this.chapterMedalCounters,
+      claimedChapterMedalIds:
+          claimedChapterMedalIds ?? this.claimedChapterMedalIds,
+      activeExpedition: clearActiveExpedition
+          ? null
+          : (activeExpedition ?? this.activeExpedition),
+      masteryProgressByHero:
+          masteryProgressByHero ?? this.masteryProgressByHero,
+      claimedMasteryIds: claimedMasteryIds ?? this.claimedMasteryIds,
+      unlockedMasterySkillIds:
+          unlockedMasterySkillIds ?? this.unlockedMasterySkillIds,
+      claimedCosmeticIds: claimedCosmeticIds ?? this.claimedCosmeticIds,
     );
   }
 
   /// Bump when the persisted shape changes; readers stay tolerant of older
   /// payloads. Mirrors the planned Firestore `users` doc (see
   /// docs/04_Technical/Firestore_Schema.md).
-  static const schemaVersion = 10;
+  static const schemaVersion = 13;
 
   Map<String, dynamic> toJson() => {
         'schemaVersion': schemaVersion,
@@ -243,12 +332,26 @@ class PlayerProfile {
         },
         'secondWindUsedDay': secondWindUsedDay,
         'weeklyLastCompletedDay': weeklyLastCompletedDay,
+        'dailyLastCompletedDay': dailyLastCompletedDay,
+        'claimedDailyMedalIds': claimedDailyMedalIds.toList(),
         'hintsEnabled': hintsEnabled,
         'soundEnabled': soundEnabled,
         'hapticsEnabled': hapticsEnabled,
         'tutorialBeatsSeen': tutorialBeatsSeen.toList(),
         'firstBattleTutorialDone': firstBattleTutorialDone,
         'seenUnlockCelebrationIds': seenUnlockCelebrationIds.toList(),
+        'chapterMedalCounters': {
+          for (final e in chapterMedalCounters.entries) e.key: e.value.toJson(),
+        },
+        'claimedChapterMedalIds': claimedChapterMedalIds.toList(),
+        'activeExpedition': activeExpedition?.toJson(),
+        'masteryProgressByHero': {
+          for (final e in masteryProgressByHero.entries)
+            e.key: e.value.toJson(),
+        },
+        'claimedMasteryIds': claimedMasteryIds.toList(),
+        'unlockedMasterySkillIds': unlockedMasterySkillIds.toList(),
+        'claimedCosmeticIds': claimedCosmeticIds.toList(),
       };
 
   factory PlayerProfile.fromJson(Map<String, dynamic> json) {
@@ -308,6 +411,12 @@ class PlayerProfile {
     // this explicit migration boundary; runtime catalog lookups stay strict.
     final selectedHeroId = HeroCatalog.tryById(storedHeroId)?.id ?? 'mage';
 
+    final unlockedMasterySkillIds =
+        (json['unlockedMasterySkillIds'] as List<dynamic>?)
+                ?.map((e) => e as String)
+                .toSet() ??
+            {};
+
     final rawLoadouts = json['equippedSkillIdsByHero'] as Map<String, dynamic>?;
     final loadouts = <String, List<String>>{};
     if (rawLoadouts != null) {
@@ -317,7 +426,33 @@ class PlayerProfile {
         final rawIds =
             (e.value as List<dynamic>?)?.map((id) => id as String).toList() ??
                 const <String>[];
-        loadouts[hero.id] = HeroLoadout.sanitize(hero: hero, raw: rawIds);
+        loadouts[hero.id] = HeroLoadout.sanitize(
+          hero: hero,
+          raw: rawIds,
+          unlockedExtraSkillIds: unlockedMasterySkillIds,
+        );
+      }
+    }
+
+    ExpeditionRunState? expedition;
+    final rawExp = json['activeExpedition'];
+    if (rawExp is Map<String, dynamic>) {
+      expedition = ExpeditionRunState.fromJson(rawExp);
+    } else if (rawExp is Map) {
+      expedition =
+          ExpeditionRunState.fromJson(Map<String, dynamic>.from(rawExp));
+    }
+
+    final masteryProgress = <String, HeroMasteryCounters>{};
+    final rawMastery = json['masteryProgressByHero'] as Map<String, dynamic>?;
+    if (rawMastery != null) {
+      for (final e in rawMastery.entries) {
+        if (HeroCatalog.tryById(e.key) == null) continue;
+        masteryProgress[e.key] = HeroMasteryCounters.fromJson(
+          e.value is Map<String, dynamic>
+              ? e.value as Map<String, dynamic>
+              : Map<String, dynamic>.from(e.value as Map),
+        );
       }
     }
 
@@ -336,6 +471,11 @@ class PlayerProfile {
       prepInventory: prep,
       secondWindUsedDay: json['secondWindUsedDay'] as String? ?? '',
       weeklyLastCompletedDay: json['weeklyLastCompletedDay'] as String? ?? '',
+      dailyLastCompletedDay: json['dailyLastCompletedDay'] as String? ?? '',
+      claimedDailyMedalIds: (json['claimedDailyMedalIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toSet() ??
+          {},
       hintsEnabled: json['hintsEnabled'] as bool? ?? true,
       soundEnabled: json['soundEnabled'] as bool? ?? true,
       hapticsEnabled: json['hapticsEnabled'] as bool? ?? true,
@@ -350,7 +490,39 @@ class PlayerProfile {
                   ?.map((e) => e as String)
                   .toSet() ??
               {},
+      chapterMedalCounters: _parseChapterMedalCounters(
+        json['chapterMedalCounters'] as Map<String, dynamic>?,
+      ),
+      claimedChapterMedalIds: (json['claimedChapterMedalIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toSet() ??
+          {},
+      activeExpedition: expedition,
+      masteryProgressByHero: masteryProgress,
+      claimedMasteryIds: (json['claimedMasteryIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toSet() ??
+          {},
+      unlockedMasterySkillIds: unlockedMasterySkillIds,
+      claimedCosmeticIds: (json['claimedCosmeticIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toSet() ??
+          {},
     );
+  }
+
+  static Map<String, ChapterMedalCounters> _parseChapterMedalCounters(
+    Map<String, dynamic>? raw,
+  ) {
+    if (raw == null) return {};
+    return {
+      for (final e in raw.entries)
+        e.key: ChapterMedalCounters.fromJson(
+          e.value is Map<String, dynamic>
+              ? e.value as Map<String, dynamic>
+              : Map<String, dynamic>.from(e.value as Map),
+        ),
+    };
   }
 
   static String _todayKey([DateTime? now]) {
@@ -417,7 +589,11 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
   void setEquippedSkills(String heroId, List<String> skillIds) {
     final hero = HeroCatalog.tryById(heroId);
     if (hero == null) return;
-    final sanitized = HeroLoadout.sanitize(hero: hero, raw: skillIds);
+    final sanitized = HeroLoadout.sanitize(
+      hero: hero,
+      raw: skillIds,
+      unlockedExtraSkillIds: state.unlockedMasterySkillIds,
+    );
     final next = Map<String, List<String>>.from(state.equippedSkillIdsByHero);
     next[heroId] = sanitized;
     state = state.copyWith(equippedSkillIdsByHero: next);
@@ -432,6 +608,7 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
       hero: hero,
       current: state.equippedSkillIdsFor(heroId),
       skillId: skillId,
+      unlockedExtraSkillIds: state.unlockedMasterySkillIds,
     );
     setEquippedSkills(heroId, nextIds);
   }
@@ -567,6 +744,11 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
     bool isBoss = false,
     int actIndex = 0,
     List<String> nodePrepDrops = const [],
+    String? chapterId,
+    BattleProgress? progress,
+    int heroHp = 0,
+    int heroMaxHp = 1,
+    int? bossForm,
   }) async {
     final completed = {...state.completedNodeIds, nodeId};
     var inv = Map<PrepItemId, int>.from(state.prepInventory);
@@ -578,12 +760,54 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
     for (final e in drops.entries) {
       inv[e.key] = (inv[e.key] ?? 0) + e.value;
     }
+
+    var counters = Map<String, ChapterMedalCounters>.from(
+      state.chapterMedalCounters,
+    );
+    if (chapterId != null && progress != null) {
+      counters[chapterId] = ChapterMedalFold.applyVictory(
+        current: counters[chapterId] ?? const ChapterMedalCounters(),
+        progress: progress,
+        heroHp: heroHp,
+        heroMaxHp: heroMaxHp,
+        usedPrep: progress.usedPrep,
+        bossForm: bossForm,
+      );
+    }
+
     state = state.copyWith(
       coins: state.coins + coinReward,
       completedNodeIds: completed,
       prepInventory: inv,
+      chapterMedalCounters: counters,
     );
+    if (progress != null) {
+      _recordMasteryProgress(
+        heroId: state.selectedHeroId,
+        progress: progress,
+      );
+    }
     await _persist();
+  }
+
+  /// Claim a met chapter medal once. Returns coins granted (0 if denied).
+  int claimChapterMedal(
+    String medalId, {
+    required Set<String> chapterNodeIds,
+  }) {
+    final def = ChapterMedalCatalog.byId(medalId);
+    if (def == null) return 0;
+    if (state.claimedChapterMedalIds.contains(medalId)) return 0;
+    final chapterComplete =
+        chapterNodeIds.every(state.completedNodeIds.contains);
+    final counters = state.medalCountersFor(def.chapterId);
+    if (!counters.isMet(def, chapterComplete: chapterComplete)) return 0;
+    state = state.copyWith(
+      coins: state.coins + def.coinReward,
+      claimedChapterMedalIds: {...state.claimedChapterMedalIds, medalId},
+    );
+    _persist();
+    return def.coinReward;
   }
 
   /// Weekly win: coins once per [dayKey]; does not touch campaign nodes.
@@ -601,6 +825,237 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
     );
     await _persist();
     return coinReward;
+  }
+
+  /// Daily Contract win: base coins + newly earned medals (idempotent per day).
+  Future<({int coins, List<String> medalIds})> applyDailyVictory({
+    required DailyContract contract,
+    required BattleProgress progress,
+    required int heroHp,
+    required int heroMaxHp,
+  }) async {
+    if (state.dailyLastCompletedDay == contract.dayKey) {
+      await _persist();
+      return (coins: 0, medalIds: const <String>[]);
+    }
+
+    final earned = <String>[];
+    var bonus = 0;
+    for (final medal in contract.medals) {
+      if (state.claimedDailyMedalIds.contains(medal.id)) continue;
+      if (!DailyMedalEval.isMet(
+        medal,
+        progress: progress,
+        heroHp: heroHp,
+        heroMaxHp: heroMaxHp,
+      )) {
+        continue;
+      }
+      earned.add(medal.id);
+      bonus += medal.coinReward;
+    }
+
+    final total = contract.coinReward + bonus;
+    state = state.copyWith(
+      coins: state.coins + total,
+      dailyLastCompletedDay: contract.dayKey,
+      claimedDailyMedalIds: {...state.claimedDailyMedalIds, ...earned},
+    );
+    _recordMasteryProgress(
+      heroId: state.selectedHeroId,
+      progress: progress,
+    );
+    await _persist();
+    return (coins: total, medalIds: earned);
+  }
+
+  bool get expeditionUnlocked =>
+      state.completedNodeIds.length >= ExpeditionBalance.minCampaignClears;
+
+  /// Starts a new expedition if gated and no active run.
+  bool startExpedition({String? heroId, int? seed}) {
+    if (!expeditionUnlocked) return false;
+    final run = state.activeExpedition;
+    if (run != null &&
+        run.phase != ExpeditionPhase.settled &&
+        run.phase != ExpeditionPhase.failed) {
+      return false;
+    }
+    final id = heroId ?? state.selectedHeroId;
+    if (HeroCatalog.tryById(id) == null) return false;
+    if (!HeroUnlocks.isUnlocked(id, state.completedNodeIds.length)) {
+      return false;
+    }
+    final s = seed ?? DateTime.now().millisecondsSinceEpoch;
+    state = state.copyWith(
+      selectedHeroId: id,
+      activeExpedition: ExpeditionRunState.start(heroId: id, seed: s),
+      clearActiveExpedition: false,
+    );
+    _persist();
+    return true;
+  }
+
+  void abandonExpedition() {
+    final run = state.activeExpedition;
+    if (run == null) return;
+    state = state.copyWith(clearActiveExpedition: true);
+    _persist();
+  }
+
+  /// Marks the current expedition fight as battle phase before launch.
+  bool beginExpeditionBattle() {
+    final run = state.activeExpedition;
+    if (run == null) return false;
+    if (run.phase != ExpeditionPhase.hub &&
+        run.phase != ExpeditionPhase.battle) {
+      return false;
+    }
+    state = state.copyWith(
+      activeExpedition: run.copyWith(phase: ExpeditionPhase.battle),
+    );
+    _persist();
+    return true;
+  }
+
+  /// Settles an expedition battle. Returns coins granted (0 until final settle).
+  Future<int> applyExpeditionBattleResult({
+    required bool won,
+    required BattleProgress progress,
+  }) async {
+    final run = state.activeExpedition;
+    if (run == null) return 0;
+
+    if (!won) {
+      if (!run.retryUsed) {
+        state = state.copyWith(
+          activeExpedition: run.copyWith(
+            phase: ExpeditionPhase.hub,
+            retryUsed: true,
+          ),
+        );
+        await _persist();
+        return 0;
+      }
+      state = state.copyWith(
+        coins: state.coins + ExpeditionBalance.failCoinReward,
+        activeExpedition: run.copyWith(phase: ExpeditionPhase.failed),
+      );
+      _recordMasteryProgress(
+        heroId: run.heroId,
+        progress: progress,
+        won: false,
+      );
+      await _persist();
+      return ExpeditionBalance.failCoinReward;
+    }
+
+    _recordMasteryProgress(heroId: run.heroId, progress: progress);
+
+    if (run.isBossFight) {
+      state = state.copyWith(
+        coins: state.coins + ExpeditionBalance.clearCoinReward,
+        activeExpedition: run.copyWith(phase: ExpeditionPhase.settled),
+        masteryProgressByHero: _bumpExpeditionClear(run.heroId),
+      );
+      await _persist();
+      return ExpeditionBalance.clearCoinReward;
+    }
+
+    final offers = RelicCatalog.offerThree(
+      seed: run.seed + run.battleIndex * 97,
+      ownedIds: run.relicIds.toSet(),
+    );
+    state = state.copyWith(
+      activeExpedition: run.copyWith(
+        phase: ExpeditionPhase.relicPick,
+        pendingRelicOffers: [for (final o in offers) o.id],
+      ),
+    );
+    await _persist();
+    return 0;
+  }
+
+  /// Picks one offered relic and advances to the next fight hub.
+  bool chooseExpeditionRelic(String relicId) {
+    final run = state.activeExpedition;
+    if (run == null || run.phase != ExpeditionPhase.relicPick) return false;
+    if (!run.pendingRelicOffers.contains(relicId)) return false;
+    state = state.copyWith(
+      activeExpedition: run.copyWith(
+        phase: ExpeditionPhase.hub,
+        battleIndex: run.battleIndex + 1,
+        relicIds: [...run.relicIds, relicId],
+        pendingRelicOffers: const [],
+      ),
+    );
+    _persist();
+    return true;
+  }
+
+  void clearSettledExpedition() {
+    final run = state.activeExpedition;
+    if (run == null) return;
+    if (run.phase != ExpeditionPhase.settled &&
+        run.phase != ExpeditionPhase.failed) {
+      return;
+    }
+    state = state.copyWith(clearActiveExpedition: true);
+    _persist();
+  }
+
+  Map<String, HeroMasteryCounters> _bumpExpeditionClear(String heroId) {
+    final next = Map<String, HeroMasteryCounters>.from(
+      state.masteryProgressByHero,
+    );
+    final cur = next[heroId] ?? const HeroMasteryCounters();
+    next[heroId] = cur.copyWith(expeditionClears: cur.expeditionClears + 1);
+    return next;
+  }
+
+  void _recordMasteryProgress({
+    required String heroId,
+    required BattleProgress progress,
+    bool won = true,
+  }) {
+    if (HeroCatalog.tryById(heroId) == null) return;
+    final next = Map<String, HeroMasteryCounters>.from(
+      state.masteryProgressByHero,
+    );
+    final cur = next[heroId] ?? const HeroMasteryCounters();
+    next[heroId] = cur.copyWith(
+      wins: won ? cur.wins + 1 : cur.wins,
+      skillsCast: cur.skillsCast + progress.skillsCastCount,
+    );
+    state = state.copyWith(masteryProgressByHero: next);
+  }
+
+  /// Claim a met mastery tier. Returns true if granted.
+  bool claimMastery(String masteryId) {
+    final def = MasteryCatalog.byId(masteryId);
+    if (def == null) return false;
+    if (state.claimedMasteryIds.contains(masteryId)) return false;
+    final counters = state.masteryFor(def.heroId);
+    if (counters.valueFor(def.condition) < def.target) return false;
+
+    var skills = Set<String>.from(state.unlockedMasterySkillIds);
+    var cosmetics = Set<String>.from(state.claimedCosmeticIds);
+    switch (def.rewardType) {
+      case MasteryRewardType.unlockSkill:
+        if (def.rewardSkillId != null) skills.add(def.rewardSkillId!);
+      case MasteryRewardType.cosmeticTitle:
+      case MasteryRewardType.cosmeticFrame:
+        if (def.rewardCosmeticId != null) {
+          cosmetics.add(def.rewardCosmeticId!);
+        }
+    }
+    state = state.copyWith(
+      claimedMasteryIds: {...state.claimedMasteryIds, masteryId},
+      unlockedMasterySkillIds: skills,
+      claimedCosmeticIds: cosmetics,
+    );
+    _persist();
+    return true;
   }
 
   /// Campaign defeat spends one life (Balancing Bible §4).

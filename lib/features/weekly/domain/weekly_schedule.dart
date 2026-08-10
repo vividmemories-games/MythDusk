@@ -1,41 +1,7 @@
-/// Weekly objective types (Mon–Fri puzzle modes).
-enum WeeklyObjectiveType {
-  surviveTurns,
-  clearTiles,
-}
+import '../../battle/domain/battle_objective.dart';
 
-/// Battle-side objective progress (null for normal campaign HP fights).
-class BattleObjective {
-  const BattleObjective({
-    required this.type,
-    required this.target,
-  });
-
-  final WeeklyObjectiveType type;
-  final int target;
-
-  String get progressLabel => switch (type) {
-        WeeklyObjectiveType.surviveTurns => 'Survive $target turns',
-        WeeklyObjectiveType.clearTiles => 'Clear $target tiles',
-      };
-
-  String progressText(
-      {required int playerTurnNumber, required int tilesCleared}) {
-    return switch (type) {
-      WeeklyObjectiveType.surviveTurns =>
-        'Turn ${playerTurnNumber.clamp(0, target)}/$target',
-      WeeklyObjectiveType.clearTiles =>
-        'Tiles ${tilesCleared.clamp(0, target)}/$target',
-    };
-  }
-
-  bool isMet({required int playerTurnNumber, required int tilesCleared}) {
-    return switch (type) {
-      WeeklyObjectiveType.surviveTurns => playerTurnNumber >= target,
-      WeeklyObjectiveType.clearTiles => tilesCleared >= target,
-    };
-  }
-}
+export '../../battle/domain/battle_objective.dart'
+    show BattleObjective, BattleObjectiveType, WeeklyObjectiveType;
 
 /// One day's weekly challenge (objective or weekend boss).
 class WeeklyChallenge {
@@ -144,8 +110,8 @@ abstract final class WeeklySchedule {
     final survive = _hash(key) % 2 == 0;
     final objective = BattleObjective(
       type: survive
-          ? WeeklyObjectiveType.surviveTurns
-          : WeeklyObjectiveType.clearTiles,
+          ? BattleObjectiveType.surviveTurns
+          : BattleObjectiveType.clearTiles,
       target: survive
           ? WeeklyBalance.surviveTurnsTarget
           : WeeklyBalance.clearTilesTarget,

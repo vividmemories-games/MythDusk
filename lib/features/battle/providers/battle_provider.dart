@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../campaign/data/campaign_repository.dart';
 import '../../heroes/domain/hero_def.dart';
+import '../../heroes/domain/hero_loadout.dart';
 import '../../prep/domain/prep_item.dart';
 import '../../profile/domain/economy_balance.dart';
 import '../../profile/providers/mock_profile_provider.dart';
@@ -11,6 +12,9 @@ import '../../puzzle/domain/level_board_config.dart';
 import '../../puzzle/domain/overlay_def.dart';
 import '../../puzzle/domain/puzzle_board.dart';
 import '../../puzzle/domain/puzzle_engine.dart';
+import '../../daily/domain/daily_schedule.dart';
+import '../../daily/providers/daily_providers.dart';
+import '../../expedition/domain/expedition_models.dart';
 import '../../weekly/domain/weekly_schedule.dart';
 import '../../weekly/providers/weekly_providers.dart';
 import '../domain/battle_state.dart';
@@ -32,7 +36,16 @@ final battleProvider = StateNotifierProvider.autoDispose
   final equippedIds = ref.watch(
     profileProvider.select((p) => p.equippedSkillIdsFor(heroId).join(',')),
   );
+  final masterySkills = ref.watch(
+    profileProvider.select((p) => p.unlockedMasterySkillIds.join(',')),
+  );
   final hero = HeroCatalog.byId(heroId)
+      .withSkills(
+        HeroLoadout.availableSkills(
+          HeroCatalog.byId(heroId),
+          masterySkills.split(',').where((id) => id.isNotEmpty).toSet(),
+        ),
+      )
       .withCombatMultipliers(
         hpMult: EconomyBalance.multiplierFor(upgradeSnapshot.$1),
         damageMult: EconomyBalance.multiplierFor(upgradeSnapshot.$2),
@@ -63,6 +76,56 @@ final battleProvider = StateNotifierProvider.autoDispose
       equippedPrep: equipped,
       isWeekly: true,
       objective: challenge.objective,
+      onSecondWindUsed: () {
+        ref.read(profileProvider.notifier).markSecondWindUsed();
+      },
+    );
+  }
+
+  final isDaily = nodeId == DailyBalance.battleNodeId;
+  if (isDaily) {
+    final contract = ref.watch(dailyContractProvider);
+    final equipped = List<PrepItemId>.from(ref.read(pendingBossPrepProvider));
+    if (equipped.isNotEmpty) {
+      ref.read(pendingBossPrepProvider.notifier).state = const [];
+    }
+    return BattleNotifier(
+      hero: hero,
+      enemy: EnemyCatalog.byId(contract.enemyId),
+      nodeId: DailyBalance.battleNodeId,
+      nodeName: contract.title,
+      coinReward: contract.coinReward,
+      minMoves: PrepBalance.defaultMinMoves,
+      equippedPrep: equipped,
+      isDaily: true,
+      objective: contract.objective,
+      onSecondWindUsed: () {
+        ref.read(profileProvider.notifier).markSecondWindUsed();
+      },
+    );
+  }
+
+  final isExpedition = nodeId == ExpeditionBalance.battleNodeId;
+  if (isExpedition) {
+    final run = ref.watch(profileProvider.select((p) => p.activeExpedition));
+    if (run == null) {
+      throw StateError('No active expedition for battle');
+    }
+    final encounter = run.encounter;
+    final equipped = List<PrepItemId>.from(ref.read(pendingBossPrepProvider));
+    if (equipped.isNotEmpty) {
+      ref.read(pendingBossPrepProvider.notifier).state = const [];
+    }
+    return BattleNotifier(
+      hero: hero,
+      enemy: ExpeditionBalance.enemyFor(encounter),
+      nodeId: ExpeditionBalance.battleNodeId,
+      nodeName: encounter.label,
+      coinReward: encounter.isBoss ? ExpeditionBalance.clearCoinReward : 0,
+      minMoves: PrepBalance.defaultMinMoves,
+      equippedPrep: equipped,
+      isExpedition: true,
+      relicIds: run.relicIds,
       onSecondWindUsed: () {
         ref.read(profileProvider.notifier).markSecondWindUsed();
       },
@@ -149,6 +212,9 @@ class BattleNotifier extends StateNotifier<BattleState> {
     PuzzleBoard? Function()? boardFactory,
     void Function()? onSecondWindUsed,
     bool isWeekly = false,
+    bool isDaily = false,
+    bool isExpedition = false,
+    List<String> relicIds = const [],
     BattleObjective? objective,
     HazardSpawnConfig? hazardSpawn,
     OverlayDef? hazardOverlayDef,
@@ -172,6 +238,9 @@ class BattleNotifier extends StateNotifier<BattleState> {
             movers: movers,
             board: boardFactory?.call(),
             isWeekly: isWeekly,
+            isDaily: isDaily,
+            isExpedition: isExpedition,
+            relicIds: relicIds,
             objective: objective,
             hazardSpawn: hazardSpawn,
             hazardOverlayDef: hazardOverlayDef,
@@ -205,6 +274,9 @@ class BattleNotifier extends StateNotifier<BattleState> {
     List<BoardMoverConfig> movers = const [],
     PuzzleBoard? board,
     bool isWeekly = false,
+    bool isDaily = false,
+    bool isExpedition = false,
+    List<String> relicIds = const [],
     BattleObjective? objective,
     HazardSpawnConfig? hazardSpawn,
     OverlayDef? hazardOverlayDef,
@@ -242,6 +314,9 @@ class BattleNotifier extends StateNotifier<BattleState> {
       movers: movers,
       prepLogNotes: notes,
       isWeekly: isWeekly,
+      isDaily: isDaily,
+      isExpedition: isExpedition,
+      relicIds: relicIds,
       objective: objective,
       hazardSpawn: hazardSpawn,
       hazardOverlayDef: hazardOverlayDef,
@@ -289,6 +364,21 @@ class BattleNotifier extends StateNotifier<BattleState> {
     }
 
     _runSwap(selected, (row, col));
+  }
+
+  /// Primary board input: swipe a gem into an orthogonal neighbor.
+  void swipeCell((int, int) from, (int, int) to) {
+    if (state.inputLocked || state.movesLeft <= 0) return;
+    if (!state.board.inBounds(from.$1, from.$2)) return;
+    if (!state.board.inBounds(to.$1, to.$2)) return;
+    if (!state.board.at(from.$1, from.$2).isPlayable) return;
+    if (!state.board.at(to.$1, to.$2).isPlayable) return;
+    if (!PuzzleEngine.areAdjacent(from, to)) return;
+
+    _controller.state = state;
+    _controller.clearHint();
+    state = _controller.state;
+    _runSwap(from, to);
   }
 
   void showHint(Set<(int, int)> cells) {
@@ -340,7 +430,14 @@ class BattleNotifier extends StateNotifier<BattleState> {
 
     for (final step in cascade.steps) {
       _controller.state = state;
-      _controller.applyMatchRewards(step.match);
+      final overlaysBroken = PuzzleEngine.countOverlaysFullyBroken(
+        boardWithMatches,
+        step.boardAfterClear,
+      );
+      _controller.applyMatchRewards(
+        step.match,
+        overlaysBrokenDelta: overlaysBroken,
+      );
       _controller.showClearing(boardWithMatches, step.clearingCells);
       final powerNote = [
         if (step.match.mergeLabel != null) step.match.mergeLabel!,

@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/assets/game_assets.dart';
+import '../../battle/domain/battle_objective.dart';
 import '../../campaign/data/campaign_repository.dart';
 import '../../campaign/domain/campaign_models.dart';
+import '../../daily/providers/daily_providers.dart';
 import '../../heroes/domain/hero_def.dart';
 import '../../profile/providers/mock_profile_provider.dart';
 import '../../../shared/presentation/content_error_screen.dart';
@@ -19,17 +21,31 @@ class BattleResultArgs {
     required this.coinReward,
     this.bossFled = false,
     this.isWeekly = false,
+    this.isDaily = false,
+    this.isExpedition = false,
     this.weeklyDayKey,
+    this.dailyDayKey,
+    this.progress,
+    this.heroHp = 0,
+    this.heroMaxHp = 1,
+    this.bossForm,
   });
 
   final bool won;
   final bool bossFled;
   final bool isWeekly;
+  final bool isDaily;
+  final bool isExpedition;
   final String? weeklyDayKey;
+  final String? dailyDayKey;
   final String nodeId;
   final String nodeName;
   final String enemyName;
   final int coinReward;
+  final BattleProgress? progress;
+  final int heroHp;
+  final int heroMaxHp;
+  final int? bossForm;
 }
 
 class BattleResultScreen extends ConsumerStatefulWidget {
@@ -55,6 +71,16 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
   Future<void> _applyReward() async {
     if (_applied) return;
     _applied = true;
+    if (widget.args.isExpedition) {
+      final progress = widget.args.progress ?? const BattleProgress();
+      final granted =
+          await ref.read(profileProvider.notifier).applyExpeditionBattleResult(
+                won: widget.args.won,
+                progress: progress,
+              );
+      if (mounted) setState(() => _grantedCoins = granted);
+      return;
+    }
     if (!widget.args.won) {
       await ref.read(profileProvider.notifier).applyDefeat();
       return;
@@ -69,6 +95,18 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
       if (mounted) setState(() => _grantedCoins = granted);
       return;
     }
+    if (widget.args.isDaily) {
+      final contract = ref.read(dailyContractProvider);
+      final progress = widget.args.progress ?? const BattleProgress();
+      final result = await ref.read(profileProvider.notifier).applyDailyVictory(
+            contract: contract,
+            progress: progress,
+            heroHp: widget.args.heroHp,
+            heroMaxHp: widget.args.heroMaxHp,
+          );
+      if (mounted) setState(() => _grantedCoins = result.coins);
+      return;
+    }
     try {
       final chapter = await ref.read(campaignChapterProvider.future);
       final node = chapter.nodeById(widget.args.nodeId);
@@ -79,6 +117,11 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
             isBoss: node.isBoss,
             actIndex: actIndex,
             nodePrepDrops: node.prepDrops,
+            chapterId: chapter.id,
+            progress: widget.args.progress,
+            heroHp: widget.args.heroHp,
+            heroMaxHp: widget.args.heroMaxHp,
+            bossForm: widget.args.bossForm ?? node.bossForm,
           );
       if (mounted) setState(() => _grantedCoins = widget.args.coinReward);
     } on Object {
@@ -98,7 +141,9 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
         message: error,
       );
     }
-    if (widget.args.isWeekly) {
+    if (widget.args.isWeekly ||
+        widget.args.isDaily ||
+        widget.args.isExpedition) {
       return _buildResult(context);
     }
     final chapterAsync = ref.watch(campaignChapterProvider);
@@ -180,7 +225,8 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                 textAlign: TextAlign.center,
                 style: textTheme.bodyMedium,
               ),
-              if (args.won) ...[
+              if (args.won ||
+                  (args.isExpedition && !args.won && _grantedCoins > 0)) ...[
                 const SizedBox(height: 24),
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -195,12 +241,21 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                       const SizedBox(height: 8),
                       Text(
                         !args.won
-                            ? '+0 coins'
+                            ? (args.isExpedition
+                                ? (_grantedCoins > 0
+                                    ? '+$_grantedCoins coins (run failed)'
+                                    : 'Retry available — return to Expedition')
+                                : '+0 coins')
                             : (!_applied
                                 ? '+${args.coinReward} coins'
-                                : (args.isWeekly && _grantedCoins == 0
-                                    ? 'Already claimed today'
-                                    : '+${args.isWeekly ? _grantedCoins : args.coinReward} coins')),
+                                : ((args.isWeekly ||
+                                            args.isDaily ||
+                                            args.isExpedition) &&
+                                        _grantedCoins == 0
+                                    ? (args.isExpedition
+                                        ? 'Choose a relic on the Expedition screen'
+                                        : 'Already claimed today')
+                                    : '+${(args.isWeekly || args.isDaily || args.isExpedition) ? _grantedCoins : args.coinReward} coins')),
                         style: textTheme.headlineMedium?.copyWith(
                           color: MythDuskColors.softGold,
                         ),
@@ -210,7 +265,11 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                         'Purse: ${profile.coins} coins',
                         style: textTheme.bodyMedium,
                       ),
-                      if (!args.isWeekly && currentNode?.isBoss != true) ...[
+                      if (args.won &&
+                          !args.isWeekly &&
+                          !args.isDaily &&
+                          !args.isExpedition &&
+                          currentNode?.isBoss != true) ...[
                         const SizedBox(height: 6),
                         Text(
                           '+1 Vanguard Tonic (prep stash)',
@@ -227,6 +286,8 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
               const Spacer(),
               if (args.won &&
                   !args.isWeekly &&
+                  !args.isDaily &&
+                  !args.isExpedition &&
                   profile.pendingUnlockCelebrations.isNotEmpty) ...[
                 FilledButton(
                   onPressed: () {
@@ -255,33 +316,65 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                   ),
                 ),
               if (args.won && nextNodeId != null) const SizedBox(height: 10),
-              if (!args.won)
+              if (args.isExpedition)
+                FilledButton(
+                  onPressed: () => context.go('/expedition'),
+                  child: Text(
+                    args.won ? 'Continue expedition' : 'Back to expedition',
+                  ),
+                ),
+              if (args.isExpedition) const SizedBox(height: 10),
+              if (!args.won && !args.isExpedition)
                 FilledButton(
                   onPressed: () => _goBattle(args.nodeId),
                   child: const Text('Retry'),
                 ),
-              if (!args.won) const SizedBox(height: 10),
+              if (!args.won && !args.isExpedition) const SizedBox(height: 10),
               OutlinedButton(
                 onPressed: () {
                   final pending = profile.pendingUnlockCelebrations;
-                  if (args.won && !args.isWeekly && pending.isNotEmpty) {
+                  if (args.won &&
+                      !args.isWeekly &&
+                      !args.isDaily &&
+                      !args.isExpedition &&
+                      pending.isNotEmpty) {
                     context.go('/hero_unlock/${pending.first}');
                     return;
                   }
-                  context.go(args.isWeekly ? '/weekly' : '/campaign');
+                  if (args.isWeekly) {
+                    context.go('/weekly');
+                  } else if (args.isDaily) {
+                    context.go('/daily');
+                  } else if (args.isExpedition) {
+                    context.go('/expedition');
+                  } else {
+                    context.go('/campaign');
+                  }
                 },
                 style: OutlinedButton.styleFrom(
                   foregroundColor: MythDuskColors.parchment,
                   side: const BorderSide(color: MythDuskColors.mist),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                child: Text(args.isWeekly ? 'Weekly' : 'Campaign map'),
+                child: Text(
+                  args.isWeekly
+                      ? 'Weekly'
+                      : args.isDaily
+                          ? 'Daily'
+                          : args.isExpedition
+                              ? 'Expedition'
+                              : 'Campaign map',
+                ),
               ),
               const SizedBox(height: 10),
               TextButton(
                 onPressed: () {
                   final pending = profile.pendingUnlockCelebrations;
-                  if (args.won && !args.isWeekly && pending.isNotEmpty) {
+                  if (args.won &&
+                      !args.isWeekly &&
+                      !args.isDaily &&
+                      !args.isExpedition &&
+                      pending.isNotEmpty) {
                     context.go('/hero_unlock/${pending.first}');
                     return;
                   }
@@ -298,11 +391,19 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
 
   Future<void> _goBattle(String nodeId) async {
     if (widget.args.isWeekly || nodeId == 'weekly') {
-      if (widget.args.isWeekly) {
-        if (!mounted) return;
-        context.go('/weekly');
-        return;
-      }
+      if (!mounted) return;
+      context.go('/weekly');
+      return;
+    }
+    if (widget.args.isDaily || nodeId == 'daily') {
+      if (!mounted) return;
+      context.go('/daily');
+      return;
+    }
+    if (widget.args.isExpedition || nodeId == 'expedition') {
+      if (!mounted) return;
+      context.go('/expedition');
+      return;
     }
     if (!mounted) return;
     context.go('/briefing/$nodeId');

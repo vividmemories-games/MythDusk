@@ -97,6 +97,8 @@ abstract final class GameAssets {
       'weekly_scout' => 'assets/enemies/enemy_goblin.webp',
       'shaman' => 'assets/enemies/enemy_shaman.webp',
       'mire_spawn' => 'assets/enemies/enemy_mire_spawn.webp',
+      'leech_wisp' => 'assets/enemies/enemy_mire_spawn.webp',
+      'hexer' => 'assets/enemies/enemy_shaman.webp',
       'ridge_hawk' => 'assets/enemies/enemy_ridge_hawk.webp',
       'brute' => 'assets/enemies/enemy_brute.webp',
       'crypt_skel' => 'assets/enemies/enemy_crypt_skel.webp',

@@ -49,6 +49,19 @@ class HeroDef {
     );
   }
 
+  /// Replaces the skill list (catalog filtering / loadouts).
+  HeroDef withSkills(List<SkillDef> next) {
+    return HeroDef(
+      id: id,
+      name: name,
+      movesPerTurn: movesPerTurn,
+      maxAp: maxAp,
+      maxHp: maxHp,
+      primaryResources: primaryResources,
+      skills: next,
+    );
+  }
+
   /// Keeps only [skillIds] (order preserved). Unknown ids are skipped.
   HeroDef withEquippedSkillIds(List<String> skillIds) {
     final byId = {for (final s in skills) s.id: s};
@@ -57,15 +70,7 @@ class HeroDef {
         if (byId[id] case final skill?) skill,
     ];
     if (equipped.isEmpty) return this;
-    return HeroDef(
-      id: id,
-      name: name,
-      movesPerTurn: movesPerTurn,
-      maxAp: maxAp,
-      maxHp: maxHp,
-      primaryResources: primaryResources,
-      skills: equipped,
-    );
+    return withSkills(equipped);
   }
 
   bool hasSkill(String skillId) => skills.any((s) => s.id == skillId);
@@ -95,7 +100,8 @@ class SkillDef {
 
 /// Placeholder roster — numbers from docs/GAMEPLAY.md.
 ///
-/// Each hero has three skills; battles equip exactly two ([HeroLoadout]).
+/// Each hero has four catalog skills; battles equip exactly two ([HeroLoadout]).
+/// Skill 4 is mastery-gated (see [MasteryCatalog]).
 abstract final class HeroCatalog {
   static const mage = HeroDef(
     id: 'mage',
@@ -126,6 +132,13 @@ abstract final class HeroCatalog {
         resourceCosts: {'mana': 6},
         damage: 0,
         shield: 18,
+      ),
+      SkillDef(
+        id: 'meteor_shard',
+        name: 'Meteor Shard',
+        apCost: 3,
+        resourceCosts: {'mana': 10, 'ultimate': 4},
+        damage: 36,
       ),
     ],
   );
@@ -161,6 +174,14 @@ abstract final class HeroCatalog {
         damage: 0,
         heal: 12,
       ),
+      SkillDef(
+        id: 'bulwark_slam',
+        name: 'Bulwark Slam',
+        apCost: 3,
+        resourceCosts: {'attack': 8, 'shield': 6},
+        damage: 22,
+        shield: 12,
+      ),
     ],
   );
 
@@ -193,6 +214,13 @@ abstract final class HeroCatalog {
         resourceCosts: {'healing': 6},
         damage: 0,
         heal: 14,
+      ),
+      SkillDef(
+        id: 'volley_rain',
+        name: 'Volley Rain',
+        apCost: 3,
+        resourceCosts: {'attack': 10},
+        damage: 34,
       ),
     ],
   );
@@ -228,6 +256,15 @@ abstract final class HeroCatalog {
         damage: 0,
         shield: 18,
       ),
+      SkillDef(
+        id: 'sanctuary',
+        name: 'Sanctuary',
+        apCost: 3,
+        resourceCosts: {'healing': 8, 'mana': 6},
+        damage: 0,
+        heal: 28,
+        shield: 14,
+      ),
     ],
   );
 
@@ -260,6 +297,13 @@ abstract final class HeroCatalog {
         resourceCosts: {'ultimate': 4},
         damage: 0,
         shield: 14,
+      ),
+      SkillDef(
+        id: 'shadow_bind',
+        name: 'Shadow Bind',
+        apCost: 3,
+        resourceCosts: {'attack': 6, 'ultimate': 8},
+        damage: 32,
       ),
     ],
   );

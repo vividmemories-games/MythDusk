@@ -139,6 +139,51 @@ abstract final class EnemyCatalog {
     ],
   );
 
+  /// Mistfen trash — drains healing energy and restores own HP.
+  static const leechWisp = EnemyDef(
+    id: 'leech_wisp',
+    name: 'Leech Wisp',
+    maxHp: 55,
+    blurb: 'A hungry mist that drinks green energy.',
+    skills: [
+      EnemySkill(id: 'sting', name: 'Sting', damage: 5, weight: 40),
+      EnemySkill(id: 'sip', name: 'Sip', damage: 8, weight: 35),
+      EnemySkill(
+        id: 'leech',
+        name: 'Leech',
+        damage: 6,
+        weight: 25,
+        effects: [
+          DrainResourceEffect(resource: BattleResource.healing, amount: 4),
+          HealSelfEffect(amount: 8),
+        ],
+      ),
+    ],
+  );
+
+  /// Mid-campaign hexer — warps board spawn weights for the rest of battle.
+  static const hexer = EnemyDef(
+    id: 'hexer',
+    name: 'Bog Hexer',
+    maxHp: 58,
+    blurb: 'Twists the marsh so purple seeps in and green fades.',
+    skills: [
+      EnemySkill(id: 'jab', name: 'Jab', damage: 6, weight: 40),
+      EnemySkill(id: 'bolt', name: 'Hex Bolt', damage: 10, weight: 30),
+      EnemySkill(
+        id: 'warp',
+        name: 'Warp Hex',
+        damage: 5,
+        weight: 30,
+        effects: [
+          ModifySpawnWeightsEffect(
+            weights: {'purple': 3.0, 'green': 0.25},
+          ),
+        ],
+      ),
+    ],
+  );
+
   static const ridgeHawk = EnemyDef(
     id: 'ridge_hawk',
     name: 'Ridge Hawk',
@@ -411,6 +456,8 @@ abstract final class EnemyCatalog {
     wolf,
     shaman,
     mireSpawn,
+    leechWisp,
+    hexer,
     ridgeHawk,
     brute,
     cryptSkel,

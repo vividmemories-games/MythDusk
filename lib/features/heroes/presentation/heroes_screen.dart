@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/assets/game_assets.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/opaque_character_art.dart';
 import '../../home/presentation/home_hub_widgets.dart';
+import '../../mastery/domain/mastery_catalog.dart';
 import '../../profile/domain/economy_balance.dart';
 import '../../profile/providers/mock_profile_provider.dart';
 import '../domain/hero_def.dart';
@@ -101,10 +103,11 @@ class _HeroesScreenState extends ConsumerState<HeroesScreen> {
               itemBuilder: (context, i) {
                 final h = _heroes[i];
                 final pageUnlocked = HeroUnlocks.isUnlocked(h.id, clears);
-                return Opacity(
-                  opacity: pageUnlocked ? 1 : 0.4,
-                  child: Image.asset(
-                    GameAssets.hero(h.id),
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 28),
+                  child: OpaqueCharacterArt(
+                    assetPath: GameAssets.hero(h.id),
+                    locked: !pageUnlocked,
                     fit: BoxFit.contain,
                     errorBuilder: (_, __, ___) => const Icon(
                       Icons.person,
@@ -184,20 +187,31 @@ class _HeroesScreenState extends ConsumerState<HeroesScreen> {
           const SizedBox(height: 8),
           Builder(
             builder: (context) {
+              final catalog = HeroCatalog.byId(hero.id);
               final scaled = profile.scaledHero(hero.id);
+              final scaledById = {for (final s in scaled.skills) s.id: s};
               final equipped = profile.equippedSkillIdsFor(hero.id);
               return Column(
                 children: [
-                  for (final skill in scaled.skills) ...[
-                    _SkillCard(
-                      skill: skill,
-                      equipped: equipped.contains(skill.id),
-                      canEdit: unlocked,
-                      onToggle: unlocked
-                          ? () => ref
-                              .read(profileProvider.notifier)
-                              .toggleEquippedSkill(hero.id, skill.id)
-                          : null,
+                  for (var i = 0; i < catalog.skills.length; i++) ...[
+                    Builder(
+                      builder: (context) {
+                        final skill = catalog.skills[i];
+                        final locked = i >= 3 &&
+                            !profile.unlockedMasterySkillIds.contains(skill.id);
+                        final display = scaledById[skill.id] ?? skill;
+                        return _SkillCard(
+                          skill: display,
+                          equipped: equipped.contains(skill.id),
+                          canEdit: unlocked && !locked,
+                          locked: locked,
+                          onToggle: unlocked && !locked
+                              ? () => ref
+                                  .read(profileProvider.notifier)
+                                  .toggleEquippedSkill(hero.id, skill.id)
+                              : null,
+                        );
+                      },
                     ),
                     const SizedBox(height: 8),
                   ],
@@ -205,6 +219,19 @@ class _HeroesScreenState extends ConsumerState<HeroesScreen> {
               );
             },
           ),
+          const SizedBox(height: 12),
+          Text('Mastery', style: textTheme.titleMedium),
+          Text(
+            unlocked
+                ? 'Long-term challenges unlock skill 4 and cosmetic stubs.'
+                : 'Unlock this hero to train mastery.',
+            style: textTheme.bodyMedium?.copyWith(fontSize: 12),
+          ),
+          const SizedBox(height: 8),
+          for (final def in MasteryCatalog.forHero(hero.id)) ...[
+            _MasteryRow(def: def, heroId: hero.id, canEdit: unlocked),
+            const SizedBox(height: 8),
+          ],
           const SizedBox(height: 12),
           Text('Personality', style: textTheme.titleMedium),
           Text(
@@ -229,12 +256,14 @@ class _SkillCard extends StatelessWidget {
     required this.skill,
     required this.equipped,
     required this.canEdit,
+    this.locked = false,
     this.onToggle,
   });
 
   final SkillDef skill;
   final bool equipped;
   final bool canEdit;
+  final bool locked;
   final VoidCallback? onToggle;
 
   @override
@@ -254,15 +283,17 @@ class _SkillCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: onToggle,
+        onTap: locked ? null : onToggle,
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: equipped
-                  ? HubColors.glow
-                  : HubColors.frameGold.withValues(alpha: 0.4),
+              color: locked
+                  ? MythDuskColors.muted
+                  : equipped
+                      ? HubColors.glow
+                      : HubColors.frameGold.withValues(alpha: 0.4),
               width: equipped ? 1.5 : 1,
             ),
           ),
@@ -275,20 +306,22 @@ class _SkillCard extends StatelessWidget {
                   children: [
                     Text(
                       skill.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w700,
-                        color: MythDuskColors.parchment,
+                        color: locked
+                            ? MythDuskColors.muted
+                            : MythDuskColors.parchment,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      costs,
+                      locked ? 'Locked — claim Mastery tier 2' : costs,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontSize: 12,
                             color: MythDuskColors.softGold,
                           ),
                     ),
-                    if (effects.isNotEmpty)
+                    if (!locked && effects.isNotEmpty)
                       Text(
                         effects,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -298,7 +331,13 @@ class _SkillCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (canEdit)
+              if (locked)
+                const Padding(
+                  padding: EdgeInsets.only(left: 8, top: 2),
+                  child: Icon(Icons.lock_outline,
+                      size: 18, color: MythDuskColors.muted),
+                )
+              else if (canEdit)
                 Padding(
                   padding: const EdgeInsets.only(left: 8, top: 2),
                   child: Text(
@@ -313,6 +352,90 @@ class _SkillCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _MasteryRow extends ConsumerWidget {
+  const _MasteryRow({
+    required this.def,
+    required this.heroId,
+    required this.canEdit,
+  });
+
+  final MasteryDefinition def;
+  final String heroId;
+  final bool canEdit;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(profileProvider);
+    final counters = profile.masteryFor(heroId);
+    final current = counters.valueFor(def.condition);
+    final claimed = profile.isMasteryClaimed(def.id);
+    final met = current >= def.target;
+    final rewardLabel = switch (def.rewardType) {
+      MasteryRewardType.unlockSkill => 'Unlock ${def.rewardSkillId}',
+      MasteryRewardType.cosmeticTitle => 'Title stub',
+      MasteryRewardType.cosmeticFrame => 'Frame stub',
+    };
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: HubColors.panel,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: HubColors.frameGold.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'T${def.tier} · ${def.title}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: MythDuskColors.parchment,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$current / ${def.target} · $rewardLabel',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontSize: 12,
+                        color: MythDuskColors.muted,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          if (claimed)
+            const Text(
+              'Claimed',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: HubColors.glow,
+              ),
+            )
+          else if (met && canEdit)
+            TextButton(
+              onPressed: () {
+                ref.read(profileProvider.notifier).claimMastery(def.id);
+              },
+              child: const Text('Claim'),
+            )
+          else
+            Text(
+              met ? 'Ready' : 'In progress',
+              style: const TextStyle(fontSize: 11, color: MythDuskColors.muted),
+            ),
+        ],
       ),
     );
   }

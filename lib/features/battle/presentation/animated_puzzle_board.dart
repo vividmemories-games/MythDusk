@@ -15,10 +15,14 @@ class AnimatedPuzzleBoard extends StatelessWidget {
     super.key,
     required this.battle,
     required this.onTap,
+    this.onSwipe,
   });
 
   final BattleState battle;
   final void Function(int row, int col) onTap;
+
+  /// Primary match-3 input: swipe from one cell toward an adjacent neighbor.
+  final void Function((int, int) from, (int, int) to)? onSwipe;
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +46,7 @@ class AnimatedPuzzleBoard extends StatelessWidget {
               child: _BoardSurface(
                 battle: battle,
                 onTap: onTap,
+                onSwipe: onSwipe,
               ),
             ),
           ),
@@ -55,10 +60,12 @@ class _BoardSurface extends StatelessWidget {
   const _BoardSurface({
     required this.battle,
     required this.onTap,
+    this.onSwipe,
   });
 
   final BattleState battle;
   final void Function(int row, int col) onTap;
+  final void Function((int, int) from, (int, int) to)? onSwipe;
 
   @override
   Widget build(BuildContext context) {
@@ -135,6 +142,9 @@ class _BoardSurface extends StatelessWidget {
                     hazardPulse: battle.hazardPulseCells.contains((row, col)),
                     interactive: !battle.inputLocked,
                     onTap: () => onTap(row, col),
+                    onSwipe: onSwipe == null
+                        ? null
+                        : (to) => onSwipe!((row, col), to),
                   ),
           ],
         );
@@ -431,6 +441,7 @@ class _BoardTile extends StatefulWidget {
     required this.hazardPulse,
     required this.interactive,
     required this.onTap,
+    this.onSwipe,
   });
 
   final int id;
@@ -452,6 +463,7 @@ class _BoardTile extends StatefulWidget {
   final bool hazardPulse;
   final bool interactive;
   final VoidCallback onTap;
+  final void Function((int, int) to)? onSwipe;
 
   @override
   State<_BoardTile> createState() => _BoardTileState();
@@ -463,6 +475,8 @@ class _BoardTileState extends State<_BoardTile> {
   var _spawnDropPending = false;
   var _teleport = false;
   var _wrapFlash = false;
+  var _swipeFired = false;
+  var _panAccum = Offset.zero;
 
   double get _targetLeft => widget.col * (widget.cellW + widget.gap);
   double get _targetTop => widget.row * (widget.cellH + widget.gap);
@@ -715,9 +729,48 @@ class _BoardTileState extends State<_BoardTile> {
       height: widget.cellH,
       child: GestureDetector(
         onTap: widget.interactive ? widget.onTap : null,
+        onPanStart: widget.interactive && widget.onSwipe != null
+            ? (_) {
+                _swipeFired = false;
+                _panAccum = Offset.zero;
+              }
+            : null,
+        onPanUpdate: widget.interactive && widget.onSwipe != null
+            ? _handlePanUpdate
+            : null,
+        onPanEnd: widget.interactive && widget.onSwipe != null
+            ? (_) {
+                _swipeFired = false;
+                _panAccum = Offset.zero;
+              }
+            : null,
+        onPanCancel: widget.interactive && widget.onSwipe != null
+            ? () {
+                _swipeFired = false;
+                _panAccum = Offset.zero;
+              }
+            : null,
         child: gem,
       ),
     );
+  }
+
+  void _handlePanUpdate(DragUpdateDetails details) {
+    if (_swipeFired || widget.onSwipe == null) return;
+    _panAccum += details.delta;
+    final threshold = math.min(widget.cellW, widget.cellH) * 0.28;
+    final dx = _panAccum.dx;
+    final dy = _panAccum.dy;
+    if (dx.abs() < threshold && dy.abs() < threshold) return;
+
+    final (int, int) to;
+    if (dx.abs() >= dy.abs()) {
+      to = (widget.row, widget.col + (dx > 0 ? 1 : -1));
+    } else {
+      to = (widget.row + (dy > 0 ? 1 : -1), widget.col);
+    }
+    _swipeFired = true;
+    widget.onSwipe!(to);
   }
 }
 

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import '../../expedition/domain/expedition_models.dart';
 import '../../heroes/domain/hero_def.dart';
 import '../../prep/domain/prep_item.dart';
 import '../../puzzle/domain/board_cell.dart';
@@ -10,7 +11,8 @@ import '../../puzzle/domain/overlay_def.dart';
 import '../../puzzle/domain/puzzle_board.dart';
 import '../../puzzle/domain/puzzle_engine.dart';
 import '../../puzzle/domain/tile_id_gen.dart';
-import '../../weekly/domain/weekly_schedule.dart';
+import '../../puzzle/domain/tile_spawn_weights.dart';
+import 'battle_objective.dart';
 import 'enemy_def.dart';
 import 'enemy_effect.dart';
 
@@ -69,9 +71,20 @@ class BattleState {
     this.windDirection,
     this.hazardPulseCells = const {},
     this.pendingMovePenalty = 0,
+    this.pendingSpawnWeightOverrides = const {},
     this.isWeekly = false,
+    this.isDaily = false,
+    this.isExpedition = false,
+    this.relicIds = const [],
+    this.firstBlueMatchedThisTurn = false,
+    this.pendingRelicBonusMoves = 0,
     this.objective,
     this.tilesCleared = 0,
+    this.resourcesGenerated = const {},
+    this.tilesClearedByColor = const {},
+    this.overlaysBroken = 0,
+    this.skillsCastIds = const [],
+    this.usedPrep = false,
     this.hazardSpawn,
     this.hazardOverlayDef,
   });
@@ -145,8 +158,27 @@ class BattleState {
   /// Subtracted from next player-turn move refresh (e.g. Pack Howl).
   final int pendingMovePenalty;
 
+  /// Relative spawn weight overrides from enemy hexes, lasting the battle.
+  /// Keys are [TileColor.name]; missing colors keep the default weight of 1.0.
+  final Map<String, double> pendingSpawnWeightOverrides;
+
   /// Weekly mode battle (settlement skips campaign node completion).
   final bool isWeekly;
+
+  /// Daily Contract battle (settlement uses daily claim path).
+  final bool isDaily;
+
+  /// Relic Expedition battle (settlement uses expedition run machine).
+  final bool isExpedition;
+
+  /// Active expedition relic ids (empty outside expedition).
+  final List<String> relicIds;
+
+  /// True after the first blue (mana) match this player turn.
+  final bool firstBlueMatchedThisTurn;
+
+  /// Extra moves granted next turn from Cascade Step relic.
+  final int pendingRelicBonusMoves;
 
   /// Optional non-HP win condition (weekday objectives).
   final BattleObjective? objective;
@@ -154,15 +186,49 @@ class BattleState {
   /// Tiles cleared this battle (weekly clear-tiles objective).
   final int tilesCleared;
 
+  /// Cumulative resource gains from matches (medal / mastery folds).
+  final Map<String, int> resourcesGenerated;
+
+  /// Matched gem counts by [TileColor.name] (red/blue/…).
+  final Map<String, int> tilesClearedByColor;
+
+  /// Overlays removed this battle (best-effort counter).
+  final int overlaysBroken;
+
+  /// Skill ids cast this battle (order preserved, duplicates allowed).
+  final List<String> skillsCastIds;
+
+  /// True if any prep item was equipped at battle start.
+  final bool usedPrep;
+
   /// Optional per-turn hazard spawn (Mistfen poison, etc.).
   final HazardSpawnConfig? hazardSpawn;
   final OverlayDef? hazardOverlayDef;
+
+  /// Snapshot for objectives / chapter medal settlement.
+  BattleProgress get progress => BattleProgress(
+        playerTurnNumber: playerTurnNumber,
+        tilesCleared: tilesCleared,
+        tilesClearedByColor: tilesClearedByColor,
+        resourcesGenerated: resourcesGenerated,
+        overlaysBroken: overlaysBroken,
+        skillsCastCount: skillsCastIds.length,
+        skillsCastIds: skillsCastIds,
+        usedPrep: usedPrep,
+      );
 
   bool get inputLocked =>
       phase == BattlePhase.resolving ||
       phase == BattlePhase.enemyTurn ||
       phase == BattlePhase.victory ||
       phase == BattlePhase.defeat;
+
+  /// Effective gem spawn weights after enemy warp hexes.
+  TileSpawnWeights get effectiveSpawnWeights => TileSpawnWeights.fromJson(
+        pendingSpawnWeightOverrides.isEmpty
+            ? null
+            : Map<String, dynamic>.from(pendingSpawnWeightOverrides),
+      );
 
   /// Forms 1–3 flee when HP hits 0; form 4 (finale) dies.
   bool get bossFleesOnDefeat {
@@ -190,6 +256,9 @@ class BattleState {
     List<String> prepLogNotes = const [],
     List<BoardMoverConfig> movers = const [],
     bool isWeekly = false,
+    bool isDaily = false,
+    bool isExpedition = false,
+    List<String> relicIds = const [],
     BattleObjective? objective,
     HazardSpawnConfig? hazardSpawn,
     OverlayDef? hazardOverlayDef,
@@ -205,6 +274,7 @@ class BattleState {
     final notes = [
       'Battle started. Match tiles to fuel your skills.',
       if (objective != null) 'Objective: ${objective.progressLabel}',
+      if (relicIds.isNotEmpty) 'Relics active: ${relicIds.length}',
       ...prepLogNotes,
     ];
     return BattleState(
@@ -235,7 +305,11 @@ class BattleState {
       log: notes,
       movers: movers,
       isWeekly: isWeekly,
+      isDaily: isDaily,
+      isExpedition: isExpedition,
+      relicIds: List.unmodifiable(relicIds),
       objective: objective,
+      usedPrep: bonusMoves > 0 || bonusShield > 0 || secondWindArmed,
       hazardSpawn: hazardSpawn,
       hazardOverlayDef: hazardOverlayDef,
     );
@@ -267,6 +341,11 @@ class BattleState {
     List<String>? log,
     int? playerTurnNumber,
     int? tilesCleared,
+    Map<String, int>? resourcesGenerated,
+    Map<String, int>? tilesClearedByColor,
+    int? overlaysBroken,
+    List<String>? skillsCastIds,
+    bool? usedPrep,
     Set<int>? windRows,
     bool clearWindRows = false,
     String? windDirection,
@@ -274,6 +353,9 @@ class BattleState {
     Set<(int, int)>? hazardPulseCells,
     bool clearHazardPulse = false,
     int? pendingMovePenalty,
+    Map<String, double>? pendingSpawnWeightOverrides,
+    bool? firstBlueMatchedThisTurn,
+    int? pendingRelicBonusMoves,
   }) {
     return BattleState(
       hero: hero,
@@ -314,9 +396,23 @@ class BattleState {
           ? const {}
           : (hazardPulseCells ?? this.hazardPulseCells),
       pendingMovePenalty: pendingMovePenalty ?? this.pendingMovePenalty,
+      pendingSpawnWeightOverrides:
+          pendingSpawnWeightOverrides ?? this.pendingSpawnWeightOverrides,
       isWeekly: isWeekly,
+      isDaily: isDaily,
+      isExpedition: isExpedition,
+      relicIds: relicIds,
+      firstBlueMatchedThisTurn:
+          firstBlueMatchedThisTurn ?? this.firstBlueMatchedThisTurn,
+      pendingRelicBonusMoves:
+          pendingRelicBonusMoves ?? this.pendingRelicBonusMoves,
       objective: objective,
       tilesCleared: tilesCleared ?? this.tilesCleared,
+      resourcesGenerated: resourcesGenerated ?? this.resourcesGenerated,
+      tilesClearedByColor: tilesClearedByColor ?? this.tilesClearedByColor,
+      overlaysBroken: overlaysBroken ?? this.overlaysBroken,
+      skillsCastIds: skillsCastIds ?? this.skillsCastIds,
+      usedPrep: usedPrep ?? this.usedPrep,
       hazardSpawn: hazardSpawn,
       hazardOverlayDef: hazardOverlayDef,
     );
@@ -376,10 +472,14 @@ class BattleController {
     ];
 
     final penalty = state.pendingMovePenalty;
-    final refreshed =
-        (state.movesPerTurn - penalty).clamp(PrepBalance.defaultMinMoves, 99);
+    final relicBonus = state.pendingRelicBonusMoves;
+    final refreshed = (state.movesPerTurn - penalty + relicBonus)
+        .clamp(PrepBalance.defaultMinMoves, 99);
     if (penalty > 0) {
       notes.add('Howling winds steal $penalty Move!');
+    }
+    if (relicBonus > 0) {
+      notes.add('Cascade Step grants +$relicBonus Move!');
     }
 
     state = state.copyWith(
@@ -387,6 +487,8 @@ class BattleController {
       playerTurnNumber: turn,
       movesLeft: refreshed,
       pendingMovePenalty: 0,
+      pendingRelicBonusMoves: 0,
+      firstBlueMatchedThisTurn: false,
       phase: BattlePhase.playerTurn,
       enraged: enraged,
       clearSelected: true,
@@ -429,11 +531,24 @@ class BattleController {
       shoved,
       random: _random,
       ids: ids,
+      spawnWeights: state.effectiveSpawnWeights,
     );
     if (cascade.steps.isEmpty) return null;
 
     if (applyInline) {
-      applyMatchRewards(cascade.totals);
+      var overlaysBroken = 0;
+      var boardCursor = cascade.boardAfterSwap ?? shoved;
+      for (final step in cascade.steps) {
+        overlaysBroken += PuzzleEngine.countOverlaysFullyBroken(
+          boardCursor,
+          step.boardAfterClear,
+        );
+        boardCursor = step.boardAfterFill;
+      }
+      applyMatchRewards(
+        cascade.totals,
+        overlaysBrokenDelta: overlaysBroken,
+      );
       if (_tryObjectiveVictory()) return null;
       state = state.copyWith(
         board: cascade.finalBoard,
@@ -463,6 +578,7 @@ class BattleController {
       b,
       random: _random,
       ids: ids,
+      spawnWeights: state.effectiveSpawnWeights,
     );
     if (cascade == null) {
       state = state.copyWith(
@@ -485,6 +601,7 @@ class BattleController {
       pos,
       random: _random,
       ids: ids,
+      spawnWeights: state.effectiveSpawnWeights,
     );
     if (cascade == null) return null;
     state = state.copyWith(
@@ -494,17 +611,70 @@ class BattleController {
     return cascade;
   }
 
-  void applyMatchRewards(MatchResult match) {
+  void applyMatchRewards(MatchResult match, {int overlaysBrokenDelta = 0}) {
     final resources = Map<String, int>.from(state.resources);
     match.resourceGains.forEach((key, value) {
       resources[key] = (resources[key] ?? 0) + value;
     });
-    final ap = (state.ap + match.apGained).clamp(0, state.hero.maxAp);
+
+    final relicBonusMana = RelicRuntime.bonusManaFromOverlays(
+      relicIds: state.relicIds,
+      overlaysBroken: overlaysBrokenDelta,
+    );
+    if (relicBonusMana > 0) {
+      resources['mana'] = (resources['mana'] ?? 0) + relicBonusMana;
+    }
+
+    final isFirstBlue = !state.firstBlueMatchedThisTurn &&
+        (match.resourceGains['mana'] ?? 0) > 0;
+    final relicAp = RelicRuntime.bonusApFromMatch(
+      relicIds: state.relicIds,
+      resourceGains: match.resourceGains,
+      firstBlueThisTurn: isFirstBlue,
+    );
+    final ap = (state.ap + match.apGained + relicAp).clamp(0, state.hero.maxAp);
     final tiles = state.tilesCleared + match.matchedCells.length;
+
+    final generated = Map<String, int>.from(state.resourcesGenerated);
+    match.resourceGains.forEach((key, value) {
+      generated[key] = (generated[key] ?? 0) + value;
+    });
+    if (relicBonusMana > 0) {
+      generated['mana'] = (generated['mana'] ?? 0) + relicBonusMana;
+    }
+
+    // Approximate color clears from resource gains (1 resource ≈ 1 tile).
+    final byColor = Map<String, int>.from(state.tilesClearedByColor);
+    for (final e in match.resourceGains.entries) {
+      final color = switch (e.key) {
+        'attack' => 'red',
+        'mana' => 'blue',
+        'healing' => 'green',
+        'shield' => 'yellow',
+        'ultimate' => 'purple',
+        _ => null,
+      };
+      if (color == null) continue;
+      byColor[color] = (byColor[color] ?? 0) + e.value;
+    }
+
+    var pendingMoves = state.pendingRelicBonusMoves;
+    if (RelicRuntime.grantsNextTurnMove(
+      relicIds: state.relicIds,
+      tilesInMatch: match.matchedCells.length,
+    )) {
+      pendingMoves += 1;
+    }
+
     state = state.copyWith(
       resources: resources,
       ap: ap,
       tilesCleared: tiles,
+      resourcesGenerated: generated,
+      tilesClearedByColor: byColor,
+      overlaysBroken: state.overlaysBroken + overlaysBrokenDelta,
+      firstBlueMatchedThisTurn: state.firstBlueMatchedThisTurn || isFirstBlue,
+      pendingRelicBonusMoves: pendingMoves,
     );
   }
 
@@ -613,19 +783,27 @@ class BattleController {
       resources[key] = resources[key]! - cost;
     });
 
-    var enemyHp = state.enemyHp - skill.damage;
+    final dmgMult = RelicRuntime.skillDamageMult(
+      relicIds: state.relicIds,
+      heroHp: state.heroHp,
+      heroMaxHp: state.hero.maxHp,
+    );
+    final damage = (skill.damage * dmgMult).round();
+
+    var enemyHp = state.enemyHp - damage;
     var heroHp = state.heroHp + skill.heal;
     if (heroHp > state.hero.maxHp) heroHp = state.hero.maxHp;
     final shield = state.shield + skill.shield;
     final ap = state.ap - skill.apCost;
+    final castIds = [...state.skillsCastIds, skill.id];
 
     final logs = [...state.log, 'Cast ${skill.name}!'];
     var phase = state.phase;
     var fx = CombatFx.none;
 
-    if (skill.damage > 0) {
+    if (damage > 0) {
       fx = CombatFx.enemyHit;
-      logs.add('${skill.name} hits for ${skill.damage}');
+      logs.add('${skill.name} hits for $damage');
     } else {
       fx = CombatFx.heroCast;
     }
@@ -646,6 +824,7 @@ class BattleController {
         phase: phase,
         combatFx: fx,
         bossFled: fled,
+        skillsCastIds: castIds,
         log: logs,
       );
       return;
@@ -659,6 +838,7 @@ class BattleController {
       ap: ap,
       phase: phase,
       combatFx: fx,
+      skillsCastIds: castIds,
       log: logs,
     );
   }
@@ -752,6 +932,9 @@ class BattleController {
     var board = state.board;
     var resources = Map<String, int>.from(state.resources);
     var movePenalty = state.pendingMovePenalty;
+    var enemyHp = state.enemyHp;
+    var spawnOverrides =
+        Map<String, double>.from(state.pendingSpawnWeightOverrides);
     final hazardPulse = <(int, int)>{};
 
     for (final effect in skill.effects) {
@@ -777,6 +960,13 @@ class BattleController {
             hazardPulse.addAll(placed.$2);
             logs.add('Poison seeps onto ${placed.$2.length} tiles');
           }
+        case HealSelfEffect(:final amount):
+          final before = enemyHp;
+          enemyHp = (enemyHp + amount).clamp(0, state.enemy.maxHp);
+          logs.add('Healed ${enemyHp - before} HP');
+        case ModifySpawnWeightsEffect(:final weights):
+          spawnOverrides.addAll(weights);
+          logs.add(effect.describe());
       }
     }
 
@@ -787,10 +977,12 @@ class BattleController {
         final hp = reviveHp < 1 ? 1 : reviveHp;
         state = state.copyWith(
           heroHp: hp,
+          enemyHp: enemyHp,
           shield: shield,
           board: board,
           resources: resources,
           pendingMovePenalty: movePenalty,
+          pendingSpawnWeightOverrides: spawnOverrides,
           secondWindArmed: false,
           phase: BattlePhase.playerTurn,
           combatFx: CombatFx.heroCast,
@@ -805,10 +997,12 @@ class BattleController {
       }
       state = state.copyWith(
         heroHp: 0,
+        enemyHp: enemyHp,
         shield: shield,
         board: board,
         resources: resources,
         pendingMovePenalty: movePenalty,
+        pendingSpawnWeightOverrides: spawnOverrides,
         phase: BattlePhase.defeat,
         combatFx: CombatFx.heroHit,
         hazardPulseCells: hazardPulse,
@@ -820,10 +1014,12 @@ class BattleController {
 
     state = state.copyWith(
       heroHp: heroHp,
+      enemyHp: enemyHp,
       shield: shield,
       board: board,
       resources: resources,
       pendingMovePenalty: movePenalty,
+      pendingSpawnWeightOverrides: spawnOverrides,
       phase: BattlePhase.playerTurn,
       combatFx: damage > 0
           ? CombatFx.heroHit

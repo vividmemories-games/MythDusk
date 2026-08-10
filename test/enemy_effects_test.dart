@@ -18,6 +18,19 @@ void main() {
     expect(smother.intentLabel, contains('poison'));
   });
 
+  test('leech intent mentions drain and heal_self', () {
+    final leech =
+        EnemyCatalog.leechWisp.skills.firstWhere((s) => s.id == 'leech');
+    expect(leech.intentLabel, contains('drain'));
+    expect(leech.intentLabel, contains('heal self'));
+  });
+
+  test('hexer warp intent mentions spawn warp', () {
+    final warp = EnemyCatalog.hexer.skills.firstWhere((s) => s.id == 'warp');
+    expect(warp.intentLabel, contains('warp spawns'));
+    expect(warp.intentLabel, contains('purple'));
+  });
+
   test('pack howl applies move penalty for next player turn', () {
     final howl =
         EnemyCatalog.packAlpha.skills.firstWhere((s) => s.id == 'howl');
@@ -106,6 +119,84 @@ void main() {
     expect(controller.state.resources['mana'], 0);
     expect(controller.state.resources['attack'], 4);
     expect(controller.state.log.last, 'Drained 8 mana');
+  });
+
+  test('heal_self restores enemy HP and clamps to maxHp', () {
+    final controller = BattleController(
+      BattleState.initial(
+        hero: HeroCatalog.mage,
+        enemy: EnemyCatalog.leechWisp,
+      ).copyWith(enemyHp: 40),
+      random: Random(5),
+    );
+    const heal = EnemySkill(
+      id: 'mend',
+      name: 'Mend',
+      damage: 0,
+      weight: 1,
+      effects: [HealSelfEffect(amount: 8)],
+    );
+
+    controller.applyEnemySkill(heal);
+    expect(controller.state.enemyHp, 48);
+
+    controller.applyEnemySkill(heal);
+    expect(controller.state.enemyHp, EnemyCatalog.leechWisp.maxHp);
+  });
+
+  test('leech skill drains healing and heals self together', () {
+    final leech =
+        EnemyCatalog.leechWisp.skills.firstWhere((s) => s.id == 'leech');
+    final controller = BattleController(
+      BattleState.initial(
+        hero: HeroCatalog.mage,
+        enemy: EnemyCatalog.leechWisp,
+      ).copyWith(
+        enemyHp: 40,
+        resources: const {
+          'attack': 0,
+          'mana': 0,
+          'healing': 6,
+          'shield': 0,
+          'ultimate': 0,
+        },
+      ),
+      random: Random(6),
+    );
+
+    controller.applyEnemySkill(leech);
+
+    expect(controller.state.resources['healing'], 2);
+    expect(controller.state.enemyHp, 48);
+    expect(controller.state.heroHp, HeroCatalog.mage.maxHp - leech.damage);
+  });
+
+  test('modify_spawn_weights stores pending overrides for the battle', () {
+    final warp = EnemyCatalog.hexer.skills.firstWhere((s) => s.id == 'warp');
+    final controller = BattleController(
+      BattleState.initial(
+        hero: HeroCatalog.mage,
+        enemy: EnemyCatalog.hexer,
+      ),
+      random: Random(7),
+    );
+
+    controller.applyEnemySkill(warp);
+
+    expect(controller.state.pendingSpawnWeightOverrides['purple'], 3.0);
+    expect(controller.state.pendingSpawnWeightOverrides['green'], 0.25);
+    expect(
+      controller.state.effectiveSpawnWeights.weightOf(TileColor.purple),
+      3.0,
+    );
+    expect(
+      controller.state.effectiveSpawnWeights.weightOf(TileColor.green),
+      0.25,
+    );
+    expect(
+      controller.state.effectiveSpawnWeights.weightOf(TileColor.red),
+      1.0,
+    );
   });
 
   test('resolver throws instead of silently ignoring an unsupported overlay',

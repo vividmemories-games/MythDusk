@@ -227,6 +227,27 @@ class ContentValidator {
         if (count <= 0) {
           _error(location, 'apply_overlay count must be positive');
         }
+      case HealSelfEffect(:final amount):
+        if (amount <= 0) {
+          _error(location, 'heal_self amount must be positive');
+        }
+      case ModifySpawnWeightsEffect(:final weights):
+        if (weights.isEmpty) {
+          _error(location, 'modify_spawn_weights needs at least one weight');
+        }
+        var anyPositive = false;
+        for (final entry in weights.entries) {
+          if (!TileColorId.known.contains(entry.key)) {
+            _error(location, 'unknown tile color ${entry.key}');
+          }
+          if (entry.value < 0) {
+            _error(location, '${entry.key} spawn weight cannot be negative');
+          }
+          if (entry.value > 0) anyPositive = true;
+        }
+        if (!anyPositive) {
+          _error(location, 'at least one spawn weight must be positive');
+        }
     }
   }
 

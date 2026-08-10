@@ -19,7 +19,10 @@
           "coinReward": 42,
           "order": 0,
           "mapX": 0.424,
-          "mapY": 0.844
+          "mapY": 0.844,
+          "board": {
+            "templateId": "board_open_6x6"
+          }
         },
         {
           "id": "ch_ashen_n02",
@@ -28,7 +31,10 @@
           "coinReward": 44,
           "order": 1,
           "mapX": 0.579,
-          "mapY": 0.663
+          "mapY": 0.663,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "ch_ashen_n03",
@@ -40,7 +46,14 @@
           "mapY": 0.548,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "spawnWeights": {
+              "red": 1.2,
+              "yellow": 0.8
+            }
+          }
         },
         {
           "id": "ch_ashen_n04",
@@ -49,11 +62,24 @@
           "coinReward": 48,
           "order": 3,
           "mapX": 0.499,
-          "mapY": 0.388
+          "mapY": 0.388,
+          "board": {
+            "templateId": "board_vine_corners_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  3
+                ],
+                "direction": "right",
+                "everyNTurns": 2
+              }
+            ]
+          }
         },
         {
           "id": "ch_ashen_n05",
-          "name": "Quarry Overseer \u2014 Form 1",
+          "name": "Quarry Overseer — Form 1",
           "enemyId": "quarry_overseer",
           "coinReward": 90,
           "order": 4,
@@ -61,7 +87,15 @@
           "bossForm": 1,
           "mapX": 0.768,
           "mapY": 0.194,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.2,
+              "maxOnBoard": 2
+            }
+          }
         }
       ]
     },
@@ -77,7 +111,10 @@
           "coinReward": 52,
           "order": 5,
           "mapX": 0.546,
-          "mapY": 0.848
+          "mapY": 0.848,
+          "board": {
+            "templateId": "board_open_6x6"
+          }
         },
         {
           "id": "ch_ashen_n07",
@@ -86,7 +123,10 @@
           "coinReward": 54,
           "order": 6,
           "mapX": 0.681,
-          "mapY": 0.614
+          "mapY": 0.614,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "ch_ashen_n08",
@@ -98,7 +138,14 @@
           "mapY": 0.492,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "spawnWeights": {
+              "red": 1.2,
+              "yellow": 0.8
+            }
+          }
         },
         {
           "id": "ch_ashen_n09",
@@ -107,11 +154,24 @@
           "coinReward": 58,
           "order": 8,
           "mapX": 0.669,
-          "mapY": 0.37
+          "mapY": 0.37,
+          "board": {
+            "templateId": "board_vine_corners_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  3
+                ],
+                "direction": "right",
+                "everyNTurns": 2
+              }
+            ]
+          }
         },
         {
           "id": "ch_ashen_n10",
-          "name": "Quarry Overseer \u2014 Form 2",
+          "name": "Quarry Overseer — Form 2",
           "enemyId": "quarry_overseer",
           "coinReward": 100,
           "order": 9,
@@ -119,7 +179,15 @@
           "bossForm": 2,
           "mapX": 0.697,
           "mapY": 0.165,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.2,
+              "maxOnBoard": 2
+            }
+          }
         }
       ]
     },
@@ -135,7 +203,10 @@
           "coinReward": 62,
           "order": 10,
           "mapX": 0.495,
-          "mapY": 0.848
+          "mapY": 0.848,
+          "board": {
+            "templateId": "board_open_6x6"
+          }
         },
         {
           "id": "ch_ashen_n12",
@@ -144,7 +215,10 @@
           "coinReward": 64,
           "order": 11,
           "mapX": 0.837,
-          "mapY": 0.655
+          "mapY": 0.655,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "ch_ashen_n13",
@@ -156,7 +230,14 @@
           "mapY": 0.515,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "spawnWeights": {
+              "red": 1.2,
+              "yellow": 0.8
+            }
+          }
         },
         {
           "id": "ch_ashen_n14",
@@ -165,11 +246,24 @@
           "coinReward": 68,
           "order": 13,
           "mapX": 0.815,
-          "mapY": 0.388
+          "mapY": 0.388,
+          "board": {
+            "templateId": "board_vine_corners_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  3
+                ],
+                "direction": "right",
+                "everyNTurns": 2
+              }
+            ]
+          }
         },
         {
           "id": "ch_ashen_n15",
-          "name": "Quarry Overseer \u2014 Form 3",
+          "name": "Quarry Overseer — Form 3",
           "enemyId": "quarry_overseer",
           "coinReward": 110,
           "order": 14,
@@ -177,7 +271,15 @@
           "bossForm": 3,
           "mapX": 0.606,
           "mapY": 0.183,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.2,
+              "maxOnBoard": 2
+            }
+          }
         }
       ]
     },
@@ -193,7 +295,10 @@
           "coinReward": 72,
           "order": 15,
           "mapX": 0.297,
-          "mapY": 0.85
+          "mapY": 0.85,
+          "board": {
+            "templateId": "board_open_6x6"
+          }
         },
         {
           "id": "ch_ashen_n17",
@@ -202,7 +307,10 @@
           "coinReward": 74,
           "order": 16,
           "mapX": 0.663,
-          "mapY": 0.72
+          "mapY": 0.72,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "ch_ashen_n18",
@@ -214,7 +322,14 @@
           "mapY": 0.51,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "spawnWeights": {
+              "red": 1.2,
+              "yellow": 0.8
+            }
+          }
         },
         {
           "id": "ch_ashen_n19",
@@ -223,11 +338,24 @@
           "coinReward": 78,
           "order": 18,
           "mapX": 0.476,
-          "mapY": 0.324
+          "mapY": 0.324,
+          "board": {
+            "templateId": "board_vine_corners_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  3
+                ],
+                "direction": "right",
+                "everyNTurns": 2
+              }
+            ]
+          }
         },
         {
           "id": "ch_ashen_n20",
-          "name": "Quarry Overseer \u2014 Form 4",
+          "name": "Quarry Overseer — Form 4",
           "enemyId": "quarry_overseer",
           "coinReward": 120,
           "order": 19,
@@ -235,7 +363,15 @@
           "bossForm": 4,
           "mapX": 0.665,
           "mapY": 0.178,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.2,
+              "maxOnBoard": 2
+            }
+          }
         }
       ]
     }

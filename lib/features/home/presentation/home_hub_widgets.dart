@@ -67,7 +67,7 @@ class HubResourceChip extends StatelessWidget {
   }
 }
 
-/// Vertical shortcut rail (Shop / Profile / Mock).
+/// Vertical shortcut rail (Shop / Profile / Expedition).
 class HubSideRail extends StatelessWidget {
   const HubSideRail({super.key, required this.items});
 
@@ -534,14 +534,16 @@ class _CampaignButtonPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-/// Weekly / Heroes secondary toggle row.
+/// Daily / Weekly / Heroes secondary toggle row.
 class HubModeTabs extends StatelessWidget {
   const HubModeTabs({
     super.key,
+    required this.onDaily,
     required this.onWeekly,
     required this.onHeroes,
   });
 
+  final VoidCallback onDaily;
   final VoidCallback onWeekly;
   final VoidCallback onHeroes;
 
@@ -551,12 +553,19 @@ class HubModeTabs extends StatelessWidget {
       children: [
         Expanded(
           child: _ModeTab(
-            label: 'Weekly',
-            onTap: onWeekly,
+            label: 'Daily',
+            onTap: onDaily,
             active: true,
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _ModeTab(
+            label: 'Weekly',
+            onTap: onWeekly,
+          ),
+        ),
+        const SizedBox(width: 8),
         Expanded(
           child: _ModeTab(
             label: 'Heroes',

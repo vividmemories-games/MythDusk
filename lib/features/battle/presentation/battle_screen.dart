@@ -13,6 +13,9 @@ import '../../heroes/domain/hero_def.dart';
 import '../../profile/providers/mock_profile_provider.dart';
 import '../../puzzle/data/board_catalog_repository.dart';
 import '../../puzzle/domain/puzzle_engine.dart';
+import '../../daily/domain/daily_schedule.dart';
+import '../../daily/providers/daily_providers.dart';
+import '../../expedition/domain/expedition_models.dart';
 import '../../weekly/domain/weekly_schedule.dart';
 import '../../weekly/providers/weekly_providers.dart';
 import '../../../shared/presentation/content_error_screen.dart';
@@ -83,7 +86,9 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.nodeId == WeeklyBalance.battleNodeId) {
+    if (widget.nodeId == WeeklyBalance.battleNodeId ||
+        widget.nodeId == DailyBalance.battleNodeId ||
+        widget.nodeId == ExpeditionBalance.battleNodeId) {
       return _buildBattle(context);
     }
 
@@ -163,12 +168,20 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
           won: next.phase == BattlePhase.victory,
           bossFled: next.bossFled,
           isWeekly: next.isWeekly,
+          isDaily: next.isDaily,
+          isExpedition: next.isExpedition,
           weeklyDayKey:
               next.isWeekly ? ref.read(weeklyChallengeProvider).dayKey : null,
+          dailyDayKey:
+              next.isDaily ? ref.read(dailyContractProvider).dayKey : null,
           nodeId: next.nodeId ?? widget.nodeId,
           nodeName: next.nodeName ?? 'Battle',
           enemyName: next.enemy.name,
           coinReward: next.coinReward,
+          progress: next.progress,
+          heroHp: next.heroHp,
+          heroMaxHp: next.hero.maxHp,
+          bossForm: next.bossForm,
         );
         context.pushReplacement('/result', extra: args);
         return;
@@ -265,6 +278,7 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
                         child: AnimatedPuzzleBoard(
                           battle: battle,
                           onTap: notifier.tapCell,
+                          onSwipe: notifier.swipeCell,
                         ),
                       ),
                     ),
@@ -349,7 +363,9 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
                   ),
                 ),
                 BattleTutorialOverlay(
-                  enabled: !battle.isWeekly,
+                  enabled: !battle.isWeekly &&
+                      !battle.isDaily &&
+                      !battle.isExpedition,
                 ),
               ],
             ),

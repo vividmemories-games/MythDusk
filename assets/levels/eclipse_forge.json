@@ -24,7 +24,10 @@
           "coinReward": 57,
           "order": 0,
           "mapX": 0.385,
-          "mapY": 0.865
+          "mapY": 0.865,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "ch_eclipse_n02",
@@ -33,7 +36,14 @@
           "coinReward": 59,
           "order": 1,
           "mapX": 0.657,
-          "mapY": 0.723
+          "mapY": 0.723,
+          "board": {
+            "templateId": "board_open_6x6",
+            "spawnWeights": {
+              "purple": 1.4,
+              "red": 1.15
+            }
+          }
         },
         {
           "id": "ch_eclipse_n03",
@@ -45,7 +55,10 @@
           "mapY": 0.613,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_mistfen_sticky_01"
+          }
         },
         {
           "id": "ch_eclipse_n04",
@@ -54,11 +67,19 @@
           "coinReward": 63,
           "order": 3,
           "mapX": 0.485,
-          "mapY": 0.415
+          "mapY": 0.415,
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.18,
+              "maxOnBoard": 2
+            }
+          }
         },
         {
           "id": "ch_eclipse_n05",
-          "name": "Ember Smith \u2014 Form 1",
+          "name": "Ember Smith — Form 1",
           "enemyId": "ember_smith",
           "coinReward": 115,
           "order": 4,
@@ -66,7 +87,20 @@
           "bossForm": 1,
           "mapX": 0.673,
           "mapY": 0.165,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_vine_corners_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  1
+                ],
+                "direction": "left",
+                "everyNTurns": 2
+              }
+            ]
+          }
         }
       ]
     },
@@ -82,7 +116,10 @@
           "coinReward": 67,
           "order": 5,
           "mapX": 0.321,
-          "mapY": 0.845
+          "mapY": 0.845,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "ch_eclipse_n07",
@@ -91,7 +128,14 @@
           "coinReward": 69,
           "order": 6,
           "mapX": 0.489,
-          "mapY": 0.648
+          "mapY": 0.648,
+          "board": {
+            "templateId": "board_open_6x6",
+            "spawnWeights": {
+              "purple": 1.4,
+              "red": 1.15
+            }
+          }
         },
         {
           "id": "ch_eclipse_n08",
@@ -103,7 +147,10 @@
           "mapY": 0.54,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_mistfen_sticky_01"
+          }
         },
         {
           "id": "ch_eclipse_n09",
@@ -112,11 +159,19 @@
           "coinReward": 73,
           "order": 8,
           "mapX": 0.574,
-          "mapY": 0.433
+          "mapY": 0.433,
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.18,
+              "maxOnBoard": 2
+            }
+          }
         },
         {
           "id": "ch_eclipse_n10",
-          "name": "Ember Smith \u2014 Form 2",
+          "name": "Ember Smith — Form 2",
           "enemyId": "ember_smith",
           "coinReward": 125,
           "order": 9,
@@ -124,7 +179,20 @@
           "bossForm": 2,
           "mapX": 0.836,
           "mapY": 0.172,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_vine_corners_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  1
+                ],
+                "direction": "left",
+                "everyNTurns": 2
+              }
+            ]
+          }
         }
       ]
     },
@@ -140,7 +208,10 @@
           "coinReward": 77,
           "order": 10,
           "mapX": 0.441,
-          "mapY": 0.875
+          "mapY": 0.875,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "ch_eclipse_n12",
@@ -149,7 +220,14 @@
           "coinReward": 79,
           "order": 11,
           "mapX": 0.725,
-          "mapY": 0.697
+          "mapY": 0.697,
+          "board": {
+            "templateId": "board_open_6x6",
+            "spawnWeights": {
+              "purple": 1.4,
+              "red": 1.15
+            }
+          }
         },
         {
           "id": "ch_eclipse_n13",
@@ -161,7 +239,10 @@
           "mapY": 0.474,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_mistfen_sticky_01"
+          }
         },
         {
           "id": "ch_eclipse_n14",
@@ -170,11 +251,19 @@
           "coinReward": 83,
           "order": 13,
           "mapX": 0.362,
-          "mapY": 0.365
+          "mapY": 0.365,
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.18,
+              "maxOnBoard": 2
+            }
+          }
         },
         {
           "id": "ch_eclipse_n15",
-          "name": "Ember Smith \u2014 Form 3",
+          "name": "Ember Smith — Form 3",
           "enemyId": "ember_smith",
           "coinReward": 135,
           "order": 14,
@@ -182,7 +271,20 @@
           "bossForm": 3,
           "mapX": 0.596,
           "mapY": 0.207,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_vine_corners_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  1
+                ],
+                "direction": "left",
+                "everyNTurns": 2
+              }
+            ]
+          }
         }
       ]
     },
@@ -198,7 +300,10 @@
           "coinReward": 87,
           "order": 15,
           "mapX": 0.466,
-          "mapY": 0.848
+          "mapY": 0.848,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "ch_eclipse_n17",
@@ -207,7 +312,14 @@
           "coinReward": 89,
           "order": 16,
           "mapX": 0.549,
-          "mapY": 0.659
+          "mapY": 0.659,
+          "board": {
+            "templateId": "board_open_6x6",
+            "spawnWeights": {
+              "purple": 1.4,
+              "red": 1.15
+            }
+          }
         },
         {
           "id": "ch_eclipse_n18",
@@ -219,7 +331,10 @@
           "mapY": 0.528,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_mistfen_sticky_01"
+          }
         },
         {
           "id": "ch_eclipse_n19",
@@ -228,11 +343,19 @@
           "coinReward": 93,
           "order": 18,
           "mapX": 0.789,
-          "mapY": 0.375
+          "mapY": 0.375,
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.18,
+              "maxOnBoard": 2
+            }
+          }
         },
         {
           "id": "ch_eclipse_n20",
-          "name": "Ember Smith \u2014 Form 4",
+          "name": "Ember Smith — Form 4",
           "enemyId": "ember_smith",
           "coinReward": 145,
           "order": 19,
@@ -240,7 +363,20 @@
           "bossForm": 4,
           "mapX": 0.636,
           "mapY": 0.188,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_vine_corners_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  1
+                ],
+                "direction": "left",
+                "everyNTurns": 2
+              }
+            ]
+          }
         }
       ]
     }

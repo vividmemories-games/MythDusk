@@ -142,15 +142,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                           onTap: () => context.push('/profile'),
                                         ),
                                         HubRailItem(
-                                          icon: Icons.science_outlined,
-                                          label: 'Mock',
-                                          onTap: () => showComingSoonSheet(
-                                            context,
-                                            title: 'Mock',
-                                            blurb:
-                                                'Placeholder slot — replace with '
-                                                'a real mode later.',
-                                          ),
+                                          icon: Icons.explore_outlined,
+                                          label: 'Expedition',
+                                          onTap: () =>
+                                              context.push('/expedition'),
                                         ),
                                       ],
                                     ),
@@ -205,6 +200,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                         const SizedBox(height: 10),
                         HubModeTabs(
+                          onDaily: () => context.push('/daily'),
                           onWeekly: () => context.push('/weekly'),
                           onHeroes: () => context.push('/heroes'),
                         ),

@@ -27,7 +27,7 @@
         {
           "id": "ch_mistfen_n02",
           "name": "Ridge Pace",
-          "enemyId": "wolf",
+          "enemyId": "leech_wisp",
           "coinReward": 38,
           "order": 1,
           "mapX": 0.652,
@@ -39,7 +39,7 @@
         {
           "id": "ch_mistfen_n03",
           "name": "Hex Pool",
-          "enemyId": "shaman",
+          "enemyId": "hexer",
           "coinReward": 40,
           "order": 2,
           "mapX": 0.409,

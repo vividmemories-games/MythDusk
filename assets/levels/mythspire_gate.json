@@ -30,7 +30,10 @@
           "coinReward": 60,
           "order": 0,
           "mapX": 0.436,
-          "mapY": 0.849
+          "mapY": 0.849,
+          "board": {
+            "templateId": "board_open_6x6"
+          }
         },
         {
           "id": "ch_mythspire_n02",
@@ -39,7 +42,10 @@
           "coinReward": 62,
           "order": 1,
           "mapX": 0.501,
-          "mapY": 0.691
+          "mapY": 0.691,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "ch_mythspire_n03",
@@ -51,7 +57,10 @@
           "mapY": 0.526,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_vine_corners_01"
+          }
         },
         {
           "id": "ch_mythspire_n04",
@@ -60,11 +69,18 @@
           "coinReward": 66,
           "order": 3,
           "mapX": 0.444,
-          "mapY": 0.388
+          "mapY": 0.388,
+          "board": {
+            "templateId": "board_mistfen_sticky_01",
+            "spawnWeights": {
+              "purple": 1.25,
+              "blue": 1.1
+            }
+          }
         },
         {
           "id": "ch_mythspire_n05",
-          "name": "Mythspire Tyrant \u2014 Form 1",
+          "name": "Mythspire Tyrant — Form 1",
           "enemyId": "mythspire_tyrant",
           "coinReward": 120,
           "order": 4,
@@ -72,7 +88,26 @@
           "bossForm": 1,
           "mapX": 0.642,
           "mapY": 0.188,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  2,
+                  3
+                ],
+                "direction": "right",
+                "everyNTurns": 2
+              }
+            ],
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.2,
+              "maxOnBoard": 3
+            }
+          }
         }
       ]
     },
@@ -88,7 +123,10 @@
           "coinReward": 70,
           "order": 5,
           "mapX": 0.451,
-          "mapY": 0.855
+          "mapY": 0.855,
+          "board": {
+            "templateId": "board_open_6x6"
+          }
         },
         {
           "id": "ch_mythspire_n07",
@@ -97,7 +135,10 @@
           "coinReward": 72,
           "order": 6,
           "mapX": 0.24,
-          "mapY": 0.722
+          "mapY": 0.722,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "ch_mythspire_n08",
@@ -109,7 +150,10 @@
           "mapY": 0.596,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_vine_corners_01"
+          }
         },
         {
           "id": "ch_mythspire_n09",
@@ -118,11 +162,18 @@
           "coinReward": 76,
           "order": 8,
           "mapX": 0.73,
-          "mapY": 0.43
+          "mapY": 0.43,
+          "board": {
+            "templateId": "board_mistfen_sticky_01",
+            "spawnWeights": {
+              "purple": 1.25,
+              "blue": 1.1
+            }
+          }
         },
         {
           "id": "ch_mythspire_n10",
-          "name": "Mythspire Tyrant \u2014 Form 2",
+          "name": "Mythspire Tyrant — Form 2",
           "enemyId": "mythspire_tyrant",
           "coinReward": 130,
           "order": 9,
@@ -130,7 +181,26 @@
           "bossForm": 2,
           "mapX": 0.602,
           "mapY": 0.2,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  2,
+                  3
+                ],
+                "direction": "right",
+                "everyNTurns": 2
+              }
+            ],
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.2,
+              "maxOnBoard": 3
+            }
+          }
         }
       ]
     },
@@ -146,7 +216,10 @@
           "coinReward": 80,
           "order": 10,
           "mapX": 0.486,
-          "mapY": 0.878
+          "mapY": 0.878,
+          "board": {
+            "templateId": "board_open_6x6"
+          }
         },
         {
           "id": "ch_mythspire_n12",
@@ -155,7 +228,10 @@
           "coinReward": 82,
           "order": 11,
           "mapX": 0.485,
-          "mapY": 0.751
+          "mapY": 0.751,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "ch_mythspire_n13",
@@ -167,7 +243,10 @@
           "mapY": 0.619,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_vine_corners_01"
+          }
         },
         {
           "id": "ch_mythspire_n14",
@@ -176,11 +255,18 @@
           "coinReward": 86,
           "order": 13,
           "mapX": 0.502,
-          "mapY": 0.485
+          "mapY": 0.485,
+          "board": {
+            "templateId": "board_mistfen_sticky_01",
+            "spawnWeights": {
+              "purple": 1.25,
+              "blue": 1.1
+            }
+          }
         },
         {
           "id": "ch_mythspire_n15",
-          "name": "Mythspire Tyrant \u2014 Form 3",
+          "name": "Mythspire Tyrant — Form 3",
           "enemyId": "mythspire_tyrant",
           "coinReward": 140,
           "order": 14,
@@ -188,7 +274,26 @@
           "bossForm": 3,
           "mapX": 0.502,
           "mapY": 0.346,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  2,
+                  3
+                ],
+                "direction": "right",
+                "everyNTurns": 2
+              }
+            ],
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.2,
+              "maxOnBoard": 3
+            }
+          }
         }
       ]
     },
@@ -204,7 +309,10 @@
           "coinReward": 90,
           "order": 15,
           "mapX": 0.588,
-          "mapY": 0.866
+          "mapY": 0.866,
+          "board": {
+            "templateId": "board_open_6x6"
+          }
         },
         {
           "id": "ch_mythspire_n17",
@@ -213,7 +321,10 @@
           "coinReward": 92,
           "order": 16,
           "mapX": 0.286,
-          "mapY": 0.734
+          "mapY": 0.734,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "ch_mythspire_n18",
@@ -225,7 +336,10 @@
           "mapY": 0.551,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_vine_corners_01"
+          }
         },
         {
           "id": "ch_mythspire_n19",
@@ -234,11 +348,18 @@
           "coinReward": 96,
           "order": 18,
           "mapX": 0.366,
-          "mapY": 0.434
+          "mapY": 0.434,
+          "board": {
+            "templateId": "board_mistfen_sticky_01",
+            "spawnWeights": {
+              "purple": 1.25,
+              "blue": 1.1
+            }
+          }
         },
         {
           "id": "ch_mythspire_n20",
-          "name": "Mythspire Tyrant \u2014 Form 4",
+          "name": "Mythspire Tyrant — Form 4",
           "enemyId": "mythspire_tyrant",
           "coinReward": 150,
           "order": 19,
@@ -246,7 +367,26 @@
           "bossForm": 4,
           "mapX": 0.515,
           "mapY": 0.222,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  2,
+                  3
+                ],
+                "direction": "right",
+                "everyNTurns": 2
+              }
+            ],
+            "hazardSpawn": {
+              "overlayId": "ovl_poison",
+              "chancePerTurn": 0.2,
+              "maxOnBoard": 3
+            }
+          }
         }
       ]
     }

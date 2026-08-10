@@ -12,7 +12,11 @@ void main() {
         HeroLoadout.defaultEquippedIds(HeroCatalog.mage),
         ['fireball', 'arcane_bolt'],
       );
-      expect(HeroCatalog.mage.skills, hasLength(3));
+      expect(HeroCatalog.mage.skills, hasLength(4));
+      expect(
+        HeroLoadout.availableSkills(HeroCatalog.mage, {}).map((s) => s.id),
+        ['fireball', 'arcane_bolt', 'frost_ward'],
+      );
     });
 
     test('sanitize recovers unknown and partial ids', () {

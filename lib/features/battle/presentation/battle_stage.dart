@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/assets/game_assets.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/opaque_character_art.dart';
 import '../domain/battle_state.dart';
 import '../domain/enemy_def.dart';
 
@@ -168,10 +169,12 @@ class _FighterSlot extends StatelessWidget {
               child: LayoutBuilder(
                 builder: (context, slot) {
                   final fill = slotFill.clamp(0.7, 1.0);
-                  Widget sprite = Image.asset(
-                    assetPath,
+                  Widget sprite = OpaqueCharacterArt(
+                    assetPath: assetPath,
                     fit: BoxFit.contain,
                     alignment: align,
+                    borderRadius: 14,
+                    plateColor: MythDuskColors.ink.withValues(alpha: 0.92),
                     errorBuilder: (_, __, ___) => const Icon(
                       Icons.person,
                       size: 72,

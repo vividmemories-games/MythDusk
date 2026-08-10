@@ -673,6 +673,21 @@ abstract final class PuzzleEngine {
     return next;
   }
 
+  /// Overlays that fully cleared between [before] and [after] (layer → 0).
+  static int countOverlaysFullyBroken(PuzzleBoard before, PuzzleBoard after) {
+    var n = 0;
+    final h = before.height;
+    final w = before.width;
+    for (var r = 0; r < h; r++) {
+      for (var c = 0; c < w; c++) {
+        final a = before.at(r, c);
+        final b = after.at(r, c);
+        if (a.hasObstacle && !b.hasObstacle) n++;
+      }
+    }
+    return n;
+  }
+
   /// Computes overlay layer damage for one clear wave.
   ///
   /// - **match_under** binders: 1 damage if the cell is in [touch]
@@ -831,6 +846,7 @@ abstract final class PuzzleEngine {
     WavePlan plan, {
     required Random random,
     required TileIdGen ids,
+    TileSpawnWeights spawnWeights = TileSpawnWeights.uniform,
   }) {
     var afterClear = clearCells(
       board,
@@ -839,7 +855,12 @@ abstract final class PuzzleEngine {
     );
     afterClear = applyCreations(afterClear, plan.creations);
     final afterDrop = applyGravity(afterClear);
-    final afterFill = fillEmpty(afterDrop, random: random, ids: ids);
+    final afterFill = fillEmpty(
+      afterDrop,
+      random: random,
+      ids: ids,
+      spawnWeights: spawnWeights,
+    );
     return (
       afterClear: afterClear,
       afterDrop: afterDrop,
@@ -852,12 +873,20 @@ abstract final class PuzzleEngine {
     WavePlan plan, {
     required Random random,
     required TileIdGen ids,
+    TileSpawnWeights spawnWeights = TileSpawnWeights.uniform,
   }) {
-    final collapsed = collapse(swapped, plan, random: random, ids: ids);
+    final collapsed = collapse(
+      swapped,
+      plan,
+      random: random,
+      ids: ids,
+      spawnWeights: spawnWeights,
+    );
     final rest = resolveCascade(
       collapsed.afterFill,
       random: random,
       ids: ids,
+      spawnWeights: spawnWeights,
     );
     return CascadeResult(
       steps: [
@@ -881,6 +910,7 @@ abstract final class PuzzleEngine {
     required Random random,
     required TileIdGen ids,
     int maxWaves = 32,
+    TileSpawnWeights spawnWeights = TileSpawnWeights.uniform,
   }) {
     final steps = <CascadeStep>[];
     var current = board;
@@ -891,7 +921,13 @@ abstract final class PuzzleEngine {
       if (plan.isEmpty) break;
 
       totals = totals.merge(plan.match);
-      final collapsed = collapse(current, plan, random: random, ids: ids);
+      final collapsed = collapse(
+        current,
+        plan,
+        random: random,
+        ids: ids,
+        spawnWeights: spawnWeights,
+      );
       steps.add(
         CascadeStep(
           match: plan.match,
@@ -922,6 +958,7 @@ abstract final class PuzzleEngine {
     TileColor? swapColor,
     required Random random,
     required TileIdGen ids,
+    TileSpawnWeights spawnWeights = TileSpawnWeights.uniform,
   }) {
     if (!board.inBounds(pos.$1, pos.$2)) return null;
     final cell = board.at(pos.$1, pos.$2);
@@ -961,7 +998,13 @@ abstract final class PuzzleEngine {
 
     final match = resolveMatches(board, clear, mergeLabel: label);
     final plan = WavePlan(clearCells: clear, creations: {}, match: match);
-    return _cascadeFromPlan(board, plan, random: random, ids: ids);
+    return _cascadeFromPlan(
+      board,
+      plan,
+      random: random,
+      ids: ids,
+      spawnWeights: spawnWeights,
+    );
   }
 
   /// Try a swap; handles special merges, special activation, and shape matches.
@@ -972,6 +1015,7 @@ abstract final class PuzzleEngine {
     (int, int) b, {
     required Random random,
     required TileIdGen ids,
+    TileSpawnWeights spawnWeights = TileSpawnWeights.uniform,
   }) {
     if (!areAdjacent(a, b)) return null;
     if (!board.at(a.$1, a.$2).isPlayable) return null;
@@ -1001,7 +1045,13 @@ abstract final class PuzzleEngine {
       final label = mergeLabel(atA.special, atB.special);
       final match = resolveMatches(swapped, clear, mergeLabel: label);
       final plan = WavePlan(clearCells: clear, creations: {}, match: match);
-      return _cascadeFromPlan(swapped, plan, random: random, ids: ids);
+      return _cascadeFromPlan(
+        swapped,
+        plan,
+        random: random,
+        ids: ids,
+        spawnWeights: spawnWeights,
+      );
     }
 
     // Special ↔ any normal tile: activate the special (not color-matched).
@@ -1015,6 +1065,7 @@ abstract final class PuzzleEngine {
         swapColor: normalColor,
         random: random,
         ids: ids,
+        spawnWeights: spawnWeights,
       );
     }
 
@@ -1026,6 +1077,12 @@ abstract final class PuzzleEngine {
     );
     if (plan.isEmpty) return null;
 
-    return _cascadeFromPlan(swapped, plan, random: random, ids: ids);
+    return _cascadeFromPlan(
+      swapped,
+      plan,
+      random: random,
+      ids: ids,
+      spawnWeights: spawnWeights,
+    );
   }
 }

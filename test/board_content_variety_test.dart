@@ -131,4 +131,29 @@ void main() {
     expect(chapter.boardFor(chapter.nodeById('node_20')).templateId,
         'board_bridge_narrow_01');
   });
+
+  test('Ch4–10 resolved boards are not all identical', () {
+    const paths = {
+      'ch_ashen': 'assets/levels/ashen_quarries.json',
+      'ch_skybridge': 'assets/levels/skybridge_siege.json',
+      'ch_candlecrypt': 'assets/levels/candlecrypt.json',
+      'ch_mirror': 'assets/levels/mirror_lake.json',
+      'ch_thornmarket': 'assets/levels/thornmarket.json',
+      'ch_eclipse': 'assets/levels/eclipse_forge.json',
+      'ch_mythspire': 'assets/levels/mythspire_gate.json',
+    };
+    for (final entry in paths.entries) {
+      final chapter = _loadChapter(entry.value);
+      final fingerprints = {
+        for (final node in chapter.nodes)
+          _boardFingerprint(chapter.boardFor(node)),
+      };
+      expect(
+        fingerprints.length,
+        greaterThanOrEqualTo(3),
+        reason: '${entry.key} should have ≥3 distinct board configs, '
+            'got ${fingerprints.length}',
+      );
+    }
+  });
 }

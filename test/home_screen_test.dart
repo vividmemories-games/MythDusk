@@ -79,7 +79,7 @@ void main() {
     expect(find.text('Enter Campaign'), findsOneWidget);
     expect(find.text('Shop'), findsOneWidget);
     expect(find.text('Profile'), findsOneWidget);
-    expect(find.text('Mock'), findsOneWidget);
+    expect(find.text('Expedition'), findsOneWidget);
     expect(find.text('Quests'), findsNothing);
     expect(find.text('Events'), findsNothing);
     expect(find.text('Weekly'), findsOneWidget);

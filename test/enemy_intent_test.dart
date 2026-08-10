@@ -90,4 +90,22 @@ void main() {
       expect(a.state.enemyIntent!.id, b.state.enemyIntent!.id);
     });
   });
+
+  group('Leech / Hexer intent labels', () {
+    test('leech skill intent includes drain and heal', () {
+      final leech =
+          EnemyCatalog.leechWisp.skills.firstWhere((s) => s.id == 'leech');
+      expect(leech.intentLabel, contains('6 dmg'));
+      expect(leech.intentLabel, contains('drain 4 healing'));
+      expect(leech.intentLabel, contains('heal self 8'));
+    });
+
+    test('hexer warp intent includes spawn warp details', () {
+      final warp = EnemyCatalog.hexer.skills.firstWhere((s) => s.id == 'warp');
+      expect(warp.intentLabel, contains('5 dmg'));
+      expect(warp.intentLabel, contains('warp spawns'));
+      expect(warp.intentLabel, contains('purple×3'));
+      expect(warp.intentLabel, contains('green×0.25'));
+    });
+  });
 }

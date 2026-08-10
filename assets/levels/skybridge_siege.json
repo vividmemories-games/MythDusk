@@ -19,7 +19,10 @@
           "coinReward": 54,
           "order": 0,
           "mapX": 0.454,
-          "mapY": 0.841
+          "mapY": 0.841,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "ch_skybridge_n02",
@@ -28,7 +31,10 @@
           "coinReward": 56,
           "order": 1,
           "mapX": 0.434,
-          "mapY": 0.665
+          "mapY": 0.665,
+          "board": {
+            "templateId": "board_open_6x6"
+          }
         },
         {
           "id": "ch_skybridge_n03",
@@ -40,7 +46,21 @@
           "mapY": 0.508,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  1,
+                  4
+                ],
+                "direction": "left",
+                "everyNTurns": 2
+              }
+            ]
+          }
         },
         {
           "id": "ch_skybridge_n04",
@@ -49,11 +69,18 @@
           "coinReward": 60,
           "order": 3,
           "mapX": 0.478,
-          "mapY": 0.369
+          "mapY": 0.369,
+          "board": {
+            "templateId": "board_open_6x6",
+            "spawnWeights": {
+              "blue": 1.25,
+              "purple": 0.75
+            }
+          }
         },
         {
           "id": "ch_skybridge_n05",
-          "name": "Siege Captain \u2014 Form 1",
+          "name": "Siege Captain — Form 1",
           "enemyId": "siege_captain",
           "coinReward": 110,
           "order": 4,
@@ -61,7 +88,20 @@
           "bossForm": 1,
           "mapX": 0.483,
           "mapY": 0.197,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_vine_corners_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  2
+                ],
+                "direction": "right",
+                "everyNTurns": 1
+              }
+            ]
+          }
         }
       ]
     },
@@ -77,7 +117,10 @@
           "coinReward": 64,
           "order": 5,
           "mapX": 0.148,
-          "mapY": 0.849
+          "mapY": 0.849,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "ch_skybridge_n07",
@@ -86,7 +129,10 @@
           "coinReward": 66,
           "order": 6,
           "mapX": 0.496,
-          "mapY": 0.674
+          "mapY": 0.674,
+          "board": {
+            "templateId": "board_open_6x6"
+          }
         },
         {
           "id": "ch_skybridge_n08",
@@ -98,7 +144,21 @@
           "mapY": 0.507,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  1,
+                  4
+                ],
+                "direction": "left",
+                "everyNTurns": 2
+              }
+            ]
+          }
         },
         {
           "id": "ch_skybridge_n09",
@@ -107,11 +167,18 @@
           "coinReward": 70,
           "order": 8,
           "mapX": 0.773,
-          "mapY": 0.353
+          "mapY": 0.353,
+          "board": {
+            "templateId": "board_open_6x6",
+            "spawnWeights": {
+              "blue": 1.25,
+              "purple": 0.75
+            }
+          }
         },
         {
           "id": "ch_skybridge_n10",
-          "name": "Siege Captain \u2014 Form 2",
+          "name": "Siege Captain — Form 2",
           "enemyId": "siege_captain",
           "coinReward": 120,
           "order": 9,
@@ -119,7 +186,20 @@
           "bossForm": 2,
           "mapX": 0.781,
           "mapY": 0.157,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_vine_corners_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  2
+                ],
+                "direction": "right",
+                "everyNTurns": 1
+              }
+            ]
+          }
         }
       ]
     },
@@ -135,7 +215,10 @@
           "coinReward": 74,
           "order": 10,
           "mapX": 0.461,
-          "mapY": 0.859
+          "mapY": 0.859,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "ch_skybridge_n12",
@@ -144,7 +227,10 @@
           "coinReward": 76,
           "order": 11,
           "mapX": 0.2,
-          "mapY": 0.696
+          "mapY": 0.696,
+          "board": {
+            "templateId": "board_open_6x6"
+          }
         },
         {
           "id": "ch_skybridge_n13",
@@ -156,7 +242,21 @@
           "mapY": 0.535,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  1,
+                  4
+                ],
+                "direction": "left",
+                "everyNTurns": 2
+              }
+            ]
+          }
         },
         {
           "id": "ch_skybridge_n14",
@@ -165,11 +265,18 @@
           "coinReward": 80,
           "order": 13,
           "mapX": 0.198,
-          "mapY": 0.365
+          "mapY": 0.365,
+          "board": {
+            "templateId": "board_open_6x6",
+            "spawnWeights": {
+              "blue": 1.25,
+              "purple": 0.75
+            }
+          }
         },
         {
           "id": "ch_skybridge_n15",
-          "name": "Siege Captain \u2014 Form 3",
+          "name": "Siege Captain — Form 3",
           "enemyId": "siege_captain",
           "coinReward": 130,
           "order": 14,
@@ -177,7 +284,20 @@
           "bossForm": 3,
           "mapX": 0.624,
           "mapY": 0.164,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_vine_corners_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  2
+                ],
+                "direction": "right",
+                "everyNTurns": 1
+              }
+            ]
+          }
         }
       ]
     },
@@ -193,7 +313,10 @@
           "coinReward": 84,
           "order": 15,
           "mapX": 0.297,
-          "mapY": 0.827
+          "mapY": 0.827,
+          "board": {
+            "templateId": "board_bridge_narrow_01"
+          }
         },
         {
           "id": "ch_skybridge_n17",
@@ -202,7 +325,10 @@
           "coinReward": 86,
           "order": 16,
           "mapX": 0.51,
-          "mapY": 0.643
+          "mapY": 0.643,
+          "board": {
+            "templateId": "board_open_6x6"
+          }
         },
         {
           "id": "ch_skybridge_n18",
@@ -214,7 +340,21 @@
           "mapY": 0.51,
           "prepDrops": [
             "prep_vanguard_tonic"
-          ]
+          ],
+          "board": {
+            "templateId": "board_bridge_narrow_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  1,
+                  4
+                ],
+                "direction": "left",
+                "everyNTurns": 2
+              }
+            ]
+          }
         },
         {
           "id": "ch_skybridge_n19",
@@ -223,11 +363,18 @@
           "coinReward": 90,
           "order": 18,
           "mapX": 0.617,
-          "mapY": 0.388
+          "mapY": 0.388,
+          "board": {
+            "templateId": "board_open_6x6",
+            "spawnWeights": {
+              "blue": 1.25,
+              "purple": 0.75
+            }
+          }
         },
         {
           "id": "ch_skybridge_n20",
-          "name": "Siege Captain \u2014 Form 4",
+          "name": "Siege Captain — Form 4",
           "enemyId": "siege_captain",
           "coinReward": 140,
           "order": 19,
@@ -235,7 +382,20 @@
           "bossForm": 4,
           "mapX": 0.501,
           "mapY": 0.207,
-          "enrageAfterTurns": 8
+          "enrageAfterTurns": 8,
+          "board": {
+            "templateId": "board_vine_corners_01",
+            "movers": [
+              {
+                "type": "row_shove",
+                "rows": [
+                  2
+                ],
+                "direction": "right",
+                "everyNTurns": 1
+              }
+            ]
+          }
         }
       ]
     }

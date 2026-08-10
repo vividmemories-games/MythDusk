@@ -4,7 +4,9 @@ import '../../puzzle/domain/overlay_def.dart';
 enum EnemyEffectType {
   modifyMoves('modify_moves'),
   drainResource('drain_resource'),
-  applyOverlay('apply_overlay');
+  applyOverlay('apply_overlay'),
+  healSelf('heal_self'),
+  modifySpawnWeights('modify_spawn_weights');
 
   const EnemyEffectType(this.wireName);
 
@@ -65,6 +67,12 @@ sealed class EnemyEffect {
           amount: _positiveInt(json, 'amount'),
         ),
       EnemyEffectType.applyOverlay => _parseApplyOverlay(json),
+      EnemyEffectType.healSelf => HealSelfEffect(
+          amount: _positiveInt(json, 'amount'),
+        ),
+      EnemyEffectType.modifySpawnWeights => ModifySpawnWeightsEffect(
+          weights: _parseSpawnWeights(json['weights']),
+        ),
     };
   }
 
@@ -101,6 +109,36 @@ sealed class EnemyEffect {
     }
     final count = json['count'] == null ? 1 : _positiveInt(json, 'count');
     return ApplyOverlayEffect(overlayId: overlayId, count: count);
+  }
+
+  static Map<String, double> _parseSpawnWeights(Object? raw) {
+    if (raw is! Map) {
+      throw FormatException('Enemy effect weights must be a map');
+    }
+    if (raw.isEmpty) {
+      throw FormatException('Enemy effect weights must be non-empty');
+    }
+    final weights = <String, double>{};
+    for (final entry in raw.entries) {
+      final key = entry.key;
+      if (key is! String || key.isEmpty) {
+        throw FormatException('Enemy effect weight keys must be strings');
+      }
+      final known = TileColorId.tryParse(key);
+      if (known == null) {
+        throw FormatException('Unknown tile color id: $key');
+      }
+      final value = entry.value;
+      if (value is! num || value.isNaN) {
+        throw FormatException('Enemy effect weight for $key must be a number');
+      }
+      if (value < 0) {
+        throw FormatException(
+            'Enemy effect weight for $key cannot be negative');
+      }
+      weights[known] = value.toDouble();
+    }
+    return Map.unmodifiable(weights);
   }
 
   static int _requiredInt(Map<String, dynamic> json, String key) {
@@ -213,4 +251,66 @@ final class ApplyOverlayEffect extends EnemyEffect {
 
   @override
   EnemyEffect scaled({required double damageMultiplier}) => this;
+}
+
+final class HealSelfEffect extends EnemyEffect {
+  const HealSelfEffect({required this.amount}) : assert(amount > 0);
+
+  /// Flat HP restored to the casting enemy (clamped to maxHp in battle).
+  final int amount;
+
+  @override
+  EnemyEffectType get type => EnemyEffectType.healSelf;
+
+  @override
+  String describe() => 'heal self $amount';
+
+  @override
+  Map<String, Object> toJson() => {
+        'type': type.wireName,
+        'amount': amount,
+      };
+
+  @override
+  EnemyEffect scaled({required double damageMultiplier}) => this;
+}
+
+final class ModifySpawnWeightsEffect extends EnemyEffect {
+  const ModifySpawnWeightsEffect({required this.weights});
+
+  /// Relative spawn weights keyed by [TileColor.name] (`red`, `purple`, …).
+  /// Applied for the rest of the battle via pending overrides.
+  final Map<String, double> weights;
+
+  @override
+  EnemyEffectType get type => EnemyEffectType.modifySpawnWeights;
+
+  @override
+  String describe() {
+    final parts = [
+      for (final e in weights.entries) '${e.key}×${_formatWeight(e.value)}',
+    ];
+    return 'warp spawns (${parts.join(', ')})';
+  }
+
+  @override
+  Map<String, Object> toJson() => {
+        'type': type.wireName,
+        'weights': Map<String, Object>.from(weights),
+      };
+
+  @override
+  EnemyEffect scaled({required double damageMultiplier}) => this;
+
+  static String _formatWeight(double value) {
+    if (value == value.roundToDouble()) return '${value.toInt()}';
+    return value.toString();
+  }
+}
+
+/// Tile color id helpers shared by spawn-weight effects (keeps wire names stable).
+abstract final class TileColorId {
+  static const known = {'red', 'blue', 'green', 'yellow', 'purple'};
+
+  static String? tryParse(String raw) => known.contains(raw) ? raw : null;
 }

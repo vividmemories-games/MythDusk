@@ -64,9 +64,23 @@ void main() {
     await tester.tap(find.byIcon(Icons.chevron_right));
     await tester.pumpAndSettle();
 
-    await tester.drag(find.byType(ListView), const Offset(0, -500));
-    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Skills'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('Skills'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Mastery'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Mastery'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Personality'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('Personality'), findsOneWidget);
     expect(find.text('Max HP'), findsOneWidget);
     expect(tester.takeException(), isNull);

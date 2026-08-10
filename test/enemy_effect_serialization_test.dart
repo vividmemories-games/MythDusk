@@ -9,6 +9,8 @@ void main() {
         ModifyMovesEffect(amount: -1),
         DrainResourceEffect(resource: BattleResource.mana, amount: 3),
         ApplyOverlayEffect(overlayId: 'ovl_poison', count: 2),
+        HealSelfEffect(amount: 8),
+        ModifySpawnWeightsEffect(weights: {'purple': 3.0, 'green': 0.25}),
       ];
 
       for (final original in effects) {
@@ -50,6 +52,18 @@ void main() {
         {'type': 'apply_overlay', 'count': 1},
         {'type': 'apply_overlay', 'overlayId': 'ovl_unknown', 'count': 1},
         {'type': 'apply_overlay', 'overlayId': 'ovl_poison', 'count': 0},
+        {'type': 'heal_self', 'amount': 0},
+        {'type': 'heal_self', 'amount': -2},
+        {'type': 'modify_spawn_weights'},
+        {'type': 'modify_spawn_weights', 'weights': <String, Object>{}},
+        {
+          'type': 'modify_spawn_weights',
+          'weights': {'orange': 2},
+        },
+        {
+          'type': 'modify_spawn_weights',
+          'weights': {'purple': -1},
+        },
       ];
 
       for (final json in invalid) {
@@ -77,6 +91,8 @@ void main() {
             ModifyMovesEffect(amount: -1),
             DrainResourceEffect(resource: BattleResource.mana, amount: 3),
             ApplyOverlayEffect(overlayId: 'ovl_poison', count: 2),
+            HealSelfEffect(amount: 5),
+            ModifySpawnWeightsEffect(weights: {'purple': 2.0}),
           ],
         ),
       ],
@@ -87,5 +103,10 @@ void main() {
     expect((effects[0] as ModifyMovesEffect).amount, -1);
     expect((effects[1] as DrainResourceEffect).amount, 6);
     expect((effects[2] as ApplyOverlayEffect).count, 2);
+    expect((effects[3] as HealSelfEffect).amount, 5);
+    expect(
+      (effects[4] as ModifySpawnWeightsEffect).weights,
+      {'purple': 2.0},
+    );
   });
 }

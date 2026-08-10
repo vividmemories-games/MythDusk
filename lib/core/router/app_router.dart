@@ -6,6 +6,8 @@ import '../../features/battle/presentation/battle_screen.dart';
 import '../../features/campaign/presentation/briefing_screen.dart';
 import '../../features/campaign/presentation/campaign_screen.dart';
 import '../../features/campaign/presentation/chapter_select_screen.dart';
+import '../../features/daily/presentation/daily_screen.dart';
+import '../../features/expedition/presentation/expedition_screen.dart';
 import '../../features/heroes/presentation/hero_unlock_celebration_screen.dart';
 import '../../features/heroes/presentation/heroes_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
@@ -74,6 +76,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/weekly',
         name: 'weekly',
         builder: (context, state) => const WeeklyScreen(),
+      ),
+      GoRoute(
+        path: '/daily',
+        name: 'daily',
+        builder: (context, state) => const DailyScreen(),
+      ),
+      GoRoute(
+        path: '/expedition',
+        name: 'expedition',
+        builder: (context, state) => const ExpeditionScreen(),
       ),
       GoRoute(
         path: '/battle/:nodeId',
