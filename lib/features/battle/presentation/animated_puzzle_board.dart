@@ -477,6 +477,7 @@ class _BoardTileState extends State<_BoardTile> {
   var _wrapFlash = false;
   var _swipeFired = false;
   var _panAccum = Offset.zero;
+  var _isFalling = false;
 
   double get _targetLeft => widget.col * (widget.cellW + widget.gap);
   double get _targetTop => widget.row * (widget.cellH + widget.gap);
@@ -512,6 +513,7 @@ class _BoardTileState extends State<_BoardTile> {
     final wrapped = rowDelta > 1 || colDelta > 1;
     _teleport = sizeChanged || wrapped;
     _wrapFlash = wrapped && widget.windShoving;
+    _isFalling = !wrapped && widget.row > oldWidget.row && colDelta == 0;
     if (sizeChanged) {
       _left = _targetLeft;
       _top = _targetTop;
@@ -522,14 +524,15 @@ class _BoardTileState extends State<_BoardTile> {
   Duration _moveDuration(bool reduceMotion) {
     if (reduceMotion) return Duration.zero;
     if (widget.clearing) {
-      return const Duration(milliseconds: 100);
+      return const Duration(milliseconds: 160);
     }
     if (_teleport) return Duration.zero;
     if (widget.windShoving) return BattleController.windFxDuration;
     if (widget.spawning || _spawnDropPending) {
       return BattleController.spawnDuration;
     }
-    return BattleController.fallDuration;
+    if (_isFalling) return BattleController.fallDuration;
+    return BattleController.swapDuration;
   }
 
   @override

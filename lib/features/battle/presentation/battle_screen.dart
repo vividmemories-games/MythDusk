@@ -28,6 +28,8 @@ import 'battle_hud.dart';
 import 'battle_result_screen.dart';
 import 'battle_stage.dart';
 import 'battle_tutorial_overlay.dart';
+import 'match_collect_fx.dart';
+import 'match_collect_overlay.dart';
 
 class BattleScreen extends ConsumerStatefulWidget {
   const BattleScreen({super.key, required this.nodeId});
@@ -82,6 +84,41 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
         swap.$2,
       });
     });
+  }
+
+  void _enqueueCollectFlights(BattleState battle) {
+    final targets = ref.read(resourceFlyTargetsProvider);
+    final boardBox =
+        targets.boardKey.currentContext?.findRenderObject() as RenderBox?;
+    if (boardBox == null || !boardBox.hasSize) return;
+
+    const gap = 3.0;
+    final board = battle.board;
+    final cellW = (boardBox.size.width - gap * (board.width - 1)) / board.width;
+    final cellH =
+        (boardBox.size.height - gap * (board.height - 1)) / board.height;
+
+    final particles = <MatchCollectParticle>[];
+    var i = 0;
+    for (final cell in battle.clearingCells) {
+      final color = board.at(cell.$1, cell.$2).color;
+      final resourceId = resourceIdForTileColor(color);
+      if (resourceId == null) continue;
+      final local = Offset(
+        cell.$2 * (cellW + gap) + cellW / 2,
+        cell.$1 * (cellH + gap) + cellH / 2,
+      );
+      final global = boardBox.localToGlobal(local);
+      particles.add(
+        MatchCollectParticle(
+          id: i++,
+          resourceId: resourceId,
+          startGlobal: global,
+        ),
+      );
+    }
+    if (particles.isEmpty) return;
+    ref.read(matchCollectFlightsProvider.notifier).state = particles;
   }
 
   @override
@@ -187,6 +224,13 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
         return;
       }
 
+      // Match shards → resource HUD (once per clear wave).
+      if (prev != null &&
+          prev.clearingCells.isEmpty &&
+          next.clearingCells.isNotEmpty) {
+        _enqueueCollectFlights(next);
+      }
+
       // Soft-lock recovery: playerTurn with 0 moves (enemy acted but moves
       // never refreshed). Do not treat enemyTurn as soft-lock — that is normal.
       final softLocked =
@@ -260,9 +304,38 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
               children: [
                 Column(
                   children: [
-                    // Clears the floating back/restart buttons above the
-                    // HP plates.
-                    const SizedBox(height: 44),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+                      child: Row(
+                        children: [
+                          _FloatingActionIcon(
+                            icon: Icons.arrow_back,
+                            semanticLabel: 'Leave battle',
+                            onTap: () => _confirmLeave(context),
+                          ),
+                          if (AppFlavor.showQaTools &&
+                              battle.phase == BattlePhase.playerTurn &&
+                              !battle.inputLocked) ...[
+                            const SizedBox(width: 8),
+                            _FloatingActionIcon(
+                              icon: Icons.bug_report_outlined,
+                              semanticLabel: 'QA: force enemy skill',
+                              onTap: () => _showQaEnemySkills(
+                                context,
+                                battle,
+                                notifier,
+                              ),
+                            ),
+                          ],
+                          const Spacer(),
+                          _FloatingActionIcon(
+                            icon: Icons.refresh,
+                            semanticLabel: 'Restart battle',
+                            onTap: () => _confirmRestart(context, notifier),
+                          ),
+                        ],
+                      ),
+                    ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: BattleStage(battle: battle),
@@ -275,10 +348,13 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: AnimatedPuzzleBoard(
-                          battle: battle,
-                          onTap: notifier.tapCell,
-                          onSwipe: notifier.swipeCell,
+                        child: KeyedSubtree(
+                          key: ref.watch(resourceFlyTargetsProvider).boardKey,
+                          child: AnimatedPuzzleBoard(
+                            battle: battle,
+                            onTap: notifier.tapCell,
+                            onSwipe: notifier.swipeCell,
+                          ),
                         ),
                       ),
                     ),
@@ -328,40 +404,7 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
                     ),
                   ],
                 ),
-                Positioned(
-                  top: 2,
-                  left: 8,
-                  child: _FloatingActionIcon(
-                    icon: Icons.arrow_back,
-                    semanticLabel: 'Leave battle',
-                    onTap: () => _confirmLeave(context),
-                  ),
-                ),
-                if (AppFlavor.showQaTools &&
-                    battle.phase == BattlePhase.playerTurn &&
-                    !battle.inputLocked)
-                  Positioned(
-                    top: 2,
-                    left: 64,
-                    child: _FloatingActionIcon(
-                      icon: Icons.bug_report_outlined,
-                      semanticLabel: 'QA: force enemy skill',
-                      onTap: () => _showQaEnemySkills(
-                        context,
-                        battle,
-                        notifier,
-                      ),
-                    ),
-                  ),
-                Positioned(
-                  top: 2,
-                  right: 8,
-                  child: _FloatingActionIcon(
-                    icon: Icons.refresh,
-                    semanticLabel: 'Restart battle',
-                    onTap: () => _confirmRestart(context, notifier),
-                  ),
-                ),
+                const Positioned.fill(child: MatchCollectOverlay()),
                 BattleTutorialOverlay(
                   enabled: !battle.isWeekly &&
                       !battle.isDaily &&
@@ -641,23 +684,28 @@ class _SkillButton extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 3),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        for (final line in afford.resourceLines) ...[
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (final line in afford.resourceLines) ...[
+                            _CostChip(
+                              iconPath:
+                                  GameAssets.resourceIcon(line.resourceId),
+                              label: line.label,
+                              ok: line.ok,
+                            ),
+                            const SizedBox(width: 4),
+                          ],
                           _CostChip(
-                            iconPath: GameAssets.resourceIcon(line.resourceId),
-                            label: line.label,
-                            ok: line.ok,
+                            iconPath: GameAssets.iconAp,
+                            label: '${afford.apHave}/${afford.apNeed}',
+                            ok: afford.apOk,
                           ),
-                          const SizedBox(width: 4),
                         ],
-                        _CostChip(
-                          iconPath: GameAssets.iconAp,
-                          label: '${afford.apHave}/${afford.apNeed}',
-                          ok: afford.apOk,
-                        ),
-                      ],
+                      ),
                     ),
                     if (!enabled && afford.blockingReason != null) ...[
                       const SizedBox(height: 2),

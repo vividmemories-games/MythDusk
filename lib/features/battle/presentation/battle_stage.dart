@@ -8,8 +8,8 @@ import '../../../core/widgets/opaque_character_art.dart';
 import '../domain/battle_state.dart';
 import '../domain/enemy_def.dart';
 
-/// Chibi hero (left) + enemy (right) with HP plates floating on the sprites
-/// and the enemy threat shown as a badge instead of a full-width caption.
+/// Chibi hero (left) + enemy (right). Name floats lightly; HP bar sits under
+/// each sprite so top chrome never overlaps health.
 class BattleStage extends StatelessWidget {
   const BattleStage({
     super.key,
@@ -19,16 +19,13 @@ class BattleStage extends StatelessWidget {
   final BattleState battle;
 
   /// Stage band for fighters (tall enough for crowns / horns without clipping).
-  static const double stageHeight = 300;
+  static const double stageHeight = 280;
 
   @override
   Widget build(BuildContext context) {
-    // Telegraphed action for the next enemy turn (rolled at turn start).
     final intent = battle.enemyIntent;
     final isBoss = battle.enemy.isBoss;
     final form = battle.bossForm;
-    // Fraction of the sprite slot to fill (BoxFit.contain — never crops).
-    // Bosses fill more of the slot so they read bigger than trash.
     final enemyFill = !isBoss
         ? 0.88
         : (form != null && form >= 4)
@@ -124,47 +121,43 @@ class _FighterSlot extends StatelessWidget {
   final bool enraged;
   final bool telegraphPulse;
   final EnemySkill? threat;
-
-  /// How much of the sprite band to use (0–1). Bosses higher than trash.
   final double slotFill;
 
   @override
   Widget build(BuildContext context) {
     final isLeft = align == Alignment.bottomLeft;
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final cross = isLeft ? CrossAxisAlignment.start : CrossAxisAlignment.end;
 
-    // Plate above the character's head; sprite band below never overlaps it.
     return LayoutBuilder(
       builder: (context, constraints) {
         final plateWidth = math.min(constraints.maxWidth, 168.0);
         return Column(
-          crossAxisAlignment:
-              isLeft ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+          crossAxisAlignment: cross,
           children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment:
-                  isLeft ? CrossAxisAlignment.start : CrossAxisAlignment.end,
-              children: [
-                SizedBox(
-                  width: plateWidth,
-                  child: _HpPlate(
-                    name: subtitle == null ? name : '$name · $subtitle',
-                    hp: hp,
-                    maxHp: maxHp,
-                    barColor: barColor,
-                    flash: flash,
-                  ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: Text(
+                subtitle == null ? name : '$name · $subtitle',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: isLeft ? TextAlign.left : TextAlign.right,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontSize: 12,
+                  color: MythDuskColors.parchment.withValues(alpha: 0.92),
+                  shadows: const [
+                    Shadow(
+                      blurRadius: 6,
+                      color: Color(0xCC0B1C22),
+                    ),
+                  ],
                 ),
-                if (threat != null) ...[
-                  const SizedBox(height: 3),
-                  _ThreatBadge(
-                    threat: threat!,
-                    pulsing: telegraphPulse,
-                  ),
-                ],
-              ],
+              ),
             ),
+            if (threat != null) ...[
+              _ThreatBadge(threat: threat!, pulsing: telegraphPulse),
+              const SizedBox(height: 2),
+            ],
             Expanded(
               child: LayoutBuilder(
                 builder: (context, slot) {
@@ -174,7 +167,7 @@ class _FighterSlot extends StatelessWidget {
                     fit: BoxFit.contain,
                     alignment: align,
                     borderRadius: 14,
-                    plateColor: MythDuskColors.ink.withValues(alpha: 0.92),
+                    showPlate: false,
                     errorBuilder: (_, __, ___) => const Icon(
                       Icons.person,
                       size: 72,
@@ -237,8 +230,6 @@ class _FighterSlot extends StatelessWidget {
                     ],
                   );
 
-                  // Size within the slot — no Transform.scale, so crowns/horns
-                  // stay fully visible and never paint over the HP plate.
                   sprite = Align(
                     alignment: align,
                     child: SizedBox(
@@ -302,6 +293,16 @@ class _FighterSlot extends StatelessWidget {
                 },
               ),
             ),
+            const SizedBox(height: 4),
+            SizedBox(
+              width: plateWidth,
+              child: _HpBarUnder(
+                hp: hp,
+                maxHp: maxHp,
+                barColor: barColor,
+                flash: flash,
+              ),
+            ),
           ],
         );
       },
@@ -309,17 +310,15 @@ class _FighterSlot extends StatelessWidget {
   }
 }
 
-/// Translucent name + HP bar plate floating over the sprite's head.
-class _HpPlate extends StatelessWidget {
-  const _HpPlate({
-    required this.name,
+/// Compact HP bar under the fighter sprite.
+class _HpBarUnder extends StatelessWidget {
+  const _HpBarUnder({
     required this.hp,
     required this.maxHp,
     required this.barColor,
     required this.flash,
   });
 
-  final String name;
   final int hp;
   final int maxHp;
   final Color barColor;
@@ -327,129 +326,74 @@ class _HpPlate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = (hp / maxHp).clamp(0.0, 1.0);
-    return Container(
-      padding: const EdgeInsets.fromLTRB(8, 4, 8, 5),
-      decoration: BoxDecoration(
-        color: MythDuskColors.ink.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontSize: 12),
-                ),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '$hp/$maxHp',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(fontSize: 10, height: 1.0),
-              ),
-            ],
-          ),
-          const SizedBox(height: 3),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(3),
-            child: TweenAnimationBuilder<double>(
-              key: ValueKey('hp-$name-$hp-$maxHp'),
-              tween: Tween(begin: 0, end: t),
-              duration: const Duration(milliseconds: 280),
-              curve: Curves.easeOutCubic,
-              builder: (context, value, _) {
-                return LinearProgressIndicator(
-                  value: value,
-                  minHeight: 5,
-                  backgroundColor: MythDuskColors.mist,
-                  color: flash ? MythDuskColors.parchment : barColor,
-                );
-              },
+    final t = maxHp <= 0 ? 0.0 : (hp / maxHp).clamp(0.0, 1.0);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Align(
+          alignment: Alignment.centerRight,
+          child: Text(
+            '$hp/$maxHp',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: MythDuskColors.parchment.withValues(alpha: 0.9),
+              shadows: const [
+                Shadow(blurRadius: 4, color: Color(0xCC0B1C22)),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 2),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: t, end: t),
+            duration: flash
+                ? BattleController.combatFxDuration
+                : const Duration(milliseconds: 220),
+            builder: (context, value, _) {
+              return LinearProgressIndicator(
+                value: value,
+                minHeight: 7,
+                backgroundColor: MythDuskColors.ink.withValues(alpha: 0.55),
+                color: barColor,
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
 
-/// Compact enemy-intent badge; tap for the skill name and full text.
 class _ThreatBadge extends StatelessWidget {
-  const _ThreatBadge({
-    required this.threat,
-    this.pulsing = false,
-  });
+  const _ThreatBadge({required this.threat, required this.pulsing});
 
   final EnemySkill threat;
   final bool pulsing;
 
   @override
   Widget build(BuildContext context) {
-    Widget badge = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: MythDuskColors.ink.withValues(alpha: pulsing ? 0.85 : 0.7),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: MythDuskColors.ember.withValues(alpha: pulsing ? 0.95 : 0.55),
-          width: pulsing ? 2 : 1,
+    return AnimatedOpacity(
+      opacity: pulsing ? 1 : 0.85,
+      duration: const Duration(milliseconds: 200),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: MythDuskColors.ember.withValues(alpha: 0.85),
+          borderRadius: BorderRadius.circular(8),
         ),
-        boxShadow: pulsing
-            ? [
-                BoxShadow(
-                  color: MythDuskColors.ember.withValues(alpha: 0.45),
-                  blurRadius: 10,
-                  spreadRadius: 1,
-                ),
-              ]
-            : null,
+        child: Text(
+          'Next: ${threat.name}',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: MythDuskColors.parchment,
+              ),
+        ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.bolt, size: 14, color: MythDuskColors.ember),
-          const SizedBox(width: 4),
-          Text(
-            threat.damage > 0 ? '${threat.damage}' : '!',
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: MythDuskColors.ember,
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (pulsing && !MediaQuery.disableAnimationsOf(context)) {
-      badge = TweenAnimationBuilder<double>(
-        key: ValueKey('threat-pulse-${threat.id}'),
-        tween: Tween(begin: 0.92, end: 1.08),
-        duration: const Duration(milliseconds: 420),
-        curve: Curves.easeInOut,
-        builder: (context, value, child) =>
-            Transform.scale(scale: value, child: child),
-        child: badge,
-      );
-    }
-
-    return Tooltip(
-      message: 'Next: ${threat.intentLabel}',
-      triggerMode: TooltipTriggerMode.tap,
-      child: badge,
     );
   }
 }

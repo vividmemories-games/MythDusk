@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/assets/game_assets.dart';
 import '../../../core/theme/app_theme.dart';
 import '../domain/battle_state.dart';
+import 'match_collect_fx.dart';
 
 /// Compact battle HUD: Moves · AP · resource gems · phase.
-class BattleHudBar extends StatelessWidget {
+class BattleHudBar extends ConsumerWidget {
   const BattleHudBar({super.key, required this.battle});
 
   final BattleState battle;
@@ -19,7 +21,8 @@ class BattleHudBar extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final flyTargets = ref.watch(resourceFlyTargetsProvider);
     final statusBadges = <Widget>[
       if (battle.enraged) const _PhaseBadge(label: 'Enraged', danger: true),
       if (battle.movers.isNotEmpty)
@@ -84,9 +87,12 @@ class BattleHudBar extends StatelessWidget {
             for (var i = 0; i < _resourceOrder.length; i++) ...[
               if (i > 0) const SizedBox(width: 6),
               Expanded(
-                child: _ResourceChip(
-                  resourceId: _resourceOrder[i],
-                  value: battle.resources[_resourceOrder[i]] ?? 0,
+                child: KeyedSubtree(
+                  key: flyTargets.resourceKeys[_resourceOrder[i]],
+                  child: _ResourceChip(
+                    resourceId: _resourceOrder[i],
+                    value: battle.resources[_resourceOrder[i]] ?? 0,
+                  ),
                 ),
               ),
             ],

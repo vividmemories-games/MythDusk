@@ -431,9 +431,10 @@ class BattleController {
   final Random _random;
   final TileIdGen ids;
 
-  static const clearDuration = Duration(milliseconds: 240);
-  static const fallDuration = Duration(milliseconds: 280);
-  static const spawnDuration = Duration(milliseconds: 300);
+  static const clearDuration = Duration(milliseconds: 280);
+  static const fallDuration = Duration(milliseconds: 300);
+  static const spawnDuration = Duration(milliseconds: 320);
+  static const swapDuration = Duration(milliseconds: 180);
   static const combatFxDuration = Duration(milliseconds: 360);
   static const castFxDuration = Duration(milliseconds: 400);
   static const windFxDuration = Duration(milliseconds: 520);
@@ -592,6 +593,23 @@ class BattleController {
       clearSelected: true,
     );
     return cascade;
+  }
+
+  /// Evaluates a swap without mutating [state] (used for swap / bounce FX).
+  CascadeResult? peekSwap((int, int) a, (int, int) b) {
+    return PuzzleEngine.trySwap(
+      state.board,
+      a,
+      b,
+      random: _random,
+      ids: ids,
+      spawnWeights: state.effectiveSpawnWeights,
+    );
+  }
+
+  /// Visual-only cell swap (invalid bounce / swap slide preview).
+  PuzzleBoard previewSwapBoard((int, int) a, (int, int) b) {
+    return PuzzleEngine.swap(state.board, a, b);
   }
 
   /// Tap-activate a power-up in place (costs the move when cascade finishes).

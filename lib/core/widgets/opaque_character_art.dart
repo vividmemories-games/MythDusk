@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
-/// Full-opacity character portrait plate so chibi art does not ghost into the
-/// dark hub / battle backgrounds (assets often sit on near-black pads).
+/// Character portrait. Optional solid plate for hub cards; battle uses
+/// [showPlate] false so art sits on the stage background.
 class OpaqueCharacterArt extends StatelessWidget {
   const OpaqueCharacterArt({
     super.key,
@@ -13,6 +13,7 @@ class OpaqueCharacterArt extends StatelessWidget {
     this.locked = false,
     this.borderRadius = 16,
     this.plateColor,
+    this.showPlate = true,
     this.errorBuilder,
   });
 
@@ -22,6 +23,7 @@ class OpaqueCharacterArt extends StatelessWidget {
   final bool locked;
   final double borderRadius;
   final Color? plateColor;
+  final bool showPlate;
   final ImageErrorWidgetBuilder? errorBuilder;
 
   static const List<double> _greyscaleMatrix = <double>[
@@ -69,9 +71,17 @@ class OpaqueCharacterArt extends StatelessWidget {
       );
     }
 
+    if (!showPlate) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: image,
+      );
+    }
+
+    final plate = plateColor ?? MythDuskColors.deepTeal;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: plateColor ?? MythDuskColors.deepTeal,
+        color: plate,
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(
           color: MythDuskColors.mist.withValues(alpha: locked ? 0.25 : 0.45),
@@ -80,8 +90,7 @@ class OpaqueCharacterArt extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
         child: ColoredBox(
-          // Solid underlay so PNG/WebP alpha never composites onto the stage.
-          color: plateColor ?? MythDuskColors.deepTeal,
+          color: plate,
           child: image,
         ),
       ),

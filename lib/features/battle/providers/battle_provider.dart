@@ -405,25 +405,53 @@ class BattleNotifier extends StateNotifier<BattleState> {
   Future<void> _runSwap((int, int) a, (int, int) b) async {
     final gen = ++_actionGen;
     _controller.state = state;
-    final cascade = _controller.beginSwap(a, b);
-    state = _controller.state;
-    if (cascade == null) return;
-    await _playCascade(cascade, gen);
+    final original = state.board;
+    final cascade = _controller.peekSwap(a, b);
+    final preview =
+        cascade?.boardAfterSwap ?? _controller.previewSwapBoard(a, b);
+
+    // Always slide gems into the swapped seats first.
+    state = state.copyWith(
+      board: preview,
+      phase: BattlePhase.resolving,
+      clearSelected: true,
+      clearHint: true,
+    );
+    await Future<void>.delayed(BattleController.swapDuration);
+    if (!mounted || gen != _actionGen) return;
+
+    if (cascade == null) {
+      // Bounce back — no Move spent.
+      state = state.copyWith(
+        board: original,
+        phase: BattlePhase.playerTurn,
+        log: [...state.log, 'No match — try another swap.'],
+      );
+      await Future<void>.delayed(BattleController.swapDuration);
+      if (!mounted || gen != _actionGen) return;
+      return;
+    }
+
+    _controller.state = state.copyWith(phase: BattlePhase.resolving);
+    await _playCascade(cascade, gen, skipInitialSwap: true);
   }
 
   Future<void> _playCascade(
     CascadeResult cascade,
     int gen, {
     int movesSpent = 1,
+    bool skipInitialSwap = false,
   }) async {
     var knownIds = state.board.tilePositions().keys.toSet();
 
     final swapped = cascade.boardAfterSwap;
-    if (swapped != null && swapped != state.board) {
+    if (!skipInitialSwap && swapped != null && swapped != state.board) {
       state = state.copyWith(board: swapped, phase: BattlePhase.resolving);
       knownIds = swapped.tilePositions().keys.toSet();
-      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await Future<void>.delayed(BattleController.swapDuration);
       if (!mounted || gen != _actionGen) return;
+    } else if (swapped != null) {
+      knownIds = swapped.tilePositions().keys.toSet();
     }
 
     var boardWithMatches = swapped ?? state.board;
