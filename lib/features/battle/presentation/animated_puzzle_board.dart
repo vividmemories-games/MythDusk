@@ -7,6 +7,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../puzzle/domain/board_cell.dart';
 import '../../puzzle/domain/tile_color.dart';
 import '../domain/battle_state.dart';
+import 'match_collect_fx.dart';
 
 /// Flat match-3 board, bottom-anchored above the skill dock.
 /// No grid chrome — gems float on the background with soft contact shadows.
@@ -16,6 +17,8 @@ class AnimatedPuzzleBoard extends StatelessWidget {
     required this.battle,
     required this.onTap,
     this.onSwipe,
+    this.bounceCells = const {},
+    this.bounceToken = 0,
   });
 
   final BattleState battle;
@@ -23,6 +26,10 @@ class AnimatedPuzzleBoard extends StatelessWidget {
 
   /// Primary match-3 input: swipe from one cell toward an adjacent neighbor.
   final void Function((int, int) from, (int, int) to)? onSwipe;
+
+  /// Cells that just failed a swap (wobble FX).
+  final Set<(int, int)> bounceCells;
+  final int bounceToken;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +54,8 @@ class AnimatedPuzzleBoard extends StatelessWidget {
                 battle: battle,
                 onTap: onTap,
                 onSwipe: onSwipe,
+                bounceCells: bounceCells,
+                bounceToken: bounceToken,
               ),
             ),
           ),
@@ -61,11 +70,15 @@ class _BoardSurface extends StatelessWidget {
     required this.battle,
     required this.onTap,
     this.onSwipe,
+    this.bounceCells = const {},
+    this.bounceToken = 0,
   });
 
   final BattleState battle;
   final void Function(int row, int col) onTap;
   final void Function((int, int) from, (int, int) to)? onSwipe;
+  final Set<(int, int)> bounceCells;
+  final int bounceToken;
 
   @override
   Widget build(BuildContext context) {
@@ -134,6 +147,8 @@ class _BoardSurface extends StatelessWidget {
                     selected: battle.selectedCell == (row, col),
                     hinted: battle.hintCells.contains((row, col)),
                     clearing: battle.clearingCells.contains((row, col)),
+                    bouncing: bounceCells.contains((row, col)),
+                    bounceToken: bounceToken,
                     spawning:
                         battle.spawningIds.contains(board.at(row, col).id),
                     windShoving: battle.combatFx == CombatFx.wind &&
@@ -435,6 +450,8 @@ class _BoardTile extends StatefulWidget {
     required this.selected,
     required this.hinted,
     required this.clearing,
+    required this.bouncing,
+    required this.bounceToken,
     required this.spawning,
     required this.windShoving,
     required this.windDirection,
@@ -457,6 +474,8 @@ class _BoardTile extends StatefulWidget {
   final bool selected;
   final bool hinted;
   final bool clearing;
+  final bool bouncing;
+  final int bounceToken;
   final bool spawning;
   final bool windShoving;
   final String? windDirection;
@@ -569,7 +588,7 @@ class _BoardTileState extends State<_BoardTile> {
             ),
           ),
         AnimatedScale(
-          scale: widget.clearing ? 0.12 : (widget.hazardPulse ? 1.08 : 1),
+          scale: widget.clearing ? 0.05 : (widget.hazardPulse ? 1.1 : 1),
           duration: reduceMotion
               ? Duration.zero
               : (widget.clearing
@@ -685,14 +704,45 @@ class _BoardTileState extends State<_BoardTile> {
         ),
         if (widget.clearing)
           IgnorePointer(
-            child: Image.asset(
-              GameAssets.fxMatchClear,
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+            child: _MatchClearBurst(
+              color: juiceColorForTile(widget.color),
+              duration:
+                  reduceMotion ? Duration.zero : BattleController.clearDuration,
             ),
           ),
       ],
     );
+
+    if (widget.bouncing && !reduceMotion) {
+      gem = TweenAnimationBuilder<double>(
+        key: ValueKey('bounce-${widget.id}-${widget.bounceToken}'),
+        tween: Tween(begin: 0, end: 1),
+        duration: BattleController.swapDuration,
+        curve: Curves.easeOut,
+        builder: (context, value, child) {
+          final wobble = math.sin(value * math.pi * 3) * (1 - value) * 0.18;
+          final flash = (1 - value) * 0.45;
+          Widget painted = Transform.rotate(
+            angle: wobble,
+            child: Transform.scale(
+              scale: 1 + (1 - value) * 0.08,
+              child: child,
+            ),
+          );
+          if (flash > 0.02) {
+            painted = ColorFiltered(
+              colorFilter: ColorFilter.mode(
+                MythDuskColors.parchment.withValues(alpha: flash),
+                BlendMode.srcATop,
+              ),
+              child: painted,
+            );
+          }
+          return painted;
+        },
+        child: gem,
+      );
+    }
 
     if (widget.windShoving && !reduceMotion) {
       gem = TweenAnimationBuilder<double>(
@@ -775,6 +825,111 @@ class _BoardTileState extends State<_BoardTile> {
     _swipeFired = true;
     widget.onSwipe!(to);
   }
+}
+
+/// Expanding ring + flash for a matched gem clear.
+class _MatchClearBurst extends StatefulWidget {
+  const _MatchClearBurst({
+    required this.color,
+    required this.duration,
+  });
+
+  final Color color;
+  final Duration duration;
+
+  @override
+  State<_MatchClearBurst> createState() => _MatchClearBurstState();
+}
+
+class _MatchClearBurstState extends State<_MatchClearBurst>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: widget.duration == Duration.zero
+        ? const Duration(milliseconds: 1)
+        : widget.duration,
+  )..forward();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final t = Curves.easeOutCubic.transform(_controller.value);
+        final ring = 0.55 + t * 0.9;
+        final opacity = (1.0 - t).clamp(0.0, 1.0);
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            Opacity(
+              opacity: opacity,
+              child: Transform.scale(
+                scale: 0.85 + t * 0.55,
+                child: Image.asset(
+                  GameAssets.fxMatchClear,
+                  fit: BoxFit.contain,
+                  color: Color.lerp(
+                    Colors.white,
+                    widget.color,
+                    0.55,
+                  ),
+                  colorBlendMode: BlendMode.modulate,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                ),
+              ),
+            ),
+            CustomPaint(
+              painter: _ClearRingPainter(
+                progress: t,
+                color: widget.color.withValues(alpha: opacity * 0.85),
+                radiusFactor: ring,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ClearRingPainter extends CustomPainter {
+  _ClearRingPainter({
+    required this.progress,
+    required this.color,
+    required this.radiusFactor,
+  });
+
+  final double progress;
+  final Color color;
+  final double radiusFactor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = size.shortestSide * 0.5 * radiusFactor;
+    final stroke = size.shortestSide * 0.08 * (1.1 - progress * 0.6);
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = stroke
+      ..color = color;
+    canvas.drawCircle(center, radius, paint);
+    final glow = Paint()
+      ..style = PaintingStyle.fill
+      ..color = color.withValues(alpha: color.a * 0.35 * (1 - progress));
+    canvas.drawCircle(center, radius * 0.35, glow);
+  }
+
+  @override
+  bool shouldRepaint(covariant _ClearRingPainter oldDelegate) =>
+      oldDelegate.progress != progress ||
+      oldDelegate.color != color ||
+      oldDelegate.radiusFactor != radiusFactor;
 }
 
 /// Soft scale pulse while a match hint is active.

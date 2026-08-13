@@ -92,6 +92,9 @@ class BattleHudBar extends ConsumerWidget {
                   child: _ResourceChip(
                     resourceId: _resourceOrder[i],
                     value: battle.resources[_resourceOrder[i]] ?? 0,
+                    bumpToken:
+                        ref.watch(hudResourceBumpProvider)[_resourceOrder[i]] ??
+                            0,
                   ),
                 ),
               ),
@@ -184,10 +187,12 @@ class _ResourceChip extends StatelessWidget {
   const _ResourceChip({
     required this.resourceId,
     required this.value,
+    required this.bumpToken,
   });
 
   final String resourceId;
   final int value;
+  final int bumpToken;
 
   static const _tooltips = {
     'attack': 'Attack Energy — match red gems',
@@ -239,11 +244,22 @@ class _ResourceChip extends StatelessWidget {
     return Tooltip(
       message: _tooltips[resourceId] ?? resourceId,
       triggerMode: TooltipTriggerMode.longPress,
-      // Empty chips fade back; filled ones light up as feedback.
-      child: AnimatedOpacity(
-        opacity: value == 0 ? 0.55 : 1.0,
-        duration: const Duration(milliseconds: 200),
-        child: chip,
+      child: TweenAnimationBuilder<double>(
+        key: ValueKey('bump-$resourceId-$bumpToken'),
+        tween: Tween(begin: bumpToken == 0 ? 1.0 : 1.18, end: 1.0),
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutBack,
+        builder: (context, scale, child) {
+          return Transform.scale(
+            scale: scale,
+            child: child,
+          );
+        },
+        child: AnimatedOpacity(
+          opacity: value == 0 ? 0.55 : 1.0,
+          duration: const Duration(milliseconds: 200),
+          child: chip,
+        ),
       ),
     );
   }

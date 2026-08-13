@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../campaign/data/campaign_repository.dart';
@@ -19,6 +20,7 @@ import '../../weekly/domain/weekly_schedule.dart';
 import '../../weekly/providers/weekly_providers.dart';
 import '../domain/battle_state.dart';
 import '../domain/enemy_def.dart';
+import '../presentation/match_collect_fx.dart';
 
 final battleProvider = StateNotifierProvider.autoDispose
     .family<BattleNotifier, BattleState, String>((ref, nodeId) {
@@ -66,6 +68,7 @@ final battleProvider = StateNotifierProvider.autoDispose
       damageMult: WeeklyBalance.enemyStatMultiplier,
     );
     return BattleNotifier(
+      ref: ref,
       hero: hero,
       enemy: enemy,
       nodeId: WeeklyBalance.battleNodeId,
@@ -90,6 +93,7 @@ final battleProvider = StateNotifierProvider.autoDispose
       ref.read(pendingBossPrepProvider.notifier).state = const [];
     }
     return BattleNotifier(
+      ref: ref,
       hero: hero,
       enemy: EnemyCatalog.byId(contract.enemyId),
       nodeId: DailyBalance.battleNodeId,
@@ -117,6 +121,7 @@ final battleProvider = StateNotifierProvider.autoDispose
       ref.read(pendingBossPrepProvider.notifier).state = const [];
     }
     return BattleNotifier(
+      ref: ref,
       hero: hero,
       enemy: ExpeditionBalance.enemyFor(encounter),
       nodeId: ExpeditionBalance.battleNodeId,
@@ -170,6 +175,7 @@ final battleProvider = StateNotifierProvider.autoDispose
   }
 
   return BattleNotifier(
+    ref: ref,
     hero: hero,
     enemy: enemy,
     nodeId: nodeId,
@@ -199,6 +205,7 @@ final battleProvider = StateNotifierProvider.autoDispose
 
 class BattleNotifier extends StateNotifier<BattleState> {
   BattleNotifier({
+    Ref? ref,
     HeroDef? hero,
     EnemyDef? enemy,
     String? nodeId,
@@ -218,7 +225,8 @@ class BattleNotifier extends StateNotifier<BattleState> {
     BattleObjective? objective,
     HazardSpawnConfig? hazardSpawn,
     OverlayDef? hazardOverlayDef,
-  })  : _onSecondWindUsed = onSecondWindUsed,
+  })  : _ref = ref,
+        _onSecondWindUsed = onSecondWindUsed,
         _equippedPrep = List.unmodifiable(equippedPrep),
         _minMoves = minMoves,
         _enrageAfterTurns = enrageAfterTurns,
@@ -254,12 +262,24 @@ class BattleNotifier extends StateNotifier<BattleState> {
 
   late BattleController _controller;
   int _actionGen = 0;
+  int _bounceToken = 0;
+  final Ref? _ref;
   final List<PrepItemId> _equippedPrep;
   final int _minMoves;
   final int? _enrageAfterTurns;
   final List<BoardMoverConfig> _movers;
   final PuzzleBoard? Function()? _boardFactory;
   final void Function()? _onSecondWindUsed;
+
+  void _pulseInvalidSwap((int, int) a, (int, int) b) {
+    HapticFeedback.lightImpact();
+    final ref = _ref;
+    if (ref == null) return;
+    ref.read(boardBouncePulseProvider.notifier).state = BoardBouncePulse(
+      cells: {a, b},
+      token: ++_bounceToken,
+    );
+  }
 
   static BattleState _initialState({
     required HeroDef hero,
@@ -422,6 +442,7 @@ class BattleNotifier extends StateNotifier<BattleState> {
 
     if (cascade == null) {
       // Bounce back — no Move spent.
+      _pulseInvalidSwap(a, b);
       state = state.copyWith(
         board: original,
         phase: BattlePhase.playerTurn,

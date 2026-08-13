@@ -118,7 +118,8 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
       );
     }
     if (particles.isEmpty) return;
-    ref.read(matchCollectFlightsProvider.notifier).state = particles;
+    ref.read(matchCollectFlightsProvider.notifier).state =
+        capMatchCollectParticles(particles);
   }
 
   @override
@@ -350,10 +351,18 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 4),
                         child: KeyedSubtree(
                           key: ref.watch(resourceFlyTargetsProvider).boardKey,
-                          child: AnimatedPuzzleBoard(
-                            battle: battle,
-                            onTap: notifier.tapCell,
-                            onSwipe: notifier.swipeCell,
+                          child: Builder(
+                            builder: (context) {
+                              final bounce =
+                                  ref.watch(boardBouncePulseProvider);
+                              return AnimatedPuzzleBoard(
+                                battle: battle,
+                                bounceCells: bounce?.cells ?? const {},
+                                bounceToken: bounce?.token ?? 0,
+                                onTap: notifier.tapCell,
+                                onSwipe: notifier.swipeCell,
+                              );
+                            },
                           ),
                         ),
                       ),

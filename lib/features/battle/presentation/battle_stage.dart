@@ -246,9 +246,9 @@ class _FighterSlot extends StatelessWidget {
                       duration: BattleController.castFxDuration,
                       curve: Curves.easeOutBack,
                       builder: (context, value, child) {
-                        final dx =
-                            math.sin(value * math.pi) * (isLeft ? 14.0 : -14.0);
-                        final scale = 1 + math.sin(value * math.pi) * 0.06;
+                        final wave = math.sin(value * math.pi);
+                        final dx = wave * (isLeft ? 22.0 : -22.0);
+                        final scale = 1 + wave * 0.12;
                         return Transform.translate(
                           offset: Offset(dx, 0),
                           child: Transform.scale(scale: scale, child: child),
@@ -265,7 +265,7 @@ class _FighterSlot extends StatelessWidget {
                       duration: BattleController.combatFxDuration,
                       builder: (context, value, child) {
                         final dx =
-                            math.sin(value * math.pi * 6) * (1 - value) * 10;
+                            math.sin(value * math.pi * 8) * (1 - value) * 14;
                         return Transform.translate(
                           offset: Offset(dx, 0),
                           child: child,
@@ -282,8 +282,26 @@ class _FighterSlot extends StatelessWidget {
                       duration: BattleController.enemyTelegraph,
                       curve: Curves.easeInOut,
                       builder: (context, value, child) {
-                        final scale = 1 + math.sin(value * math.pi) * 0.04;
-                        return Transform.scale(scale: scale, child: child);
+                        final wave = math.sin(value * math.pi);
+                        final scale = 1 + wave * 0.09;
+                        final glow = 0.25 + wave * 0.45;
+                        return Transform.scale(
+                          scale: scale,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: MythDuskColors.ember
+                                      .withValues(alpha: glow),
+                                  blurRadius: 18,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
+                            child: child,
+                          ),
+                        );
                       },
                       child: sprite,
                     );
@@ -311,7 +329,7 @@ class _FighterSlot extends StatelessWidget {
 }
 
 /// Compact HP bar under the fighter sprite.
-class _HpBarUnder extends StatelessWidget {
+class _HpBarUnder extends StatefulWidget {
   const _HpBarUnder({
     required this.hp,
     required this.maxHp,
@@ -325,8 +343,35 @@ class _HpBarUnder extends StatelessWidget {
   final bool flash;
 
   @override
+  State<_HpBarUnder> createState() => _HpBarUnderState();
+}
+
+class _HpBarUnderState extends State<_HpBarUnder> {
+  late double _from;
+  late double _to;
+
+  double get _fraction =>
+      widget.maxHp <= 0 ? 0.0 : (widget.hp / widget.maxHp).clamp(0.0, 1.0);
+
+  @override
+  void initState() {
+    super.initState();
+    _from = _fraction;
+    _to = _fraction;
+  }
+
+  @override
+  void didUpdateWidget(covariant _HpBarUnder oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final next = _fraction;
+    if (next != _to) {
+      _from = _to;
+      _to = next;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final t = maxHp <= 0 ? 0.0 : (hp / maxHp).clamp(0.0, 1.0);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -334,7 +379,7 @@ class _HpBarUnder extends StatelessWidget {
         Align(
           alignment: Alignment.centerRight,
           child: Text(
-            '$hp/$maxHp',
+            '${widget.hp}/${widget.maxHp}',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               fontSize: 10,
               fontWeight: FontWeight.w700,
@@ -349,16 +394,18 @@ class _HpBarUnder extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: TweenAnimationBuilder<double>(
-            tween: Tween(begin: t, end: t),
-            duration: flash
+            key: ValueKey(_to),
+            tween: Tween(begin: _from, end: _to),
+            duration: widget.flash
                 ? BattleController.combatFxDuration
-                : const Duration(milliseconds: 220),
+                : const Duration(milliseconds: 280),
+            curve: Curves.easeOutCubic,
             builder: (context, value, _) {
               return LinearProgressIndicator(
                 value: value,
                 minHeight: 7,
                 backgroundColor: MythDuskColors.ink.withValues(alpha: 0.55),
-                color: barColor,
+                color: widget.barColor,
               );
             },
           ),

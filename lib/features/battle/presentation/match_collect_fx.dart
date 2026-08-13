@@ -49,6 +49,39 @@ class MatchCollectParticle {
 final matchCollectFlightsProvider =
     StateProvider<List<MatchCollectParticle>>((ref) => const []);
 
+/// Invalid-swap wobble pulse for the two bounced cells.
+class BoardBouncePulse {
+  const BoardBouncePulse({
+    required this.cells,
+    required this.token,
+  });
+
+  final Set<(int, int)> cells;
+  final int token;
+}
+
+final boardBouncePulseProvider =
+    StateProvider<BoardBouncePulse?>((ref) => null);
+
+/// Per-resource bump tokens; chips pulse when the token changes.
+final hudResourceBumpProvider =
+    StateProvider<Map<String, int>>((ref) => const {});
+
+/// Caps match-collect shards so large clears stay readable.
+const kMaxMatchCollectParticles = 12;
+
+List<MatchCollectParticle> capMatchCollectParticles(
+  List<MatchCollectParticle> particles, {
+  int max = kMaxMatchCollectParticles,
+}) {
+  if (particles.length <= max) return particles;
+  if (max <= 0) return const [];
+  final step = particles.length / max;
+  return [
+    for (var i = 0; i < max; i++) particles[(i * step).floor()],
+  ];
+}
+
 String? resourceIdForTileColor(TileColor? color) => switch (color) {
       TileColor.red => 'attack',
       TileColor.blue => 'mana',
@@ -60,3 +93,13 @@ String? resourceIdForTileColor(TileColor? color) => switch (color) {
 
 String gemAssetForResource(String resourceId) =>
     GameAssets.resourceIcon(resourceId);
+
+/// Accent color for clear / bounce FX by tile resource.
+Color juiceColorForTile(TileColor? color) => switch (color) {
+      TileColor.red => const Color(0xFFE85D4C),
+      TileColor.blue => const Color(0xFF4C9BE8),
+      TileColor.green => const Color(0xFF4CB87A),
+      TileColor.yellow => const Color(0xFFE8C84C),
+      TileColor.purple => const Color(0xFFB06CE8),
+      null => const Color(0xFFF2E6C8),
+    };

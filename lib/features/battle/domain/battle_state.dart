@@ -431,15 +431,15 @@ class BattleController {
   final Random _random;
   final TileIdGen ids;
 
-  static const clearDuration = Duration(milliseconds: 280);
-  static const fallDuration = Duration(milliseconds: 300);
-  static const spawnDuration = Duration(milliseconds: 320);
-  static const swapDuration = Duration(milliseconds: 180);
+  static const clearDuration = Duration(milliseconds: 220);
+  static const fallDuration = Duration(milliseconds: 240);
+  static const spawnDuration = Duration(milliseconds: 260);
+  static const swapDuration = Duration(milliseconds: 160);
   static const combatFxDuration = Duration(milliseconds: 360);
-  static const castFxDuration = Duration(milliseconds: 400);
+  static const castFxDuration = Duration(milliseconds: 420);
   static const windFxDuration = Duration(milliseconds: 520);
   static const hazardFxDuration = Duration(milliseconds: 380);
-  static const enemyTelegraph = Duration(milliseconds: 480);
+  static const enemyTelegraph = Duration(milliseconds: 520);
 
   /// Start of a player turn: bump turn counter, apply movers, refresh moves.
   ///
