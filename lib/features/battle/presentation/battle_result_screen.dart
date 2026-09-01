@@ -4,13 +4,17 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/assets/game_assets.dart';
+import '../../../core/analytics/analytics_providers.dart';
+import '../../../core/analytics/gameplay_analytics.dart';
 import '../../battle/domain/battle_objective.dart';
 import '../../campaign/data/campaign_repository.dart';
 import '../../campaign/domain/campaign_models.dart';
 import '../../daily/providers/daily_providers.dart';
 import '../../heroes/domain/hero_def.dart';
+import '../../profile/domain/economy_balance.dart';
 import '../../profile/providers/mock_profile_provider.dart';
 import '../../../shared/presentation/content_error_screen.dart';
+import '../../../services/rewarded_ad/rewarded_ad_service.dart';
 
 class BattleResultArgs {
   const BattleResultArgs({
@@ -29,6 +33,7 @@ class BattleResultArgs {
     this.heroHp = 0,
     this.heroMaxHp = 1,
     this.bossForm,
+    this.encounterId,
   });
 
   final bool won;
@@ -46,6 +51,7 @@ class BattleResultArgs {
   final int heroHp;
   final int heroMaxHp;
   final int? bossForm;
+  final String? encounterId;
 }
 
 class BattleResultScreen extends ConsumerStatefulWidget {
@@ -60,12 +66,31 @@ class BattleResultScreen extends ConsumerStatefulWidget {
 class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
   var _applied = false;
   var _grantedCoins = 0;
+  List<String> _dailyMedalTitles = const [];
   String? _contentError;
+  var _continueBusy = false;
+  var _loggedContinueOffer = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _applyReward());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _applyReward();
+      _logContinueOffer();
+    });
+  }
+
+  void _logContinueOffer() {
+    if (_loggedContinueOffer) return;
+    if (widget.args.won || widget.args.isExpedition) return;
+    _loggedContinueOffer = true;
+    ref.read(gameplayAnalyticsProvider).log(
+      GameplayAnalyticsEvents.defeatContinueOffered,
+      {
+        'nodeId': widget.args.nodeId,
+        'encounterId': widget.args.encounterId ?? '',
+      },
+    );
   }
 
   Future<void> _applyReward() async {
@@ -104,7 +129,17 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
             heroHp: widget.args.heroHp,
             heroMaxHp: widget.args.heroMaxHp,
           );
-      if (mounted) setState(() => _grantedCoins = result.coins);
+      if (mounted) {
+        final titles = [
+          for (final id in result.medalIds)
+            for (final m in contract.medals)
+              if (m.id == id) m.title,
+        ];
+        setState(() {
+          _grantedCoins = result.coins;
+          _dailyMedalTitles = titles;
+        });
+      }
       return;
     }
     try {
@@ -265,6 +300,22 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                         'Purse: ${profile.coins} coins',
                         style: textTheme.bodyMedium,
                       ),
+                      if (args.isDaily && _dailyMedalTitles.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Text('Medals earned', style: textTheme.titleMedium),
+                        const SizedBox(height: 4),
+                        for (final title in _dailyMedalTitles)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              '• $title',
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontSize: 12,
+                                color: MythDuskColors.softGold,
+                              ),
+                            ),
+                          ),
+                      ],
                       if (args.won &&
                           !args.isWeekly &&
                           !args.isDaily &&
@@ -324,12 +375,20 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                   ),
                 ),
               if (args.isExpedition) const SizedBox(height: 10),
-              if (!args.won && !args.isExpedition)
+              if (!args.won && !args.isExpedition) ...[
+                _DefeatContinuePanel(
+                  busy: _continueBusy,
+                  onAdContinue: _onAdContinue,
+                  onPaidContinue: _onPaidContinue,
+                ),
+                const SizedBox(height: 10),
                 FilledButton(
-                  onPressed: () => _goBattle(args.nodeId),
+                  onPressed: () =>
+                      _goBattle(args.nodeId, clearEncounter: false),
                   child: const Text('Retry'),
                 ),
-              if (!args.won && !args.isExpedition) const SizedBox(height: 10),
+                const SizedBox(height: 10),
+              ],
               OutlinedButton(
                 onPressed: () {
                   final pending = profile.pendingUnlockCelebrations;
@@ -341,15 +400,7 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                     context.go('/hero_unlock/${pending.first}');
                     return;
                   }
-                  if (args.isWeekly) {
-                    context.go('/weekly');
-                  } else if (args.isDaily) {
-                    context.go('/daily');
-                  } else if (args.isExpedition) {
-                    context.go('/expedition');
-                  } else {
-                    context.go('/campaign');
-                  }
+                  _leaveToHub();
                 },
                 style: OutlinedButton.styleFrom(
                   foregroundColor: MythDuskColors.parchment,
@@ -378,7 +429,7 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                     context.go('/hero_unlock/${pending.first}');
                     return;
                   }
-                  context.go('/');
+                  _leaveHome();
                 },
                 child: const Text('Home'),
               ),
@@ -389,7 +440,103 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
     );
   }
 
-  Future<void> _goBattle(String nodeId) async {
+  Future<void> _leaveToHub() async {
+    await ref.read(profileProvider.notifier).clearActiveEncounter();
+    if (!mounted) return;
+    final args = widget.args;
+    if (args.isWeekly) {
+      context.go('/weekly');
+    } else if (args.isDaily) {
+      context.go('/daily');
+    } else if (args.isExpedition) {
+      context.go('/expedition');
+    } else {
+      context.go('/campaign');
+    }
+  }
+
+  Future<void> _leaveHome() async {
+    await ref.read(profileProvider.notifier).clearActiveEncounter();
+    if (!mounted) return;
+    context.go('/');
+  }
+
+  Future<void> _onAdContinue() async {
+    if (_continueBusy) return;
+    const ads = RewardedAdService();
+    if (!ads.isAvailable) return;
+    setState(() => _continueBusy = true);
+    ref.read(gameplayAnalyticsProvider).log(
+      GameplayAnalyticsEvents.rewardedAdStarted,
+      {'reason': 'defeat_continue'},
+    );
+    final prefs = ref.read(sharedPreferencesProvider);
+    final shown = await ads.showRewardedAd(
+      reasonKey: 'defeat_continue',
+      prefs: prefs,
+    );
+    if (!shown) {
+      ref.read(gameplayAnalyticsProvider).log(
+        GameplayAnalyticsEvents.rewardedAdFailed,
+        {'reason': 'defeat_continue'},
+      );
+      if (mounted) setState(() => _continueBusy = false);
+      return;
+    }
+    ref.read(gameplayAnalyticsProvider).log(
+      GameplayAnalyticsEvents.rewardedAdCompleted,
+      {'reason': 'defeat_continue'},
+    );
+    final ok =
+        ref.read(profileProvider.notifier).consumeAdContinueAndArmRevive();
+    if (!ok) {
+      if (mounted) {
+        setState(() => _continueBusy = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No ad continue remaining')),
+        );
+      }
+      return;
+    }
+    ref.read(gameplayAnalyticsProvider).log(
+      GameplayAnalyticsEvents.defeatContinueUsed,
+      {'kind': 'ad', 'nodeId': widget.args.nodeId},
+    );
+    if (!mounted) return;
+    await _goBattle(widget.args.nodeId, clearEncounter: false);
+  }
+
+  Future<void> _onPaidContinue() async {
+    if (_continueBusy) return;
+    final notifier = ref.read(profileProvider.notifier);
+    if (!notifier.canUsePaidContinue()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Not enough coins for a continue')),
+      );
+      return;
+    }
+    setState(() => _continueBusy = true);
+    final ok = notifier.consumePaidContinueAndArmRevive();
+    if (!ok) {
+      if (mounted) setState(() => _continueBusy = false);
+      return;
+    }
+    ref.read(gameplayAnalyticsProvider).log(
+      GameplayAnalyticsEvents.defeatContinueUsed,
+      {
+        'kind': 'paid',
+        'cost': DefeatContinueBalance.paidContinueCoinCost,
+        'nodeId': widget.args.nodeId,
+      },
+    );
+    if (!mounted) return;
+    await _goBattle(widget.args.nodeId, clearEncounter: false);
+  }
+
+  Future<void> _goBattle(String nodeId, {bool clearEncounter = false}) async {
+    if (clearEncounter) {
+      await ref.read(profileProvider.notifier).clearActiveEncounter();
+    }
     if (widget.args.isWeekly || nodeId == 'weekly') {
       if (!mounted) return;
       context.go('/weekly');
@@ -407,5 +554,74 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
     }
     if (!mounted) return;
     context.go('/briefing/$nodeId');
+  }
+}
+
+class _DefeatContinuePanel extends ConsumerWidget {
+  const _DefeatContinuePanel({
+    required this.busy,
+    required this.onAdContinue,
+    required this.onPaidContinue,
+  });
+
+  final bool busy;
+  final VoidCallback onAdContinue;
+  final VoidCallback onPaidContinue;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(profileProvider);
+    const ads = RewardedAdService();
+    final canAd = ads.isAvailable &&
+        DefeatContinueRules.canUseAd(
+          adUsed: profile.encounterAdContinuesUsed,
+          paidUsed: profile.encounterPaidContinuesUsed,
+        );
+    final canPaid = DefeatContinueRules.canUsePaid(
+      adUsed: profile.encounterAdContinuesUsed,
+      paidUsed: profile.encounterPaidContinuesUsed,
+      coins: profile.coins,
+    );
+    final remaining = DefeatContinueBalance.maxContinuesPerEncounter -
+        (profile.encounterAdContinuesUsed + profile.encounterPaidContinuesUsed);
+
+    if (remaining <= 0) {
+      return Text(
+        'No continues left this encounter. Retry spends another life.',
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Optional continue — revive at 30% HP next attempt. '
+          'Not required to progress.',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12),
+        ),
+        const SizedBox(height: 8),
+        if (ads.isAvailable)
+          OutlinedButton(
+            onPressed: busy || !canAd ? null : onAdContinue,
+            child: Text(
+              canAd ? 'Watch ad to continue' : 'Ad continue used',
+            ),
+          ),
+        if (ads.isAvailable) const SizedBox(height: 8),
+        OutlinedButton(
+          onPressed: busy || !canPaid ? null : onPaidContinue,
+          child: Text(
+            canPaid
+                ? 'Continue for ${DefeatContinueBalance.paidContinueCoinCost} coins'
+                : profile.encounterPaidContinuesUsed > 0
+                    ? 'Paid continue used'
+                    : 'Need ${DefeatContinueBalance.paidContinueCoinCost} coins',
+          ),
+        ),
+      ],
+    );
   }
 }

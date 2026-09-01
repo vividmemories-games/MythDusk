@@ -43,4 +43,18 @@ abstract final class GameplayAnalyticsEvents {
   static const masteryClaimed = 'mastery_claimed';
   static const heroUnlockCelebrated = 'hero_unlock_celebrated';
   static const loadoutChanged = 'loadout_changed';
+  static const lifeRefillOfferShown = 'life_refill_offer_shown';
+  static const lifeRefillPurchased = 'life_refill_purchased';
+  static const prepItemPurchased = 'prep_item_purchased';
+  static const starterPackClaimed = 'starter_pack_claimed';
+  static const iapStarted = 'iap_started';
+  static const iapSucceeded = 'iap_succeeded';
+  static const iapFailed = 'iap_failed';
+  static const iapRestored = 'iap_restored';
+  static const rewardedAdStarted = 'rewarded_ad_started';
+  static const rewardedAdCompleted = 'rewarded_ad_completed';
+  static const rewardedAdFailed = 'rewarded_ad_failed';
+  static const defeatContinueOffered = 'defeat_continue_offered';
+  static const defeatContinueUsed = 'defeat_continue_used';
+  static const cosmeticEquipped = 'cosmetic_equipped';
 }

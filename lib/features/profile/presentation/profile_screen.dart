@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/assets/game_assets.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/cosmetic_hero_art.dart';
+import '../../cosmetics/domain/cosmetic_catalog.dart';
 import '../../home/presentation/home_hub_widgets.dart';
 import '../../home/presentation/home_progress.dart';
 import '../../prep/domain/prep_item.dart';
@@ -40,9 +42,12 @@ class ProfileScreen extends ConsumerWidget {
           Center(
             child: SizedBox(
               height: 140,
-              child: Image.asset(
-                GameAssets.hero(hero.id),
+              child: CosmeticHeroArt(
+                heroId: hero.id,
+                assetPath: GameAssets.hero(hero.id),
+                profile: profile,
                 fit: BoxFit.contain,
+                showPlate: false,
                 errorBuilder: (_, __, ___) => const Icon(
                   Icons.person,
                   size: 88,
@@ -57,6 +62,14 @@ class ProfileScreen extends ConsumerWidget {
             textAlign: TextAlign.center,
             style: textTheme.headlineMedium,
           ),
+          if (profile.equippedTitleId != null)
+            Text(
+              CosmeticCatalog.byId(profile.equippedTitleId!)?.name ?? '',
+              textAlign: TextAlign.center,
+              style: textTheme.bodyMedium?.copyWith(
+                color: MythDuskColors.softGold,
+              ),
+            ),
           Text(
             'Path rank · ${HubRankBadge.labelFor(clears)}',
             textAlign: TextAlign.center,

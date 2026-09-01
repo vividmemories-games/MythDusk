@@ -29,11 +29,12 @@ Lower docs may **extend** higher ones; they must not redefine them. Record excep
 | See phase plan | [PHASES](PHASES.md) |
 | Check a locked choice | [Decisions](00_Project/Decisions.md) |
 | Balance / content (Phase 2) | [Balancing Bible](01_Game_Design/Balancing_Bible.md) |
-| Economy / monetization | [Economy](01_Game_Design/Economy.md), [Progression](01_Game_Design/Progression.md) |
+| Economy / monetization | [Economy](01_Game_Design/Economy.md), [Monetization](01_Game_Design/Monetization.md), [Progression](01_Game_Design/Progression.md) |
 | Heroes / enemies | [Heroes](01_Game_Design/Heroes.md), [Enemies](01_Game_Design/Enemies.md) |
 | Campaign / 200-level plan | [Content Architecture](01_Game_Design/Content_Architecture.md) |
 | Colors / motion | [Theme](02_Design_System/Theme.md), [Animations](02_Design_System/Animations.md) |
 | Write code | [Coding Standards](04_Technical/Coding_Standards.md), [Architecture](04_Technical/Architecture.md) |
+| Firebase / Auth / PvP | [Firebase](04_Technical/Firebase.md), [Firestore Schema](04_Technical/Firestore_Schema.md), [Console checklist](00_Project/Firebase_Console_Checklist.md) |
 | Produce art | [Asset Bible](06_Asset_Bible/README.md), [AB1 Standards](06_Asset_Bible/AB1_Production_Standards.md), [Leonardo Prompt Pack](06_Asset_Bible/AB1_Leonardo_Prompt_Pack.md), [Master Prompts](06_Asset_Bible/Master_Prompts.md) |
 
 ## Structure
@@ -46,7 +47,7 @@ docs/
 ├── 00_Project/               # Vision, Decisions
 ├── 01_Game_Design/           # balance, economy, heroes, enemies, content architecture
 ├── 02_Design_System/         # dusk theme + motion
-├── 04_Technical/             # architecture + coding standards
+├── 04_Technical/             # architecture, coding standards, Firebase
 └── 06_Asset_Bible/           # AB1 + Master Prompts
     ├── README.md
     ├── AB1_Production_Standards.md

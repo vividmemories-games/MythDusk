@@ -104,6 +104,8 @@ Until Phase 2 ships, content lives as **local JSON** under `assets/`.
 - Equipment that changes rules
 - Later: weekly bosses, tower, seasonal events, guilds, PvP
 
+Monetization phases (local foundations now; IAP/Firebase later): [Monetization](01_Game_Design/Monetization.md). Battle pass stays off until retention is validated. Campaign heroes stay milestone unlocks.
+
 ---
 
 ## Suggested lib layout

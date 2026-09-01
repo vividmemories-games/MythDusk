@@ -1,16 +1,19 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/assets/game_assets.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/cosmetic_hero_art.dart';
 import '../../../core/widgets/opaque_character_art.dart';
+import '../../profile/providers/mock_profile_provider.dart';
 import '../domain/battle_state.dart';
 import '../domain/enemy_def.dart';
 
 /// Chibi hero (left) + enemy (right). Name floats lightly; HP bar sits under
 /// each sprite so top chrome never overlaps health.
-class BattleStage extends StatelessWidget {
+class BattleStage extends ConsumerWidget {
   const BattleStage({
     super.key,
     required this.battle,
@@ -22,7 +25,8 @@ class BattleStage extends StatelessWidget {
   static const double stageHeight = 280;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(profileProvider);
     final intent = battle.enemyIntent;
     final isBoss = battle.enemy.isBoss;
     final form = battle.bossForm;
@@ -57,6 +61,8 @@ class BattleStage extends StatelessWidget {
               lungeTowardEnemy: casting,
               align: Alignment.bottomLeft,
               slotFill: 0.92,
+              cosmeticHeroId: battle.hero.id,
+              profile: profile,
             ),
           ),
           const SizedBox(width: 8),
@@ -104,6 +110,8 @@ class _FighterSlot extends StatelessWidget {
     this.telegraphPulse = false,
     this.threat,
     this.slotFill = 1.0,
+    this.cosmeticHeroId,
+    this.profile,
   });
 
   final String assetPath;
@@ -122,6 +130,8 @@ class _FighterSlot extends StatelessWidget {
   final bool telegraphPulse;
   final EnemySkill? threat;
   final double slotFill;
+  final String? cosmeticHeroId;
+  final PlayerProfile? profile;
 
   @override
   Widget build(BuildContext context) {
@@ -162,18 +172,38 @@ class _FighterSlot extends StatelessWidget {
               child: LayoutBuilder(
                 builder: (context, slot) {
                   final fill = slotFill.clamp(0.7, 1.0);
-                  Widget sprite = OpaqueCharacterArt(
-                    assetPath: assetPath,
-                    fit: BoxFit.contain,
-                    alignment: align,
-                    borderRadius: 14,
-                    showPlate: false,
-                    errorBuilder: (_, __, ___) => const Icon(
-                      Icons.person,
-                      size: 72,
-                      color: MythDuskColors.muted,
-                    ),
-                  );
+                  Widget sprite;
+                  final lookProfile = profile;
+                  final lookHeroId = cosmeticHeroId;
+                  if (lookProfile != null && lookHeroId != null) {
+                    sprite = CosmeticHeroArt(
+                      heroId: lookHeroId,
+                      assetPath: assetPath,
+                      profile: lookProfile,
+                      fit: BoxFit.contain,
+                      alignment: align,
+                      borderRadius: 14,
+                      showPlate: false,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.person,
+                        size: 72,
+                        color: MythDuskColors.muted,
+                      ),
+                    );
+                  } else {
+                    sprite = OpaqueCharacterArt(
+                      assetPath: assetPath,
+                      fit: BoxFit.contain,
+                      alignment: align,
+                      borderRadius: 14,
+                      showPlate: false,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.person,
+                        size: 72,
+                        color: MythDuskColors.muted,
+                      ),
+                    );
+                  }
 
                   if (flash) {
                     final tint = castGlow

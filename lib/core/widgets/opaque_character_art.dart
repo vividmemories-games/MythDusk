@@ -15,6 +15,9 @@ class OpaqueCharacterArt extends StatelessWidget {
     this.plateColor,
     this.showPlate = true,
     this.errorBuilder,
+    this.overlayAssetPaths = const [],
+    this.overlayTint,
+    this.frameColor,
   });
 
   final String assetPath;
@@ -25,6 +28,15 @@ class OpaqueCharacterArt extends StatelessWidget {
   final Color? plateColor;
   final bool showPlate;
   final ImageErrorWidgetBuilder? errorBuilder;
+
+  /// Optional PNG overlays (middle-approach cosmetics; art may land later).
+  final List<String> overlayAssetPaths;
+
+  /// Programmatic sash/rim tint when no overlay asset exists.
+  final Color? overlayTint;
+
+  /// Optional profile-frame border.
+  final Color? frameColor;
 
   static const List<double> _greyscaleMatrix = <double>[
     0.2126,
@@ -71,11 +83,24 @@ class OpaqueCharacterArt extends StatelessWidget {
       );
     }
 
+    image = _withCosmeticLayers(image);
+
+    final frame = frameColor;
     if (!showPlate) {
-      return ClipRRect(
+      Widget clipped = ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
         child: image,
       );
+      if (frame != null) {
+        clipped = DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(borderRadius),
+            border: Border.all(color: frame, width: 2.5),
+          ),
+          child: clipped,
+        );
+      }
+      return clipped;
     }
 
     final plate = plateColor ?? MythDuskColors.deepTeal;
@@ -84,7 +109,9 @@ class OpaqueCharacterArt extends StatelessWidget {
         color: plate,
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(
-          color: MythDuskColors.mist.withValues(alpha: locked ? 0.25 : 0.45),
+          color: frame ??
+              MythDuskColors.mist.withValues(alpha: locked ? 0.25 : 0.45),
+          width: frame == null ? 1 : 2.5,
         ),
       ),
       child: ClipRRect(
@@ -94,6 +121,50 @@ class OpaqueCharacterArt extends StatelessWidget {
           child: image,
         ),
       ),
+    );
+  }
+
+  Widget _withCosmeticLayers(Widget image) {
+    final paths = overlayAssetPaths;
+    final tint = overlayTint;
+    if (paths.isEmpty && tint == null) return image;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Positioned.fill(child: image),
+        for (final path in paths)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Image.asset(
+                path,
+                fit: fit,
+                alignment: alignment,
+                filterQuality: FilterQuality.medium,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              ),
+            ),
+          ),
+        if (tint != null)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border.all(color: tint, width: 3),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      tint.withValues(alpha: 0.22),
+                      const Color(0x00000000),
+                      tint.withValues(alpha: 0.38),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

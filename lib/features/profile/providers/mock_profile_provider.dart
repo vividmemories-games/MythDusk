@@ -14,6 +14,8 @@ import '../../heroes/domain/hero_loadout.dart';
 import '../../heroes/domain/hero_unlocks.dart';
 import '../../mastery/domain/mastery_catalog.dart';
 import '../../prep/domain/prep_item.dart';
+import '../../cosmetics/domain/cosmetic_catalog.dart';
+import '../../shop/domain/iap_catalog.dart';
 import '../domain/economy_balance.dart';
 
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -56,6 +58,15 @@ class PlayerProfile {
     this.claimedMasteryIds = const {},
     this.unlockedMasterySkillIds = const {},
     this.claimedCosmeticIds = const {},
+    this.equippedOverlayByHero = const {},
+    this.equippedTitleId,
+    this.equippedFrameId,
+    this.claimedStarterPackIds = const {},
+    this.activeEncounterId,
+    this.activeEncounterNodeId,
+    this.encounterAdContinuesUsed = 0,
+    this.encounterPaidContinuesUsed = 0,
+    this.pendingContinueRevive = false,
   });
 
   final String displayName;
@@ -124,10 +135,31 @@ class PlayerProfile {
   /// Skill ids unlocked via mastery (skill 4).
   final Set<String> unlockedMasterySkillIds;
 
-  /// Cosmetic stub ids (titles / frames).
+  /// Cosmetic stub ids (titles / frames / overlays).
   final Set<String> claimedCosmeticIds;
 
+  /// heroId → equipped overlay cosmetic id.
+  final Map<String, String> equippedOverlayByHero;
+
+  final String? equippedTitleId;
+  final String? equippedFrameId;
+
+  /// One-time pack entitlements (starter pack, later IAP).
+  final Set<String> claimedStarterPackIds;
+
+  /// Current battle-attempt token for defeat-continue caps.
+  final String? activeEncounterId;
+  final String? activeEncounterNodeId;
+  final int encounterAdContinuesUsed;
+  final int encounterPaidContinuesUsed;
+  final bool pendingContinueRevive;
+
   HeroDef get selectedHero => HeroCatalog.byId(selectedHeroId);
+
+  String? equippedOverlayIdFor(String heroId) => equippedOverlayByHero[heroId];
+
+  bool hasClaimedStarterPack([String id = StarterPackBalance.id]) =>
+      claimedStarterPackIds.contains(id);
 
   ChapterMedalCounters medalCountersFor(String chapterId) =>
       chapterMedalCounters[chapterId] ?? const ChapterMedalCounters();
@@ -258,6 +290,18 @@ class PlayerProfile {
     Set<String>? claimedMasteryIds,
     Set<String>? unlockedMasterySkillIds,
     Set<String>? claimedCosmeticIds,
+    Map<String, String>? equippedOverlayByHero,
+    String? equippedTitleId,
+    bool clearEquippedTitle = false,
+    String? equippedFrameId,
+    bool clearEquippedFrame = false,
+    Set<String>? claimedStarterPackIds,
+    String? activeEncounterId,
+    bool clearActiveEncounter = false,
+    String? activeEncounterNodeId,
+    int? encounterAdContinuesUsed,
+    int? encounterPaidContinuesUsed,
+    bool? pendingContinueRevive,
   }) {
     return PlayerProfile(
       displayName: displayName ?? this.displayName,
@@ -301,13 +345,36 @@ class PlayerProfile {
       unlockedMasterySkillIds:
           unlockedMasterySkillIds ?? this.unlockedMasterySkillIds,
       claimedCosmeticIds: claimedCosmeticIds ?? this.claimedCosmeticIds,
+      equippedOverlayByHero:
+          equippedOverlayByHero ?? this.equippedOverlayByHero,
+      equippedTitleId:
+          clearEquippedTitle ? null : (equippedTitleId ?? this.equippedTitleId),
+      equippedFrameId:
+          clearEquippedFrame ? null : (equippedFrameId ?? this.equippedFrameId),
+      claimedStarterPackIds:
+          claimedStarterPackIds ?? this.claimedStarterPackIds,
+      activeEncounterId: clearActiveEncounter
+          ? null
+          : (activeEncounterId ?? this.activeEncounterId),
+      activeEncounterNodeId: clearActiveEncounter
+          ? null
+          : (activeEncounterNodeId ?? this.activeEncounterNodeId),
+      encounterAdContinuesUsed: clearActiveEncounter
+          ? 0
+          : (encounterAdContinuesUsed ?? this.encounterAdContinuesUsed),
+      encounterPaidContinuesUsed: clearActiveEncounter
+          ? 0
+          : (encounterPaidContinuesUsed ?? this.encounterPaidContinuesUsed),
+      pendingContinueRevive: clearActiveEncounter
+          ? false
+          : (pendingContinueRevive ?? this.pendingContinueRevive),
     );
   }
 
   /// Bump when the persisted shape changes; readers stay tolerant of older
   /// payloads. Mirrors the planned Firestore `users` doc (see
   /// docs/04_Technical/Firestore_Schema.md).
-  static const schemaVersion = 13;
+  static const schemaVersion = 14;
 
   Map<String, dynamic> toJson() => {
         'schemaVersion': schemaVersion,
@@ -352,6 +419,15 @@ class PlayerProfile {
         'claimedMasteryIds': claimedMasteryIds.toList(),
         'unlockedMasterySkillIds': unlockedMasterySkillIds.toList(),
         'claimedCosmeticIds': claimedCosmeticIds.toList(),
+        'equippedOverlayByHero': equippedOverlayByHero,
+        'equippedTitleId': equippedTitleId,
+        'equippedFrameId': equippedFrameId,
+        'claimedStarterPackIds': claimedStarterPackIds.toList(),
+        'activeEncounterId': activeEncounterId,
+        'activeEncounterNodeId': activeEncounterNodeId,
+        'encounterAdContinuesUsed': encounterAdContinuesUsed,
+        'encounterPaidContinuesUsed': encounterPaidContinuesUsed,
+        'pendingContinueRevive': pendingContinueRevive,
       };
 
   factory PlayerProfile.fromJson(Map<String, dynamic> json) {
@@ -508,7 +584,30 @@ class PlayerProfile {
               ?.map((e) => e as String)
               .toSet() ??
           {},
+      equippedOverlayByHero: _parseStringMap(json['equippedOverlayByHero']),
+      equippedTitleId: json['equippedTitleId'] as String?,
+      equippedFrameId: json['equippedFrameId'] as String?,
+      claimedStarterPackIds: (json['claimedStarterPackIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toSet() ??
+          {},
+      activeEncounterId: json['activeEncounterId'] as String?,
+      activeEncounterNodeId: json['activeEncounterNodeId'] as String?,
+      encounterAdContinuesUsed:
+          (json['encounterAdContinuesUsed'] as num?)?.toInt() ?? 0,
+      encounterPaidContinuesUsed:
+          (json['encounterPaidContinuesUsed'] as num?)?.toInt() ?? 0,
+      pendingContinueRevive: json['pendingContinueRevive'] as bool? ?? false,
     );
+  }
+
+  static Map<String, String> _parseStringMap(dynamic raw) {
+    if (raw is! Map) return {};
+    return {
+      for (final e in raw.entries)
+        if (e.key is String && e.value is String)
+          e.key as String: e.value as String,
+    };
   }
 
   static Map<String, ChapterMedalCounters> _parseChapterMedalCounters(
@@ -780,6 +879,7 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
       completedNodeIds: completed,
       prepInventory: inv,
       chapterMedalCounters: counters,
+      clearActiveEncounter: true,
     );
     if (progress != null) {
       _recordMasteryProgress(
@@ -822,6 +922,7 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
     state = state.copyWith(
       coins: state.coins + coinReward,
       weeklyLastCompletedDay: dayKey,
+      clearActiveEncounter: true,
     );
     await _persist();
     return coinReward;
@@ -860,6 +961,7 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
       coins: state.coins + total,
       dailyLastCompletedDay: contract.dayKey,
       claimedDailyMedalIds: {...state.claimedDailyMedalIds, ...earned},
+      clearActiveEncounter: true,
     );
     _recordMasteryProgress(
       heroId: state.selectedHeroId,
@@ -1054,6 +1156,149 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
       unlockedMasterySkillIds: skills,
       claimedCosmeticIds: cosmetics,
     );
+    _persist();
+    return true;
+  }
+
+  String ensureActiveEncounterId({required String nodeId}) {
+    if (state.activeEncounterId != null &&
+        state.activeEncounterNodeId == nodeId) {
+      return state.activeEncounterId!;
+    }
+    final id = '${nodeId}_${DateTime.now().microsecondsSinceEpoch}';
+    state = state.copyWith(
+      activeEncounterId: id,
+      activeEncounterNodeId: nodeId,
+      encounterAdContinuesUsed: 0,
+      encounterPaidContinuesUsed: 0,
+      pendingContinueRevive: false,
+    );
+    _persist();
+    return id;
+  }
+
+  Future<void> clearActiveEncounter() async {
+    if (state.activeEncounterId == null && !state.pendingContinueRevive) {
+      return;
+    }
+    state = state.copyWith(clearActiveEncounter: true);
+    await _persist();
+  }
+
+  bool canUseAdContinue() {
+    return DefeatContinueRules.canUseAd(
+      adUsed: state.encounterAdContinuesUsed,
+      paidUsed: state.encounterPaidContinuesUsed,
+    );
+  }
+
+  bool canUsePaidContinue() {
+    return DefeatContinueRules.canUsePaid(
+      adUsed: state.encounterAdContinuesUsed,
+      paidUsed: state.encounterPaidContinuesUsed,
+      coins: state.coins,
+    );
+  }
+
+  bool consumeAdContinueAndArmRevive() {
+    if (!canUseAdContinue()) return false;
+    state = state.copyWith(
+      encounterAdContinuesUsed: state.encounterAdContinuesUsed + 1,
+      pendingContinueRevive: true,
+    );
+    _persist();
+    return true;
+  }
+
+  bool consumePaidContinueAndArmRevive() {
+    if (!canUsePaidContinue()) return false;
+    state = state.copyWith(
+      coins: state.coins - DefeatContinueBalance.paidContinueCoinCost,
+      encounterPaidContinuesUsed: state.encounterPaidContinuesUsed + 1,
+      pendingContinueRevive: true,
+    );
+    _persist();
+    return true;
+  }
+
+  /// Returns true once, then clears the pending flag.
+  bool consumePendingContinueRevive(String encounterId) {
+    if (!state.pendingContinueRevive) return false;
+    if (state.activeEncounterId != encounterId) return false;
+    state = state.copyWith(pendingContinueRevive: false);
+    _persist();
+    return true;
+  }
+
+  bool claimStarterPack() {
+    if (state.hasClaimedStarterPack()) return false;
+    final cosmetics = Set<String>.from(state.claimedCosmeticIds)
+      ..add(StarterPackBalance.cosmeticId);
+    state = state.copyWith(
+      coins: state.coins + StarterPackBalance.coins,
+      gems: state.gems + StarterPackBalance.gems,
+      claimedStarterPackIds: {
+        ...state.claimedStarterPackIds,
+        StarterPackBalance.id,
+      },
+      claimedCosmeticIds: cosmetics,
+    );
+    _persist();
+    return true;
+  }
+
+  bool claimValuePack30Day() {
+    const id = 'value_pack_30d';
+    if (state.hasClaimedStarterPack(id)) return false;
+    state = state.copyWith(
+      gems: state.gems + IapGrantTable.value30DayUpfrontGems,
+      claimedStarterPackIds: {
+        ...state.claimedStarterPackIds,
+        id,
+      },
+    );
+    _persist();
+    return true;
+  }
+
+  bool equipCosmetic(String cosmeticId, {String? heroId}) {
+    final def = CosmeticCatalog.byId(cosmeticId);
+    if (def == null) return false;
+    if (!state.claimedCosmeticIds.contains(cosmeticId)) return false;
+    final targetHero = heroId ?? state.selectedHeroId;
+    if (!def.availableFor(targetHero)) return false;
+
+    switch (def.slot) {
+      case CosmeticSlot.overlay:
+        final next = Map<String, String>.from(state.equippedOverlayByHero);
+        next[targetHero] = cosmeticId;
+        state = state.copyWith(equippedOverlayByHero: next);
+      case CosmeticSlot.title:
+        state = state.copyWith(equippedTitleId: cosmeticId);
+      case CosmeticSlot.frame:
+        state = state.copyWith(equippedFrameId: cosmeticId);
+    }
+    _persist();
+    return true;
+  }
+
+  bool unequipCosmetic(String cosmeticId, {String? heroId}) {
+    final def = CosmeticCatalog.byId(cosmeticId);
+    if (def == null) return false;
+    final targetHero = heroId ?? state.selectedHeroId;
+    switch (def.slot) {
+      case CosmeticSlot.overlay:
+        if (state.equippedOverlayByHero[targetHero] != cosmeticId) return false;
+        final next = Map<String, String>.from(state.equippedOverlayByHero)
+          ..remove(targetHero);
+        state = state.copyWith(equippedOverlayByHero: next);
+      case CosmeticSlot.title:
+        if (state.equippedTitleId != cosmeticId) return false;
+        state = state.copyWith(clearEquippedTitle: true);
+      case CosmeticSlot.frame:
+        if (state.equippedFrameId != cosmeticId) return false;
+        state = state.copyWith(clearEquippedFrame: true);
+    }
     _persist();
     return true;
   }

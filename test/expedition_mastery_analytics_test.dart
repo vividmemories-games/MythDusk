@@ -70,6 +70,7 @@ void main() {
     test('start → win rooms → boss flag', () {
       var run = ExpeditionRunState.start(heroId: 'mage', seed: 1);
       expect(run.phase, ExpeditionPhase.hub);
+      expect(run.isInProgress, isTrue);
       expect(run.isBossFight, isFalse);
       run = run.copyWith(battleIndex: 3);
       expect(run.isBossFight, isTrue);
@@ -82,6 +83,15 @@ void main() {
       expect(again.heroId, 'knight');
       expect(again.relicIds, ['relic_first_blue_ap']);
       expect(again.seed, 99);
+    });
+
+    test('settled and failed runs are not in progress', () {
+      final settled = ExpeditionRunState.start(heroId: 'mage', seed: 1)
+          .copyWith(phase: ExpeditionPhase.settled);
+      final failed = ExpeditionRunState.start(heroId: 'mage', seed: 2)
+          .copyWith(phase: ExpeditionPhase.failed);
+      expect(settled.isInProgress, isFalse);
+      expect(failed.isInProgress, isFalse);
     });
   });
 

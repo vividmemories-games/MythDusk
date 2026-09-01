@@ -63,6 +63,54 @@ abstract final class EconomyBalance {
   }
 }
 
+/// Optional defeat continue — [docs/01_Game_Design/Balancing_Bible.md] §3.6.
+abstract final class DefeatContinueBalance {
+  static const rewardedAdContinuesPerEncounter = 1;
+  static const paidContinuesPerEncounter = 1;
+  static const maxContinuesPerEncounter =
+      rewardedAdContinuesPerEncounter + paidContinuesPerEncounter;
+  static const paidContinueCoinCost = 500;
+
+  /// Same revive strength as Second Wind.
+  static const reviveHpFraction = 0.3;
+}
+
+/// Pure continue-cap math (testable without Flutter).
+abstract final class DefeatContinueRules {
+  static bool canUseAd({
+    required int adUsed,
+    required int paidUsed,
+  }) {
+    if (adUsed >= DefeatContinueBalance.rewardedAdContinuesPerEncounter) {
+      return false;
+    }
+    return (adUsed + paidUsed) < DefeatContinueBalance.maxContinuesPerEncounter;
+  }
+
+  static bool canUsePaid({
+    required int adUsed,
+    required int paidUsed,
+    required int coins,
+    int cost = DefeatContinueBalance.paidContinueCoinCost,
+  }) {
+    if (paidUsed >= DefeatContinueBalance.paidContinuesPerEncounter) {
+      return false;
+    }
+    if ((adUsed + paidUsed) >= DefeatContinueBalance.maxContinuesPerEncounter) {
+      return false;
+    }
+    return coins >= cost;
+  }
+}
+
+/// One-time starter pack — QA claim until IAP (Bible §3.6).
+abstract final class StarterPackBalance {
+  static const id = 'starter_pack_001';
+  static const coins = 400;
+  static const gems = 40;
+  static const cosmeticId = 'overlay_dusk_sash';
+}
+
 /// Pure life-regen math (testable without Flutter).
 abstract final class LifeRegenMath {
   /// Returns updated lives and timer anchor. Null [lastLifeRegenAt] means

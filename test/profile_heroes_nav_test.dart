@@ -150,7 +150,7 @@ void main() {
     expect(find.text('shop-route'), findsOneWidget);
   });
 
-  testWidgets('Home Hero and More navigate to Heroes and Profile',
+  testWidgets('Home Heroes and More navigate to Heroes and Profile',
       (tester) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -205,7 +205,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Hero'));
+    await tester.tap(find.text('Heroes'));
     await tester.pumpAndSettle();
     expect(find.text('heroes-route'), findsOneWidget);
 
@@ -213,6 +213,9 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('More'));
+    await tester.pumpAndSettle();
+    expect(find.text('Profile'), findsOneWidget);
+    await tester.tap(find.text('Profile'));
     await tester.pumpAndSettle();
     expect(find.text('profile-route'), findsOneWidget);
   });

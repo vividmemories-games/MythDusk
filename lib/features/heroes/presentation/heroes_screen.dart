@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/analytics_providers.dart';
+import '../../../core/analytics/gameplay_analytics.dart';
 import '../../../core/assets/game_assets.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/widgets/opaque_character_art.dart';
+import '../../../core/widgets/cosmetic_hero_art.dart';
+import '../../cosmetics/domain/cosmetic_catalog.dart';
 import '../../home/presentation/home_hub_widgets.dart';
 import '../../mastery/domain/mastery_catalog.dart';
 import '../../profile/domain/economy_balance.dart';
@@ -105,8 +108,10 @@ class _HeroesScreenState extends ConsumerState<HeroesScreen> {
                 final pageUnlocked = HeroUnlocks.isUnlocked(h.id, clears);
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 28),
-                  child: OpaqueCharacterArt(
+                  child: CosmeticHeroArt(
+                    heroId: h.id,
                     assetPath: GameAssets.hero(h.id),
+                    profile: profile,
                     locked: !pageUnlocked,
                     fit: BoxFit.contain,
                     errorBuilder: (_, __, ___) => const Icon(
@@ -176,6 +181,16 @@ class _HeroesScreenState extends ConsumerState<HeroesScreen> {
               ),
             ),
           ],
+          const SizedBox(height: 16),
+          Text('Cosmetics', style: textTheme.titleMedium),
+          Text(
+            unlocked
+                ? 'Overlays and titles are visual only — they do not change combat.'
+                : 'Unlock this hero to equip cosmetics.',
+            style: textTheme.bodyMedium?.copyWith(fontSize: 12),
+          ),
+          const SizedBox(height: 8),
+          _CosmeticsPanel(heroId: hero.id, canEdit: unlocked),
           const SizedBox(height: 20),
           Text('Skills', style: textTheme.titleMedium),
           Text(
@@ -223,7 +238,7 @@ class _HeroesScreenState extends ConsumerState<HeroesScreen> {
           Text('Mastery', style: textTheme.titleMedium),
           Text(
             unlocked
-                ? 'Long-term challenges unlock skill 4 and cosmetic stubs.'
+                ? 'Long-term challenges unlock skill 4 and cosmetics.'
                 : 'Unlock this hero to train mastery.',
             style: textTheme.bodyMedium?.copyWith(fontSize: 12),
           ),
@@ -357,6 +372,132 @@ class _SkillCard extends StatelessWidget {
   }
 }
 
+class _CosmeticsPanel extends ConsumerWidget {
+  const _CosmeticsPanel({required this.heroId, required this.canEdit});
+
+  final String heroId;
+  final bool canEdit;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(profileProvider);
+    final overlays = CosmeticCatalog.claimedFor(
+      claimedIds: profile.claimedCosmeticIds,
+      slot: CosmeticSlot.overlay,
+      heroId: heroId,
+    );
+    final titles = CosmeticCatalog.claimedFor(
+      claimedIds: profile.claimedCosmeticIds,
+      slot: CosmeticSlot.title,
+      heroId: heroId,
+    );
+    final frames = CosmeticCatalog.claimedFor(
+      claimedIds: profile.claimedCosmeticIds,
+      slot: CosmeticSlot.frame,
+      heroId: heroId,
+    );
+
+    if (overlays.isEmpty && titles.isEmpty && frames.isEmpty) {
+      return Text(
+        'No cosmetics claimed yet. Mastery and the starter pack grant them.',
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12),
+      );
+    }
+
+    return Column(
+      children: [
+        for (final c in [...overlays, ...titles, ...frames]) ...[
+          _CosmeticRow(def: c, heroId: heroId, canEdit: canEdit),
+          const SizedBox(height: 8),
+        ],
+      ],
+    );
+  }
+}
+
+class _CosmeticRow extends ConsumerWidget {
+  const _CosmeticRow({
+    required this.def,
+    required this.heroId,
+    required this.canEdit,
+  });
+
+  final CosmeticDef def;
+  final String heroId;
+  final bool canEdit;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(profileProvider);
+    final equipped = switch (def.slot) {
+      CosmeticSlot.overlay => profile.equippedOverlayIdFor(heroId) == def.id,
+      CosmeticSlot.title => profile.equippedTitleId == def.id,
+      CosmeticSlot.frame => profile.equippedFrameId == def.id,
+    };
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: HubColors.panel,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: HubColors.frameGold.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  def.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: MythDuskColors.parchment,
+                  ),
+                ),
+                Text(
+                  def.slot.name,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontSize: 12,
+                        color: MythDuskColors.muted,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          if (canEdit)
+            TextButton(
+              onPressed: () {
+                final notifier = ref.read(profileProvider.notifier);
+                final ok = equipped
+                    ? notifier.unequipCosmetic(def.id, heroId: heroId)
+                    : notifier.equipCosmetic(def.id, heroId: heroId);
+                if (ok) {
+                  ref.read(gameplayAnalyticsProvider).log(
+                    GameplayAnalyticsEvents.cosmeticEquipped,
+                    {
+                      'cosmeticId': def.id,
+                      'heroId': heroId,
+                      'equipped': !equipped,
+                    },
+                  );
+                }
+              },
+              child: Text(equipped ? 'Unequip' : 'Equip'),
+            )
+          else
+            Text(
+              equipped ? 'Equipped' : 'Owned',
+              style: const TextStyle(fontSize: 11, color: MythDuskColors.muted),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _MasteryRow extends ConsumerWidget {
   const _MasteryRow({
     required this.def,
@@ -377,8 +518,10 @@ class _MasteryRow extends ConsumerWidget {
     final met = current >= def.target;
     final rewardLabel = switch (def.rewardType) {
       MasteryRewardType.unlockSkill => 'Unlock ${def.rewardSkillId}',
-      MasteryRewardType.cosmeticTitle => 'Title stub',
-      MasteryRewardType.cosmeticFrame => 'Frame stub',
+      MasteryRewardType.cosmeticTitle =>
+        CosmeticCatalog.byId(def.rewardCosmeticId ?? '')?.name ?? 'Title',
+      MasteryRewardType.cosmeticFrame =>
+        CosmeticCatalog.byId(def.rewardCosmeticId ?? '')?.name ?? 'Frame',
     };
 
     return Container(

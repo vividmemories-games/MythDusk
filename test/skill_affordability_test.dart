@@ -41,4 +41,20 @@ void main() {
       }
     }
   });
+
+  test('lists every missing dual resource in blocking reason', () {
+    final state = BattleState.initial(hero: HeroCatalog.mage);
+    final skill = HeroCatalog.mage.skills.first; // Fireball mana+healing
+    final afford = SkillAffordability.evaluate(skill, state);
+    expect(afford.canCast, isFalse);
+    expect(afford.blockingReason, contains('mana'));
+    expect(afford.blockingReason, contains('healing'));
+  });
+
+  test('softened 4+3 secondaries stay dual-cost', () {
+    expect(HeroCatalog.mage.skills.first.resourceCosts['healing'], 3);
+    expect(HeroCatalog.knight.skills[1].resourceCosts['attack'], 3);
+    expect(HeroCatalog.ranger.skills[1].resourceCosts['ultimate'], 3);
+    expect(HeroCatalog.priest.skills[1].resourceCosts['shield'], 3);
+  });
 }

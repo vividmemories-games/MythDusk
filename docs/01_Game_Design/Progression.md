@@ -3,8 +3,8 @@
 | Field | Value |
 |-------|-------|
 | **Status** | Draft — campaign stub |
-| **Last Updated** | 2026-07-10 |
-| **Related** | [Economy](Economy.md) · [Heroes](Heroes.md) · [PHASES](../PHASES.md) |
+| **Last Updated** | 2026-08-21 |
+| **Related** | [Economy](Economy.md) · [Monetization](Monetization.md) · [Heroes](Heroes.md) · [PHASES](../PHASES.md) |
 
 ## Phase 1
 
@@ -16,7 +16,7 @@
 | System | Intent |
 |--------|--------|
 | Campaign nodes | Linear chapters; bosses with board modifiers |
-| Hero unlock / level | Collection fantasy; stats from Balancing Bible |
+| Hero unlock / level | Guaranteed campaign milestones (Mage 0 / Knight 5 / Ranger 15 / Priest 30 / Ninja 50). Not gacha |
 | Daily dungeon | Retention without event sprawl |
 | Equipment | Changes **rules**, not only flat stats ([GAMEPLAY](../GAMEPLAY.md)) |
 

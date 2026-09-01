@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../auth/presentation/account_settings_section.dart';
 import '../providers/mock_profile_provider.dart';
 
 /// Player preferences and account shortcuts.
@@ -26,6 +27,7 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
         children: [
+          const AccountSettingsSection(),
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(

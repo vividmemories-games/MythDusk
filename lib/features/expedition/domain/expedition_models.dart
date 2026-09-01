@@ -67,7 +67,7 @@ abstract final class RelicCatalog {
     RelicDefinition(
       id: 'relic_intent_focus',
       name: 'Keen Eye',
-      blurb: 'Sharpens focus — treated as Azure Spark for v1 (AP on blue).',
+      blurb: 'Your first blue match each turn sparks +1 AP.',
       effect: RelicEffectType.firstBlueMatchAp,
       tags: ['ap', 'unique_peek'],
     ),
@@ -158,6 +158,7 @@ class ExpeditionRunState {
   bool get isBossFight => battleIndex >= battleCount - 1;
   bool get isComplete => phase == ExpeditionPhase.settled;
   bool get isFailed => phase == ExpeditionPhase.failed;
+  bool get isInProgress => !isComplete && !isFailed;
 
   ExpeditionEncounter get encounter {
     final encounters = ExpeditionBalance.encounters;

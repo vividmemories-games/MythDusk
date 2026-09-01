@@ -548,3 +548,22 @@ reference).
 Heroes / Profile copy, Balancing Bible §5.3, economy migration tests.
 
 **Status:** Accepted
+
+---
+
+## 2026-08-21 — Home hub information hierarchy
+
+**Decision:** Home is a campaign launch pad, not a destination dashboard.
+
+- Top bar is path rank identity + currencies + settings (no wordmark, no floating Rank badge).
+- Hero stage is selected hero + chevrons only. Shop, Profile, Expedition, and Rank leave the stage.
+- Prep row is an inventory peek labeled **Prep** with a Shop affordance. Equipping still happens in the pre-battle picker. Do not call this a loadout.
+- Campaign progress and **Enter Campaign** sit in one darker panel. Gold is reserved for that CTA; secondary chrome uses muted blue-grey.
+- Daily and Weekly stay on Home as quieter chips under the CTA (retention). Heroes is removed from that row.
+- Bottom nav is Home · Heroes · Shop · Ranked · More. Inventory is not a tab; bag counts live on Home/Profile/briefing.
+- Expedition is always listed in More. A Home chip appears only after 10 campaign clears; an active run relabels that chip **Continue**.
+
+**Impact:** `home_screen.dart`, `home_hub_widgets.dart`, `home_more_sheet.dart`; [Content Architecture](../01_Game_Design/Content_Architecture.md) §5; home / nav tests.
+
+**Status:** Accepted
+

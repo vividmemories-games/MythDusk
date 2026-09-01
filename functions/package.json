@@ -1,0 +1,13 @@
+{
+  "name": "mythdusk-functions",
+  "description": "MythDusk Cloud Functions (emulator-first; no production deploy without approval)",
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.3.2"
+  }
+}

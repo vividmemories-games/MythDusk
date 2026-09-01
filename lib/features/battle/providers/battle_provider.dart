@@ -22,6 +22,18 @@ import '../domain/battle_state.dart';
 import '../domain/enemy_def.dart';
 import '../presentation/match_collect_fx.dart';
 
+bool _consumeContinueRevive(Ref ref, String nodeId) {
+  final pending = ref.read(profileProvider).pendingContinueRevive;
+  Future.microtask(() {
+    final notifier = ref.read(profileProvider.notifier);
+    final encounterId = notifier.ensureActiveEncounterId(nodeId: nodeId);
+    if (pending) {
+      notifier.consumePendingContinueRevive(encounterId);
+    }
+  });
+  return pending;
+}
+
 final battleProvider = StateNotifierProvider.autoDispose
     .family<BattleNotifier, BattleState, String>((ref, nodeId) {
   // Watch hero id + upgrades so prep inventory updates do not reset the battle.
@@ -79,6 +91,8 @@ final battleProvider = StateNotifierProvider.autoDispose
       equippedPrep: equipped,
       isWeekly: true,
       objective: challenge.objective,
+      continueReviveArmed:
+          _consumeContinueRevive(ref, WeeklyBalance.battleNodeId),
       onSecondWindUsed: () {
         ref.read(profileProvider.notifier).markSecondWindUsed();
       },
@@ -103,6 +117,8 @@ final battleProvider = StateNotifierProvider.autoDispose
       equippedPrep: equipped,
       isDaily: true,
       objective: contract.objective,
+      continueReviveArmed:
+          _consumeContinueRevive(ref, DailyBalance.battleNodeId),
       onSecondWindUsed: () {
         ref.read(profileProvider.notifier).markSecondWindUsed();
       },
@@ -131,6 +147,8 @@ final battleProvider = StateNotifierProvider.autoDispose
       equippedPrep: equipped,
       isExpedition: true,
       relicIds: run.relicIds,
+      continueReviveArmed:
+          _consumeContinueRevive(ref, ExpeditionBalance.battleNodeId),
       onSecondWindUsed: () {
         ref.read(profileProvider.notifier).markSecondWindUsed();
       },
@@ -200,6 +218,7 @@ final battleProvider = StateNotifierProvider.autoDispose
     onSecondWindUsed: () {
       ref.read(profileProvider.notifier).markSecondWindUsed();
     },
+    continueReviveArmed: _consumeContinueRevive(ref, nodeId),
   );
 });
 
@@ -225,6 +244,7 @@ class BattleNotifier extends StateNotifier<BattleState> {
     BattleObjective? objective,
     HazardSpawnConfig? hazardSpawn,
     OverlayDef? hazardOverlayDef,
+    bool continueReviveArmed = false,
   })  : _ref = ref,
         _onSecondWindUsed = onSecondWindUsed,
         _equippedPrep = List.unmodifiable(equippedPrep),
@@ -232,6 +252,7 @@ class BattleNotifier extends StateNotifier<BattleState> {
         _enrageAfterTurns = enrageAfterTurns,
         _movers = List.unmodifiable(movers),
         _boardFactory = boardFactory,
+        _continueReviveArmed = continueReviveArmed,
         super(
           _initialState(
             hero: hero ?? HeroCatalog.mage,
@@ -252,6 +273,7 @@ class BattleNotifier extends StateNotifier<BattleState> {
             objective: objective,
             hazardSpawn: hazardSpawn,
             hazardOverlayDef: hazardOverlayDef,
+            continueReviveArmed: continueReviveArmed,
           ),
         ) {
     _controller = BattleController(state);
@@ -270,6 +292,7 @@ class BattleNotifier extends StateNotifier<BattleState> {
   final List<BoardMoverConfig> _movers;
   final PuzzleBoard? Function()? _boardFactory;
   final void Function()? _onSecondWindUsed;
+  final bool _continueReviveArmed;
 
   void _pulseInvalidSwap((int, int) a, (int, int) b) {
     HapticFeedback.lightImpact();
@@ -300,11 +323,15 @@ class BattleNotifier extends StateNotifier<BattleState> {
     BattleObjective? objective,
     HazardSpawnConfig? hazardSpawn,
     OverlayDef? hazardOverlayDef,
+    bool continueReviveArmed = false,
   }) {
     var bonusMoves = 0;
     var bonusShield = 0;
-    var secondWind = false;
+    var secondWind = continueReviveArmed;
     final notes = <String>[];
+    if (continueReviveArmed) {
+      notes.add('Continue revive armed');
+    }
     for (final id in equippedPrep) {
       switch (id) {
         case PrepItemId.vanguardTonic:
@@ -578,7 +605,9 @@ class BattleNotifier extends StateNotifier<BattleState> {
       state = _controller.state;
 
       if (armedBefore && !state.secondWindArmed && state.heroHp > 0) {
-        _onSecondWindUsed?.call();
+        if (_equippedPrep.contains(PrepItemId.secondWind)) {
+          _onSecondWindUsed?.call();
+        }
       }
     }
 
@@ -751,6 +780,14 @@ class BattleNotifier extends StateNotifier<BattleState> {
         equippedPrep: _equippedPrep,
         movers: _movers,
         board: _boardFactory?.call(),
+        hazardSpawn: state.hazardSpawn,
+        hazardOverlayDef: state.hazardOverlayDef,
+        continueReviveArmed: _continueReviveArmed,
+        isWeekly: state.isWeekly,
+        isDaily: state.isDaily,
+        isExpedition: state.isExpedition,
+        relicIds: state.relicIds,
+        objective: state.objective,
       ),
     );
     _controller.startPlayerTurn(applyInline: true);

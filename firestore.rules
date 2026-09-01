@@ -1,0 +1,213 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: users/{uid}
+//   schemaVersion: number (14)
+//   Client-writable: displayName, selectedHeroId, equippedSkillIdsByHero,
+//     equippedOverlayByHero, equippedTitleId, equippedFrameId,
+//     hintsEnabled, soundEnabled, hapticsEnabled, tutorialBeatsSeen,
+//     firstBattleTutorialDone, seenUnlockCelebrationIds, updatedAt
+//   Function-only: coins, gems, lives, lastLifeRegenAt, gemLifeRefillDay,
+//     gemLifeRefillCount, upgradeLevelsByHero, completedNodeIds,
+//     prepInventory, secondWindUsedDay, weeklyLastCompletedDay,
+//     dailyLastCompletedDay, claimedDailyMedalIds, chapterMedalCounters,
+//     claimedChapterMedalIds, activeExpedition, masteryProgressByHero,
+//     claimedMasteryIds, unlockedMasterySkillIds, claimedCosmeticIds,
+//     claimedStarterPackIds, activeEncounterId, activeEncounterNodeId,
+//     encounterAdContinuesUsed, encounterPaidContinuesUsed,
+//     pendingContinueRevive, createdAt
+//
+// Collection: battle_runs/{runId}
+//   uid, nodeId, heroId, won, coinReward, clientVersion, submittedAt,
+//   processed, grantCoins (set by Functions)
+//
+// Collection: challenges/{challengeId}
+//   challengerUid, inviteeUid, joinCode, status, seed, loadoutA, loadoutB,
+//   createdAt, expiresAt, heartbeatAt
+//
+// Collection: matches/{matchId}
+//   challengeId, uidA, uidB, seed, loadoutA, loadoutB, actionLog,
+//   currentUid, status, heartbeatA, heartbeatB, createdAt
+//
+// Collection: iap_receipts/{receiptId}
+//   uid, productId, processed — Functions only
+//
+// Content collections (heroes, skills, enemies, bosses, campaigns,
+// economy_config, remote_balance): authenticated read; no client writes.
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isValidClientUser(data) {
+      return data.keys().hasAll(['schemaVersion', 'selectedHeroId'])
+        && data.schemaVersion is int
+        && data.schemaVersion == 14
+        && data.selectedHeroId is string
+        && data.selectedHeroId.size() > 0
+        && data.selectedHeroId.size() < 64
+        && (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 40))
+        && (!('hintsEnabled' in data) || data.hintsEnabled is bool)
+        && (!('soundEnabled' in data) || data.soundEnabled is bool)
+        && (!('hapticsEnabled' in data) || data.hapticsEnabled is bool)
+        && (!('firstBattleTutorialDone' in data) || data.firstBattleTutorialDone is bool);
+    }
+
+    function clientUserKeys() {
+      return [
+        'schemaVersion',
+        'displayName',
+        'selectedHeroId',
+        'equippedSkillIdsByHero',
+        'equippedOverlayByHero',
+        'equippedTitleId',
+        'equippedFrameId',
+        'hintsEnabled',
+        'soundEnabled',
+        'hapticsEnabled',
+        'tutorialBeatsSeen',
+        'firstBattleTutorialDone',
+        'seenUnlockCelebrationIds',
+        'updatedAt'
+      ];
+    }
+
+    function clientUserUpdateAllowed() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(clientUserKeys())
+        && isValidClientUser(request.resource.data);
+    }
+
+    function isContentDoc() {
+      return request.auth != null
+        && resource.data.keys().hasAll(['schemaVersion', 'isEnabled'])
+        && resource.data.isEnabled == true;
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+      allow create: if false;
+      allow update: if isOwner(uid) && clientUserUpdateAllowed();
+      allow delete: if false;
+    }
+
+    match /battle_runs/{runId} {
+      allow read: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow create: if isSignedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasAll([
+          'schemaVersion', 'uid', 'nodeId', 'heroId', 'won', 'coinReward',
+          'clientVersion', 'processed'
+        ])
+        && request.resource.data.schemaVersion == 1
+        && request.resource.data.processed == false
+        && request.resource.data.coinReward is int
+        && request.resource.data.coinReward >= 0
+        && request.resource.data.coinReward <= 5000
+        && request.resource.data.nodeId is string
+        && request.resource.data.heroId is string;
+      allow update, delete: if false;
+    }
+
+    match /challenges/{id} {
+      allow read: if isSignedIn()
+        && (resource.data.challengerUid == request.auth.uid
+          || resource.data.inviteeUid == request.auth.uid
+          || resource.data.status == 'open');
+      allow create: if isSignedIn()
+        && request.resource.data.challengerUid == request.auth.uid
+        && request.resource.data.status in ['open', 'pending']
+        && request.resource.data.joinCode is string
+        && request.resource.data.joinCode.size() >= 4
+        && request.resource.data.joinCode.size() <= 8
+        && request.resource.data.keys().hasAll([
+          'challengerUid', 'status', 'joinCode', 'seed', 'loadoutA',
+          'createdAt', 'expiresAt'
+        ]);
+      allow update: if isSignedIn()
+        && (resource.data.challengerUid == request.auth.uid
+          || resource.data.inviteeUid == request.auth.uid
+          || (resource.data.status == 'open'
+            && request.resource.data.inviteeUid == request.auth.uid))
+        && request.resource.data.challengerUid == resource.data.challengerUid
+        && request.resource.data.seed == resource.data.seed
+        && request.resource.data.joinCode == resource.data.joinCode;
+      allow delete: if false;
+    }
+
+    match /matches/{id} {
+      allow read: if isSignedIn()
+        && (resource.data.uidA == request.auth.uid
+          || resource.data.uidB == request.auth.uid);
+      allow create: if isSignedIn()
+        && (request.resource.data.uidA == request.auth.uid
+          || request.resource.data.uidB == request.auth.uid)
+        && request.resource.data.keys().hasAll([
+          'uidA', 'uidB', 'seed', 'loadoutA', 'loadoutB', 'actionLog',
+          'currentUid', 'status'
+        ])
+        && request.resource.data.status == 'live'
+        && request.resource.data.actionLog is list
+        && request.resource.data.actionLog.size() == 0;
+      allow update: if isSignedIn()
+        && (resource.data.uidA == request.auth.uid
+          || resource.data.uidB == request.auth.uid)
+        && request.resource.data.uidA == resource.data.uidA
+        && request.resource.data.uidB == resource.data.uidB
+        && request.resource.data.seed == resource.data.seed
+        && request.resource.data.loadoutA == resource.data.loadoutA
+        && request.resource.data.loadoutB == resource.data.loadoutB
+        && request.resource.data.actionLog is list
+        && request.resource.data.actionLog.size() >= resource.data.actionLog.size();
+      allow delete: if false;
+    }
+
+    match /iap_receipts/{id} {
+      allow read: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow create, update, delete: if false;
+    }
+
+    match /heroes/{id} {
+      allow read: if isContentDoc();
+      allow write: if false;
+    }
+    match /skills/{id} {
+      allow read: if isContentDoc();
+      allow write: if false;
+    }
+    match /enemies/{id} {
+      allow read: if isContentDoc();
+      allow write: if false;
+    }
+    match /bosses/{id} {
+      allow read: if isContentDoc();
+      allow write: if false;
+    }
+    match /campaigns/{id} {
+      allow read: if isContentDoc();
+      allow write: if false;
+    }
+    match /economy_config/{id} {
+      allow read: if isContentDoc();
+      allow write: if false;
+    }
+    match /remote_balance/{id} {
+      allow read: if isContentDoc();
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

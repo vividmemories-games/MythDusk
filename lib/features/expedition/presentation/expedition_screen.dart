@@ -10,6 +10,7 @@ import '../../../core/widgets/opaque_character_art.dart';
 import '../../heroes/domain/hero_def.dart';
 import '../../heroes/domain/hero_unlocks.dart';
 import '../../prep/presentation/prep_picker_sheet.dart';
+import '../../profile/domain/economy_balance.dart';
 import '../../profile/providers/mock_profile_provider.dart';
 import '../domain/expedition_models.dart';
 
@@ -65,6 +66,7 @@ class _LockedBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final need = ExpeditionBalance.minCampaignClears;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -72,9 +74,14 @@ class _LockedBody extends StatelessWidget {
             style: textTheme.displayLarge?.copyWith(fontSize: 28)),
         const SizedBox(height: 12),
         Text(
-          'Clear ${ExpeditionBalance.minCampaignClears} campaign nodes to open '
-          'the relic path. Progress: $clears / ${ExpeditionBalance.minCampaignClears}.',
+          'Clear $need campaign nodes to open the relic path. '
+          'Progress: $clears / $need.',
           style: textTheme.bodyMedium,
+        ),
+        const Spacer(),
+        FilledButton(
+          onPressed: () => context.go('/campaign'),
+          child: const Text('Continue campaign'),
         ),
       ],
     );
@@ -106,6 +113,14 @@ class _HubStart extends ConsumerWidget {
           'One retry per run.',
           style: textTheme.bodyMedium,
         ),
+        const SizedBox(height: 10),
+        Text(
+          'Lives ${profile.lives}/${EconomyBalance.maxLives}',
+          style: textTheme.bodyMedium?.copyWith(
+            color: MythDuskColors.softGold,
+            fontSize: 13,
+          ),
+        ),
         if (settled != null) ...[
           const SizedBox(height: 12),
           Text(
@@ -134,15 +149,20 @@ class _HubStart extends ConsumerWidget {
         ),
         const Spacer(),
         FilledButton(
-          onPressed: () {
-            final ok = ref.read(profileProvider.notifier).startExpedition();
-            if (!ok) return;
-            ref.read(gameplayAnalyticsProvider).log(
-              GameplayAnalyticsEvents.expeditionStarted,
-              {'heroId': profile.selectedHeroId},
-            );
-          },
-          child: const Text('Begin expedition'),
+          onPressed: profile.lives <= 0
+              ? null
+              : () {
+                  final ok =
+                      ref.read(profileProvider.notifier).startExpedition();
+                  if (!ok) return;
+                  ref.read(gameplayAnalyticsProvider).log(
+                    GameplayAnalyticsEvents.expeditionStarted,
+                    {'heroId': profile.selectedHeroId},
+                  );
+                },
+          child: Text(
+            profile.lives <= 0 ? 'No lives' : 'Begin expedition',
+          ),
         ),
         if (settled != null) ...[
           const SizedBox(height: 8),
@@ -150,6 +170,36 @@ class _HubStart extends ConsumerWidget {
             onPressed: () =>
                 ref.read(profileProvider.notifier).clearSettledExpedition(),
             child: const Text('Dismiss last run'),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _RoomProgressStrip extends StatelessWidget {
+  const _RoomProgressStrip({required this.run});
+
+  final ExpeditionRunState run;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (var i = 0; i < ExpeditionRunState.battleCount; i++) ...[
+          if (i > 0) const SizedBox(width: 6),
+          Expanded(
+            child: Container(
+              height: 8,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+                color: i < run.battleIndex
+                    ? MythDuskColors.softGold
+                    : i == run.battleIndex
+                        ? MythDuskColors.amber
+                        : MythDuskColors.mist.withValues(alpha: 0.35),
+              ),
+            ),
           ),
         ],
       ],
@@ -179,6 +229,13 @@ class _ActiveRun extends ConsumerWidget {
           'Room ${run.battleIndex + 1} / ${ExpeditionRunState.battleCount}',
           style: textTheme.bodyMedium?.copyWith(color: MythDuskColors.softGold),
         ),
+        const SizedBox(height: 8),
+        _RoomProgressStrip(run: run),
+        const SizedBox(height: 10),
+        Text(
+          'Lives ${profile.lives}/${EconomyBalance.maxLives}',
+          style: textTheme.bodyMedium?.copyWith(fontSize: 12),
+        ),
         const SizedBox(height: 6),
         Text(encounter.label,
             style: textTheme.displayLarge?.copyWith(fontSize: 26)),
@@ -207,7 +264,8 @@ class _ActiveRun extends ConsumerWidget {
           Text('Relics', style: textTheme.titleMedium),
           for (final id in run.relicIds)
             Text(
-              '• ${RelicCatalog.byId(id)?.name ?? id}',
+              '• ${RelicCatalog.byId(id)?.name ?? id}'
+              '${RelicCatalog.byId(id) != null ? ' — ${RelicCatalog.byId(id)!.blurb}' : ''}',
               style: textTheme.bodyMedium?.copyWith(fontSize: 12),
             ),
           const SizedBox(height: 12),
@@ -219,16 +277,40 @@ class _ActiveRun extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         TextButton(
-          onPressed: () {
-            ref.read(gameplayAnalyticsProvider).log(
-                  GameplayAnalyticsEvents.expeditionAbandoned,
-                );
-            ref.read(profileProvider.notifier).abandonExpedition();
-          },
+          onPressed: () => _confirmAbandon(context, ref),
           child: const Text('Abandon run'),
         ),
       ],
     );
+  }
+
+  Future<void> _confirmAbandon(BuildContext context, WidgetRef ref) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: MythDuskColors.deepTeal,
+        title: const Text('Abandon expedition?'),
+        content: const Text(
+          'This run ends now. Relics and room progress are lost. '
+          'A small fail reward may still apply.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Keep going'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Abandon'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !context.mounted) return;
+    ref.read(gameplayAnalyticsProvider).log(
+          GameplayAnalyticsEvents.expeditionAbandoned,
+        );
+    ref.read(profileProvider.notifier).abandonExpedition();
   }
 
   Future<void> _launch(BuildContext context, WidgetRef ref) async {
@@ -273,6 +355,8 @@ class _RelicPick extends ConsumerWidget {
         Text('Choose a relic',
             style: textTheme.displayLarge?.copyWith(fontSize: 26)),
         const SizedBox(height: 8),
+        _RoomProgressStrip(run: run),
+        const SizedBox(height: 10),
         Text(
           'Expedition-only. Relics never deal match damage.',
           style: textTheme.bodyMedium,

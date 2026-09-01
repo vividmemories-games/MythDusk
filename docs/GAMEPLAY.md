@@ -156,17 +156,18 @@ Placeholder generation (open for balancing):
 
 ## Hero skills
 
-Every skill costs **both resources and AP**.
+Every skill costs **both resources and AP**. Skills use **dual** (or triple) resource costs — never a single mono color in the live catalog.
 
-Examples:
+Examples (source: `lib/features/heroes/domain/hero_def.dart`):
 
-| Skill        | Cost                         |
-|--------------|------------------------------|
-| Basic Slash  | 4 Red + 1 AP                 |
-| Fireball     | 8 Mana + 2 AP                |
-| Heal         | 6 Healing + 1 AP             |
-| Shield Wall  | 8 Shield + 2 AP              |
-| Ultimate     | 20 Ultimate Energy + 5 AP    |
+| Skill | Cost |
+|-------|------|
+| Fireball | 4 Mana + 3 Healing + 2 AP |
+| Arcane Bolt | 2 Ultimate + 2 Healing + 1 AP |
+| Basic Slash | 2 Attack + 2 Shield + 1 AP |
+| Shield Wall | 4 Shield + 3 Attack + 2 AP |
+| Marked Shot | 4 Attack + 3 Ultimate + 2 AP |
+| Mend | 4 Healing + 3 Shield + 2 AP |
 
 ---
 
@@ -176,7 +177,7 @@ Examples:
 Start Turn — Moves = 5, AP = 2
 Match Red  — Moves = 4, Attack Energy +3, AP +1
 Match Blue — Moves = 3, Mana +4, AP +1
-Cast Fireball — spend 8 Mana + 2 AP
+Cast Fireball — spend 4 Mana + 3 Healing + 2 AP
 … until Moves = 0
 Enemy Turn
 ```

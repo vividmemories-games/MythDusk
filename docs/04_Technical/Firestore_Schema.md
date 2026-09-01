@@ -1,78 +1,53 @@
-# Firestore Schema (planned)
+# Firestore Schema
 
-Status: **design only — nothing deployed.** The app currently persists
-`PlayerProfile` locally via SharedPreferences (`mythdusk_profile_v2` key,
-`schemaVersion: 3`). This doc pins the Firestore shape so the local model
-migrates cleanly when Firebase is wired.
+Status: **emulator-ready — nothing deployed to production.** Local play still
+uses SharedPreferences (`mythdusk_profile_v2`, `schemaVersion: 14`). Cloud
+sync is owned by Cloud Functions after Firebase console setup.
+
+See [Firebase.md](Firebase.md) for emulators and
+[Firebase_Console_Checklist](../00_Project/Firebase_Console_Checklist.md) for
+human console steps.
 
 ## Principles
 
-- Client never writes authoritative rewards (coins, gems, unlocks) directly;
-  those move through Cloud Functions once online.
+- Client never writes authoritative rewards (coins, gems, lives, unlocks,
+  prep, entitlements).
+- Link conflicts **never** `max()` coins/gems — keep guest or switch to the
+  existing cloud profile.
 - Every content/config doc carries `schemaVersion`, `contentVersion`,
   `isEnabled`, `createdAt`, `updatedAt`.
-- Local `PlayerProfile.toJson()` is the source of truth for field names, so
-  the eventual sync layer is a straight mapping.
+- Field split lives in `lib/features/profile/domain/profile_field_policy.dart`
+  and `firestore.rules`.
 
-## `users/{uid}`
+## `users/{uid}` (schema 14)
 
-Mirrors `PlayerProfile`:
+Mirrors `PlayerProfile`. **Client may update:** `displayName`,
+`selectedHeroId`, equipped skills/cosmetics, settings, tutorial flags.
 
-```jsonc
-{
-  "schemaVersion": 3,
-  "displayName": "Wanderer",
-  "coins": 500,              // server-validated writes only
-  "gems": 50,                // server-validated writes only
-  "lives": 5,
-  "selectedHeroId": "mage",
-  "completedNodeIds": ["node_01"],
-  "prepInventory": { "vanguard_tonic": 2, "aegis_flask": 1, "second_wind": 1 },
-  "secondWindUsedDay": "2026-07-21",
-  "createdAt": "<serverTimestamp>",
-  "updatedAt": "<serverTimestamp>"
-}
-```
+**Functions only:** `coins`, `gems`, `lives`, regen/refill counters, upgrades,
+`completedNodeIds`, `prepInventory`, medals, expedition, mastery, claimed
+cosmetics/packs, encounter continue fields.
 
-Security: owner read; owner may write cosmetic/selection fields
-(`displayName`, `selectedHeroId`). Economy fields (`coins`, `gems`, `lives`,
-`prepInventory`, `completedNodeIds`) are written by Cloud Functions after
-validating a submitted battle run.
+Create is Functions `ensureUser` (not client create).
 
 ## `battle_runs/{runId}`
 
-Client-submitted result, validated server-side before rewards are granted:
+Client creates `{processed:false}` then calls `submitBattleRun`. Duplicate
+calls return the original grant. Defeat spends a life (not PvP).
 
-```jsonc
-{
-  "schemaVersion": 1,
-  "uid": "<auth uid>",
-  "nodeId": "node_01",
-  "heroId": "mage",
-  "won": true,
-  "turnsTaken": 6,
-  "equippedPrep": ["vanguard_tonic"],
-  "clientVersion": "0.4.0",
-  "submittedAt": "<serverTimestamp>",
-  "processed": false          // set true by the reward function (idempotency)
-}
-```
+## `challenges/{id}` / `matches/{id}`
 
-Security: owner create only (no update/delete). Reward grant is idempotent —
-the function checks `processed` before paying out.
+Live 1v1 only. Invite TTL 60s. Both players must be online. Frozen loadouts.
+`actionLog` replay through `PvpDuelEngine`. Heartbeat 5s / forfeit 20s.
+No async/offline mailbox.
 
-## Content collections (read-only for clients)
+## `iap_receipts/{id}`
+
+Functions `validateIapReceipt` only. Product grants come from the server
+table, never from the client payload.
+
+## Content collections
 
 `heroes`, `skills`, `enemies`, `bosses`, `campaigns`, `economy_config`,
-`remote_balance` — all carry the standard versioning envelope. Current
-in-repo sources that will seed them:
-
-| Collection       | Current source                                   |
-| ---------------- | ------------------------------------------------ |
-| `campaigns`      | `assets/levels/twilight_road.json`               |
-| `heroes`/`skills`| `HeroCatalog` (`lib/features/heroes/domain`)     |
-| `enemies`/`bosses`| `EnemyCatalog` (`lib/features/battle/domain`)   |
-| `remote_balance` | `MatchBalanceConfig` (`lib/features/puzzle/domain/match_balance.dart`), `PrepBalance` |
-
-Security: public authenticated read where `isEnabled == true`; writes only
-via admin tooling / trusted service accounts.
+`remote_balance` — authenticated read where `isEnabled == true`; no client
+writes.

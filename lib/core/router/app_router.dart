@@ -11,6 +11,8 @@ import '../../features/expedition/presentation/expedition_screen.dart';
 import '../../features/heroes/presentation/hero_unlock_celebration_screen.dart';
 import '../../features/heroes/presentation/heroes_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/pvp/presentation/pvp_battle_screen.dart';
+import '../../features/pvp/presentation/pvp_lobby_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/profile/presentation/settings_screen.dart';
 import '../../features/profile/presentation/shop_screen.dart';
@@ -86,6 +88,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/expedition',
         name: 'expedition',
         builder: (context, state) => const ExpeditionScreen(),
+      ),
+      GoRoute(
+        path: '/challenge',
+        name: 'challenge',
+        builder: (context, state) => const PvpLobbyScreen(),
+      ),
+      GoRoute(
+        path: '/pvp/:matchId',
+        name: 'pvp',
+        builder: (context, state) {
+          final matchId = state.pathParameters['matchId']!;
+          return PvpBattleScreen(matchId: matchId);
+        },
       ),
       GoRoute(
         path: '/battle/:nodeId',

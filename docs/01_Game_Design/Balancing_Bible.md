@@ -2,14 +2,14 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | v1.1 authoritative (combat + soft progression + weekly) |
-| **Last Updated** | 2026-07-30 |
+| **Status** | v1.2 authoritative (combat + soft progression + weekly + V1.0 monetization knobs) |
+| **Last Updated** | 2026-08-21 |
 | **Authority** | Numbers & formulas (must not contradict [GAMEPLAY](../GAMEPLAY.md) rules) |
-| **Related** | [Heroes](Heroes.md) · [Enemies](Enemies.md) · [Economy](Economy.md) · [PHASES](../PHASES.md) · `.cursor/rules/08-monetization-economy.mdc` |
+| **Related** | [Heroes](Heroes.md) · [Enemies](Enemies.md) · [Economy](Economy.md) · [Monetization](Monetization.md) · [PHASES](../PHASES.md) · `.cursor/rules/08-monetization-economy.mdc` |
 
 ## Purpose
 
-Single place for tunable combat and soft-progression numbers. Code configs (`MatchBalanceConfig`, `PrepBalance`, `EconomyBalance`, `BossCombatBalance`, `WeeklyBalance`) must mirror this document. Shop/IAP price catalogs beyond lives refill and prep stubs are out of scope for v1.1; prep **inventory refill** (packs/boxes) is the intended future monetization surface.
+Single place for tunable combat and soft-progression numbers. Code configs (`MatchBalanceConfig`, `PrepBalance`, `EconomyBalance`, `BossCombatBalance`, `WeeklyBalance`, `DefeatContinueBalance`, `StarterPackBalance`) must mirror this document. Product rules and later IAP phases live in [Monetization](Monetization.md). Real store SKUs wait for Firebase settlement.
 
 ## Locked design decisions (v1.1)
 
@@ -19,9 +19,11 @@ Single place for tunable combat and soft-progression numbers. Code configs (`Mat
 | **Difficulty** | Board stays fair; **prep / lives / boosts** are the main friction |
 | **Prep offer** | Prep picker before **every** fight (campaign + weekly); **Play with none** always allowed |
 | **Prep pressure** | Trash balanced for **0 prep**; Act 3+ bosses / finales / weekend weekly expect prep |
-| **Lives** | Every campaign/weekly defeat spends 1 life |
-| **Life pool / regen** | Max **5**; **+1 every 20 minutes** |
+| **Lives** | Only stamina gate (maps “energy”). Every campaign/weekly defeat spends 1 life. No second energy meter |
+| **Life pool / regen** | Max **5**; **+1 every 20 minutes**; refill on player level-up when XP exists |
 | **Gem lives** | Up to **3 partial refills/day** (+3 lives each), **75 gems** flat |
+| **Defeat continue** | Optional; **1 ad + 1 paid** per encounter; revive **30%** max HP; never required |
+| **Campaign heroes** | Guaranteed clear milestones (never gacha / never paywalled) |
 | **Fight length** | Trash **3–5** player turns; act boss **6–10**; finale **10–15**; weekend weekly **8–14** (avg prep) |
 | **Weekly toughness** | Weekly enemies ≥ **2×** campaign art-counterpart HP and skill damage |
 | **Gems** | Lives refill + capped prep bundles (+ future boxes) + cosmetics; **no gem combat stats** |
@@ -65,11 +67,11 @@ Source: `lib/features/heroes/domain/hero_def.dart`.
 
 | Hero | Moves | Max AP | Max HP | Primary skill (AP / cost → dmg) | Secondary |
 |------|-------|--------|--------|----------------------------------|-----------|
-| Mage | 5 | 8 | 80 | Fireball 2 AP / 8 mana → 24 | Arcane Bolt 1 / 4 mana → 12 |
-| Knight | 4 | 6 | 120 | Basic Slash 1 / 4 attack → 14 | Shield Wall 2 / 8 shield → +20 shield |
-| Ranger | 5 | 7 | 90 | Arrow Shot 1 / 5 attack → 16 | Marked Shot 2 / 8 attack → 26 |
-| Priest | 4 | 8 | 95 | Smite 1 / 4 mana → 12 | Mend 2 / 8 healing → +22 HP |
-| Ninja | 6 | 7 | 85 | Dagger Flurry 1 / 4 attack → 14 | Shadow Strike 2 / 6 ultimate → 28 |
+| Mage | 5 | 8 | 80 | Fireball 2 AP / 4 mana + 3 healing → 24 | Arcane Bolt 1 / 2 ult + 2 healing → 12 |
+| Knight | 4 | 6 | 120 | Basic Slash 1 / 2 attack + 2 shield → 14 | Shield Wall 2 / 4 shield + 3 attack → +20 shield |
+| Ranger | 5 | 7 | 90 | Arrow Shot 1 / 3 attack + 2 healing → 16 | Marked Shot 2 / 4 attack + 3 ult → 26 |
+| Priest | 4 | 8 | 95 | Smite 1 / 2 mana + 2 attack → 12 | Mend 2 / 4 healing + 3 shield → +22 HP |
+| Ninja | 6 | 7 | 85 | Dagger Flurry 1 / 2 attack + 2 ult → 14 | Shadow Strike 2 / 3 ult + 3 mana → 28 |
 
 ### 1.3 Enemy baselines
 
@@ -238,13 +240,45 @@ Skill damage uses the same **2.0×** multiplier on counterpart skill tables.
 
 ### 3.5 Monetization path (prep inventory)
 
-Allowed later (not priced in v1.1): coin/gem **prep packs**, loot **boxes** that grant Vanguard/Aegis/Second Wind, battle-pass prep track. All refill inventory only — never raw combat power. Server must validate grants (Phase 4).
+Allowed later (not priced until IAP): coin/gem **prep packs**, loot **boxes** that grant Vanguard/Aegis/Second Wind. Battle-pass prep track stays **off** until retention is validated. All refill inventory only — never raw combat power. Server must validate grants (Firebase phase).
+
+### 3.6 Defeat continue (optional resurrection)
+
+Config: `lib/features/profile/domain/economy_balance.dart` → `DefeatContinueBalance`.
+
+Optional on the defeat result screen. Does **not** replace lives or Second Wind. Free Retry (subject to lives) remains. Continue is never mandatory.
+
+| Knob | Value |
+|------|-------|
+| Rewarded-ad continues / encounter | **1** |
+| Paid continues / encounter | **1** |
+| Max continues / encounter | **2** |
+| Paid continue cost | **500 coins** |
+| Revive strength | **30%** max HP (same as Second Wind) |
+
+Encounter token (`activeEncounterId`) persists across Retry/Continue for that node until victory or the player leaves the result screen. Caps do not reset on Retry.
+
+- Ad continue is a QA/dev stub until an ads SDK ships; prod hides the ad button and leaves the paid slot.
+- Continue arms a one-shot revive for the next attempt of the same encounter; it does **not** consume the daily Second Wind prep stock.
+- Failed attempts still spend a life when the result is applied (existing lives rule). Continue does not refund that life.
+
+Starter pack (local QA claim until IAP):
+
+| Knob | Value |
+|------|-------|
+| Id | `starter_pack_001` |
+| Coins | **400** |
+| Gems | **40** |
+| Cosmetic | `overlay_dusk_sash` (visual only) |
+| Repeat | One-time entitlement |
 
 ---
 
 ## 4. Lives & gem refills
 
 Config: `lib/features/profile/domain/economy_balance.dart` → `EconomyBalance`.
+
+Lives are the only stamina / “energy” gate. They mainly slow repeated farming; they should not frequently interrupt first-time campaign progress. Practice / selected activities may stay life-free later. Failed attempts consume **1** life (not a second energy tax). Regeneration stays generous.
 
 | Knob | Value |
 |------|-------|
@@ -254,20 +288,26 @@ Config: `lib/features/profile/domain/economy_balance.dart` → `EconomyBalance`.
 | Start gate | Cannot start a campaign node or weekly at **0 lives** |
 | Gem partial refill | **75 gems** → **+3 lives** (clamp max) |
 | Daily gem refill cap | **3** purchases per `yyyy-MM-dd` |
-| Full gem refill | Not in v1.1 |
+| Full gem refill | Not in V1.0 |
+| Level-up refill | Grant lives to max when player XP/levels exist (not yet) |
+| Optional ad refill | Phase 3; counts toward a **3–5/day** rewarded-ad pool |
 
 Persist: `lastLifeRegenAt`, `gemLifeRefillDay`, `gemLifeRefillCount` on mock profile (later Firestore `users`).
 
-### 4.1 Monetization never-buy list (v1.1)
+### 4.1 Monetization never-buy list
 
 Gems / IAP must **not** purchase:
 
 - Combat stat power (damage, HP, AP, Moves beyond capped prep)
 - Uncapped revives / uncapped Second Wind stock
+- Extra battle Moves as a paid product
+- Premium-only combat mechanics
+- Mandatory paid continues
 - Guaranteed win / skip boss
-- Client-trusted reward amounts (server validates in Phase 4)
+- Campaign heroes or hero duplicates required for viability
+- Client-trusted reward amounts (server validates in Firebase phase)
 
-Allowed gem sinks (v1.1+): capped life refills, capped prep bundles/boxes, cosmetics.
+Allowed gem / IAP sinks: capped life refills, capped prep bundles/boxes, cosmetics, one-time starter pack, later 30-day value pack. Battle pass stays disabled until Phase 4.
 
 ---
 
@@ -335,7 +375,12 @@ Future remote document shape:
     "lifeRegenMinutes": 20,
     "gemLifeRefillCost": 75,
     "gemLifeRefillAmount": 3,
-    "gemLifeRefillsPerDay": 3
+    "gemLifeRefillsPerDay": 3,
+    "defeatContinueCoinCost": 500,
+    "defeatContinueAdPerEncounter": 1,
+    "defeatContinuePaidPerEncounter": 1,
+    "starterPackEnabled": true,
+    "battlePassEnabled": false
   },
   "upgrades": { "pctPerTier": 0.05, "maxTiers": 6 },
   "createdAt": "...",
@@ -356,5 +401,7 @@ Future remote document shape:
 7. F2P can recover lives via regen without obligatory gem spend; gem refill stays under 3/day.
 8. Max **per-hero** personality upgrades feel helpful (~30%) but do not delete prep pressure entirely; switching heroes does not carry the same tiers.
 9. Prep inventory neither floods uselessly nor forces gem buys by mid-Ch2.
+10. Defeat continue is skippable; fair content is clearable without it. Caps stay 1 ad + 1 paid per encounter.
+11. Starter pack and cosmetics never grant combat stats.
 
 Record material formula changes in [Decisions](../00_Project/Decisions.md).

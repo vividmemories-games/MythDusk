@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Status** | Active |
-| **Last Updated** | 2026-07-22 |
+| **Last Updated** | 2026-08-21 |
 | **Authority** | Extends [Vision](../00_Project/Vision.md) · [GAMEPLAY](../GAMEPLAY.md) · [Decisions](../00_Project/Decisions.md) |
 | **Art prompts** | [Master Prompts](../06_Asset_Bible/Master_Prompts.md) — one Leonardo prompt per artwork ID below |
 
@@ -109,16 +109,17 @@ Rewards (coins, weekly tokens, chests) → Balancing Bible / Economy later. Live
 
 | Element | Spec |
 |---------|------|
-| Background | Dusk gradient + soft silhouette (`bg_home_dusk.png`) |
-| Top bar | Brand · coins · gems · **lives** · profile · settings |
-| Hero spotlight | Selected hero sprite; tap → Heroes |
-| Primary CTA | **Enter Campaign** → vertical map (+ chapter/level teaser) |
-| Secondary | Daily dungeon · Weekly · Challenge (async friend duel) |
-| Retention | Daily missions badge/entry (separate from dungeon) |
-| Meta | Heroes · Shop · Prep inventory |
-| Not on home | Full level path (Campaign screen only); full shop catalog |
+| Background | Dusk gradient + hub art (`bg_home_mythspire_night.png`) |
+| Top bar | Path rank identity · coins · gems · **lives** · settings |
+| Hero spotlight | Selected hero sprite; chevrons cycle; tap → Heroes |
+| Prep peek | Inventory counts + Shop; equip happens at briefing |
+| Primary CTA | **Enter Campaign** → chapter select |
+| Secondary | Daily · Weekly · Expedition (Home chip only once unlocked; Continue while a run is active) |
+| Bottom nav | Home · Heroes · Shop · Ranked · More |
+| More | Profile · Expedition (always listed; locked copy until 10 clears) |
+| Not on home | Floating Rank/Shop/Profile/Expedition rails; Inventory tab; Heroes mode tab |
 
-Own screens (not embedded on Home): **Settings**, **Profile**, **Shop** (tabbed). See [Decisions](../00_Project/Decisions.md) 2026-07-22.
+Own screens (not embedded on Home): **Settings**, **Profile**, **Shop**. See [Decisions](../00_Project/Decisions.md) 2026-08-21.
 
 ---
 

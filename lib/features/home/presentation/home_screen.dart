@@ -2,17 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/analytics_providers.dart';
+import '../../../core/analytics/gameplay_analytics.dart';
 import '../../../core/assets/game_assets.dart';
 import '../../../core/config/app_flavor.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/cosmetic_hero_art.dart';
 import '../../campaign/data/campaign_repository.dart';
+import '../../cosmetics/domain/cosmetic_catalog.dart';
+import '../../expedition/domain/expedition_models.dart';
 import '../../heroes/domain/hero_def.dart';
 import '../../heroes/domain/hero_unlocks.dart';
 import '../../prep/domain/prep_item.dart';
 import '../../profile/domain/economy_balance.dart';
 import '../../profile/providers/mock_profile_provider.dart';
-import 'coming_soon_sheet.dart';
 import 'home_hub_widgets.dart';
+import 'home_more_sheet.dart';
 import 'home_progress.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -90,6 +95,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _HubHeader(
+                          clears: clears,
                           coins: profile.coins,
                           gems: profile.gems,
                           livesLabel: livesLabel,
@@ -99,110 +105,60 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         Expanded(
                           child: LayoutBuilder(
                             builder: (context, constraints) {
-                              final heroH = (constraints.maxHeight - 64)
-                                  .clamp(100.0, 235.0);
-                              return Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  Align(
-                                    alignment: Alignment.center,
-                                    child: _HeroStage(
-                                      hero: selected,
-                                      height: heroH,
-                                      onTap: () => context.push('/heroes'),
-                                      onPrev: () => _cycleHero(ref, -1),
-                                      onNext: () => _cycleHero(ref, 1),
-                                    ),
-                                  ),
-                                  Align(
-                                    alignment: const Alignment(-0.98, -0.05),
-                                    child: HubRankBadge(
-                                      clears: clears,
-                                      onTap: () => showComingSoonSheet(
-                                        context,
-                                        title: 'Path rank',
-                                        blurb:
-                                            'Cosmetic path tier from campaign '
-                                            'clears. Competitive Ranked comes later.',
-                                      ),
-                                    ),
-                                  ),
-                                  Align(
-                                    alignment: const Alignment(1.0, -0.08),
-                                    child: HubSideRail(
-                                      items: [
-                                        HubRailItem(
-                                          icon: Icons.shopping_bag_outlined,
-                                          label: 'Shop',
-                                          onTap: () => context.push('/shop'),
-                                        ),
-                                        HubRailItem(
-                                          icon: Icons.person_outline,
-                                          label: 'Profile',
-                                          onTap: () => context.push('/profile'),
-                                        ),
-                                        HubRailItem(
-                                          icon: Icons.explore_outlined,
-                                          label: 'Expedition',
-                                          onTap: () =>
-                                              context.push('/expedition'),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                              final heroH = (constraints.maxHeight - 48)
+                                  .clamp(88.0, 220.0);
+                              return Center(
+                                child: _HeroStage(
+                                  hero: selected,
+                                  profile: profile,
+                                  height: heroH,
+                                  onTap: () => context.push('/heroes'),
+                                  onPrev: () => _cycleHero(ref, -1),
+                                  onNext: () => _cycleHero(ref, 1),
+                                ),
                               );
                             },
                           ),
                         ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            for (final id in PrepItemId.values) ...[
-                              HubPrepSlot(
-                                assetPath: id.assetPath,
-                                count: profile.prepCount(id),
-                                onTap: () => context.push('/shop'),
-                              ),
-                              const SizedBox(width: 10),
-                            ],
-                            const HubLockedPrepSlot(
-                              unlockHint: 'Unlocks at Act III',
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
                         progressAsync.when(
-                          data: (p) => HubProgressBar(
-                            title: '${p.actTitle} · ${p.chapterTitle}',
-                            subtitle:
+                          data: (p) => HubPlayPanel(
+                            prepSlots: _prepSlots(context, profile),
+                            onShop: () => context.push('/shop'),
+                            progressTitle: '${p.actTitle} · ${p.chapterTitle}',
+                            progressSubtitle:
                                 'Node ${p.completedInChapter} / ${p.totalInChapter}',
                             completed: p.completedInChapter,
                             total: p.totalInChapter,
+                            onEnterCampaign: () => _enterCampaign(context, ref),
                           ),
-                          loading: () => const HubProgressBar(
-                            title: 'Campaign',
-                            subtitle: 'Loading…',
+                          loading: () => HubPlayPanel(
+                            prepSlots: _prepSlots(context, profile),
+                            onShop: () => context.push('/shop'),
+                            progressTitle: 'Campaign',
+                            progressSubtitle: 'Loading…',
                             completed: 0,
                             total: 20,
+                            onEnterCampaign: () => _enterCampaign(context, ref),
                           ),
-                          error: (_, __) => HubProgressBar(
-                            title: 'Campaign',
-                            subtitle: 'Node $clears',
+                          error: (_, __) => HubPlayPanel(
+                            prepSlots: _prepSlots(context, profile),
+                            onShop: () => context.push('/shop'),
+                            progressTitle: 'Campaign',
+                            progressSubtitle: 'Node $clears',
                             completed: clears.clamp(0, 20),
                             total: 20,
+                            onEnterCampaign: () => _enterCampaign(context, ref),
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        HubCampaignButton(
-                          onPressed: () => _enterCampaign(context, ref),
-                        ),
-                        const SizedBox(height: 10),
-                        HubModeTabs(
+                        const SizedBox(height: 8),
+                        HubRetentionChips(
                           onDaily: () => context.push('/daily'),
                           onWeekly: () => context.push('/weekly'),
-                          onHeroes: () => context.push('/heroes'),
+                          showExpedition: profile.completedNodeIds.length >=
+                              ExpeditionBalance.minCampaignClears,
+                          expeditionInProgress:
+                              profile.activeExpedition?.isInProgress ?? false,
+                          onExpedition: () => context.push('/expedition'),
                         ),
                         const SizedBox(height: 8),
                       ],
@@ -214,15 +170,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 top: false,
                 child: HubBottomNav(
                   onHome: () {},
-                  onHero: () => context.push('/heroes'),
-                  onInventory: () => context.push('/shop'),
-                  onRanked: () => showComingSoonSheet(
+                  onHeroes: () => context.push('/heroes'),
+                  onShop: () => context.push('/shop'),
+                  onRanked: () => context.push('/challenge'),
+                  onMore: () => showHomeMoreSheet(
                     context,
-                    title: 'Ranked',
-                    blurb: 'Competitive ranked mode is planned for later. '
-                        'Your path rank badge tracks campaign clears for now.',
+                    expeditionUnlocked: profile.completedNodeIds.length >=
+                        ExpeditionBalance.minCampaignClears,
+                    expeditionInProgress:
+                        profile.activeExpedition?.isInProgress ?? false,
+                    onProfile: () => context.push('/profile'),
+                    onExpedition: () => context.push('/expedition'),
                   ),
-                  onMore: () => context.push('/profile'),
                   onMoreLongPress: AppFlavor.showQaTools
                       ? () => _showQaToolsSheet(context, ref)
                       : null,
@@ -232,6 +191,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _prepSlots(BuildContext context, PlayerProfile profile) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final id in PrepItemId.values) ...[
+          HubPrepSlot(
+            assetPath: id.assetPath,
+            count: profile.prepCount(id),
+            onTap: () => context.push('/shop'),
+          ),
+          const SizedBox(width: 8),
+        ],
+        const HubLockedPrepSlot(
+          unlockHint: 'Unlocks at Act III',
+        ),
+      ],
     );
   }
 
@@ -298,6 +277,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ? 'Lives regenerate over time.'
         : 'Next life in ${_formatRegen(next)}.';
 
+    ref.read(gameplayAnalyticsProvider).log(
+      GameplayAnalyticsEvents.lifeRefillOfferShown,
+      {'remaining': remaining},
+    );
+
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
@@ -322,6 +306,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     final ok = ref
                         .read(profileProvider.notifier)
                         .purchaseGemLifeRefill();
+                    if (ok) {
+                      ref.read(gameplayAnalyticsProvider).log(
+                        GameplayAnalyticsEvents.lifeRefillPurchased,
+                        {
+                          'amount': EconomyBalance.gemLifeRefillAmount,
+                          'cost': EconomyBalance.gemLifeRefillCost,
+                        },
+                      );
+                    }
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -416,6 +409,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
 class _HubHeader extends StatelessWidget {
   const _HubHeader({
+    required this.clears,
     required this.coins,
     required this.gems,
     required this.livesLabel,
@@ -423,6 +417,7 @@ class _HubHeader extends StatelessWidget {
     required this.onSettings,
   });
 
+  final int clears;
   final int coins;
   final int gems;
   final String livesLabel;
@@ -431,79 +426,50 @@ class _HubHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'MythDusk',
-                  maxLines: 1,
-                  style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                        fontSize: 29,
-                        color: MythDuskColors.parchment,
-                        height: 1.05,
-                      ),
+        HubRankBadge(clears: clears),
+        const SizedBox(width: 6),
+        Expanded(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerRight,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                HubResourceChip(
+                  label: '$coins',
+                  icon: Icons.monetization_on,
+                  iconColor: MythDuskColors.amber,
                 ),
-              ),
-            ),
-            const SizedBox(width: 6),
-            Flexible(
-              flex: 2,
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerRight,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    HubResourceChip(
-                      label: '$coins',
-                      icon: Icons.monetization_on,
-                      iconColor: MythDuskColors.amber,
-                    ),
-                    const SizedBox(width: 4),
-                    HubResourceChip(
-                      label: '$gems',
-                      icon: Icons.diamond,
-                      iconColor: const Color(0xFF5B9BD5),
-                    ),
-                    const SizedBox(width: 4),
-                    HubResourceChip(
-                      label: livesLabel,
-                      icon: Icons.favorite,
-                      iconColor: MythDuskColors.ember,
-                      onTap: onLivesTap,
-                    ),
-                  ],
+                const SizedBox(width: 4),
+                HubResourceChip(
+                  label: '$gems',
+                  icon: Icons.diamond,
+                  iconColor: const Color(0xFF5B9BD5),
                 ),
-              ),
+                const SizedBox(width: 4),
+                HubResourceChip(
+                  label: livesLabel,
+                  icon: Icons.favorite,
+                  iconColor: MythDuskColors.ember,
+                  onTap: onLivesTap,
+                ),
+              ],
             ),
-            IconButton(
-              tooltip: 'Settings',
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              onPressed: onSettings,
-              icon: const Icon(
-                Icons.settings,
-                color: HubColors.frameGold,
-                size: 22,
-              ),
-            ),
-          ],
+          ),
         ),
-        Text(
-          'Forge powerful combos. Write your legend.',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontSize: 11,
-                color: MythDuskColors.muted,
-              ),
+        IconButton(
+          tooltip: 'Settings',
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          onPressed: onSettings,
+          icon: Icon(
+            Icons.settings,
+            color: MythDuskColors.parchment.withValues(alpha: 0.85),
+            size: 22,
+          ),
         ),
       ],
     );
@@ -513,6 +479,7 @@ class _HubHeader extends StatelessWidget {
 class _HeroStage extends StatelessWidget {
   const _HeroStage({
     required this.hero,
+    required this.profile,
     required this.height,
     required this.onTap,
     required this.onPrev,
@@ -520,6 +487,7 @@ class _HeroStage extends StatelessWidget {
   });
 
   final HeroDef hero;
+  final PlayerProfile profile;
   final double height;
   final VoidCallback onTap;
   final VoidCallback onPrev;
@@ -551,9 +519,12 @@ class _HeroStage extends StatelessWidget {
                 Positioned.fill(
                   child: Padding(
                     padding: EdgeInsets.only(bottom: height * 0.06),
-                    child: Image.asset(
-                      GameAssets.hero(hero.id),
+                    child: CosmeticHeroArt(
+                      heroId: hero.id,
+                      assetPath: GameAssets.hero(hero.id),
+                      profile: profile,
                       fit: BoxFit.contain,
+                      showPlate: false,
                       errorBuilder: (_, __, ___) => Icon(
                         Icons.person,
                         size: height * 0.45,
@@ -571,16 +542,20 @@ class _HeroStage extends StatelessWidget {
           children: [
             IconButton(
               onPressed: onPrev,
-              icon: const Icon(
+              icon: Icon(
                 Icons.chevron_left,
-                color: HubColors.frameGold,
+                color: MythDuskColors.parchment.withValues(alpha: 0.85),
                 size: 28,
               ),
             ),
             GestureDetector(
               onTap: onTap,
               child: Text(
-                hero.name,
+                [
+                  hero.name,
+                  if (profile.equippedTitleId != null)
+                    CosmeticCatalog.byId(profile.equippedTitleId!)?.name,
+                ].whereType<String>().join(' · '),
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontSize: 22,
                       color: MythDuskColors.parchment,
@@ -589,20 +564,13 @@ class _HeroStage extends StatelessWidget {
             ),
             IconButton(
               onPressed: onNext,
-              icon: const Icon(
+              icon: Icon(
                 Icons.chevron_right,
-                color: HubColors.frameGold,
+                color: MythDuskColors.parchment.withValues(alpha: 0.85),
                 size: 28,
               ),
             ),
           ],
-        ),
-        Text(
-          'Tap for heroes',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: MythDuskColors.muted,
-                fontSize: 11,
-              ),
         ),
       ],
     );
@@ -612,39 +580,40 @@ class _HeroStage extends StatelessWidget {
 class _HeroPedestalPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final rect =
-        Rect.fromLTWH(0, size.height * 0.12, size.width, size.height * 0.7);
-    final glow = Paint()
-      ..color = HubColors.glow.withValues(alpha: 0.28)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14);
-    canvas.drawOval(rect, glow);
+    final shadow = Rect.fromLTWH(
+      size.width * 0.1,
+      size.height * 0.42,
+      size.width * 0.8,
+      size.height * 0.4,
+    );
+    canvas.drawOval(
+      shadow,
+      Paint()
+        ..color = const Color(0x99000000)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
+    );
 
+    final rect =
+        Rect.fromLTWH(0, size.height * 0.22, size.width, size.height * 0.58);
+    canvas.drawOval(
+      rect,
+      Paint()
+        ..color = HubColors.glow.withValues(alpha: 0.1)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
+    );
     canvas.drawOval(
       rect,
       Paint()
         ..shader = const RadialGradient(
-          colors: [Color(0xB8326370), Color(0xE810222C)],
+          colors: [Color(0x66325868), Color(0xE808141C)],
         ).createShader(rect),
     );
     canvas.drawOval(
       rect,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2
-        ..color = HubColors.glow.withValues(alpha: 0.55),
-    );
-
-    final inner = Rect.fromCenter(
-      center: rect.center,
-      width: rect.width * 0.72,
-      height: rect.height * 0.58,
-    );
-    canvas.drawOval(
-      inner,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1
-        ..color = HubColors.frameGold.withValues(alpha: 0.42),
+        ..strokeWidth = 1.2
+        ..color = HubColors.glow.withValues(alpha: 0.22),
     );
   }
 

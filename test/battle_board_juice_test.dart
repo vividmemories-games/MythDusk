@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mythdusk/features/battle/domain/battle_state.dart';
 import 'package:mythdusk/features/battle/presentation/match_collect_fx.dart';
+import 'package:mythdusk/features/battle/presentation/match_collect_overlay.dart';
 
 void main() {
   group('capMatchCollectParticles', () {
@@ -39,6 +40,44 @@ void main() {
         BattleController.swapDuration.inMilliseconds,
         lessThanOrEqualTo(180),
       );
+    });
+  });
+
+  group('matchCollectFlightGlobal', () {
+    test('starts and ends on the lerp endpoints', () {
+      const start = Offset(10, 20);
+      const end = Offset(110, 220);
+      expect(
+        matchCollectFlightGlobal(
+          startGlobal: start,
+          endGlobal: end,
+          t: 0,
+          arcLift: 40,
+        ),
+        start,
+      );
+      expect(
+        matchCollectFlightGlobal(
+          startGlobal: start,
+          endGlobal: end,
+          t: 1,
+          arcLift: 40,
+        ),
+        end,
+      );
+    });
+
+    test('midpoint arcs upward', () {
+      const start = Offset(0, 100);
+      const end = Offset(100, 100);
+      final mid = matchCollectFlightGlobal(
+        startGlobal: start,
+        endGlobal: end,
+        t: 0.5,
+        arcLift: 40,
+      );
+      expect(mid.dx, 50);
+      expect(mid.dy, lessThan(100));
     });
   });
 }

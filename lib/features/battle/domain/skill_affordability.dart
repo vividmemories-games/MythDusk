@@ -27,6 +27,7 @@ class SkillAffordability {
     final apHave = battle.ap;
     final apNeed = skill.apCost;
     final lines = <SkillResourceLine>[];
+    final missingParts = <String>[];
     String? blocking;
 
     for (final e in skill.resourceCosts.entries) {
@@ -39,13 +40,14 @@ class SkillAffordability {
         need: need,
         ok: ok,
       ));
-      if (!ok && blocking == null) {
-        final short = e.key;
-        blocking = 'Need ${need - have} more $short';
+      if (!ok) {
+        missingParts.add('${need - have} more ${e.key}');
       }
     }
 
-    if (blocking == null && apHave < apNeed) {
+    if (missingParts.isNotEmpty) {
+      blocking = 'Need ${missingParts.join(', ')}';
+    } else if (apHave < apNeed) {
       blocking = 'Need ${apNeed - apHave} more AP';
     }
 

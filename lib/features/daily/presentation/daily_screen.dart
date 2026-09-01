@@ -25,6 +25,9 @@ class DailyScreen extends ConsumerWidget {
     final completed = profile.dailyLastCompletedDay == contract.dayKey;
     final textTheme = Theme.of(context).textTheme;
     final enemy = EnemyCatalog.byId(contract.enemyId);
+    final claimedToday = contract.medals
+        .where((m) => profile.claimedDailyMedalIds.contains(m.id))
+        .length;
 
     return Scaffold(
       backgroundColor: MythDuskColors.ink,
@@ -83,27 +86,60 @@ class DailyScreen extends ConsumerWidget {
                   children: [
                     Text(
                       completed
-                          ? 'Completed today — new contract at midnight'
+                          ? 'Completed for ${contract.dayKey}'
                           : 'Primary: ${contract.objective.progressLabel}',
                       style: textTheme.titleMedium,
                     ),
                     const SizedBox(height: 6),
                     Text(
                       completed
-                          ? 'Reward already claimed for ${contract.dayKey}.'
-                          : 'Reward: +${contract.coinReward} coins'
+                          ? 'Reward claimed. Next contract at local midnight.'
+                          : 'Win once today for +${contract.coinReward} coins'
                               ' · medals +${DailyBalance.medalCoinBonus} each',
                       style: textTheme.bodyMedium?.copyWith(fontSize: 12),
                     ),
                     const SizedBox(height: 10),
-                    Text('Medals', style: textTheme.titleMedium),
+                    Text(
+                      'Medals · $claimedToday / ${contract.medals.length}',
+                      style: textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 6),
                     for (final medal in contract.medals)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 4),
-                        child: Text(
-                          '• ${medal.title}',
-                          style: textTheme.bodyMedium?.copyWith(fontSize: 12),
+                        child: Row(
+                          children: [
+                            Icon(
+                              profile.claimedDailyMedalIds.contains(medal.id)
+                                  ? Icons.emoji_events
+                                  : Icons.emoji_events_outlined,
+                              size: 16,
+                              color: profile.claimedDailyMedalIds
+                                      .contains(medal.id)
+                                  ? MythDuskColors.softGold
+                                  : MythDuskColors.muted,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                medal.title,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontSize: 12,
+                                  color: profile.claimedDailyMedalIds
+                                          .contains(medal.id)
+                                      ? MythDuskColors.softGold
+                                      : MythDuskColors.parchment,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '+${medal.coinReward}',
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontSize: 11,
+                                color: MythDuskColors.muted,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     if (override != null) ...[
@@ -128,7 +164,7 @@ class DailyScreen extends ConsumerWidget {
                   profile.lives <= 0
                       ? 'No lives'
                       : completed
-                          ? 'Completed'
+                          ? 'Completed — come back tomorrow'
                           : 'Play contract',
                 ),
               ),
@@ -198,7 +234,9 @@ class DailyScreen extends ConsumerWidget {
                     ),
                     onTap: () {
                       ref.read(dailyDayOverrideProvider.notifier).state =
-                          offset == 0 ? null : now.add(Duration(days: offset));
+                          offset == 0
+                              ? null
+                              : DateTime(now.year, now.month, now.day + offset);
                       Navigator.pop(context);
                     },
                   ),

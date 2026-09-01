@@ -220,6 +220,7 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
           heroHp: next.heroHp,
           heroMaxHp: next.hero.maxHp,
           bossForm: next.bossForm,
+          encounterId: ref.read(profileProvider).activeEncounterId,
         );
         context.pushReplacement('/result', extra: args);
         return;

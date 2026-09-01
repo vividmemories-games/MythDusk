@@ -2,17 +2,17 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../../../core/assets/game_assets.dart';
 import '../../../core/theme/app_theme.dart';
 
-/// Hub accents from the MythDusk home mockup (gold frames + teal glow).
+/// Hub accents: gold is reserved for the primary campaign CTA.
 abstract final class HubColors {
   static const glow = Color(0xFF3ECFCB);
   static const glowDim = Color(0xFF2A9A96);
   static const frameGold = Color(0xFFD4AF5A);
   static const frameGoldDeep = Color(0xFF9A7428);
-  static const panel = Color(0xCC0A1520);
-  static const panelEdge = Color(0xFFE6C87A);
+  static const frameMuted = Color(0xFF4A6570);
+  static const panel = Color(0xF20A1520);
+  static const panelEdge = Color(0xFF4A6570);
 }
 
 /// Compact currency / lives pill for the hub header.
@@ -37,7 +37,7 @@ class HubResourceChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: HubColors.panel,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: HubColors.frameGold.withValues(alpha: 0.55)),
+        border: Border.all(color: HubColors.frameMuted.withValues(alpha: 0.85)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.35),
@@ -67,130 +67,11 @@ class HubResourceChip extends StatelessWidget {
   }
 }
 
-/// Vertical shortcut rail (Shop / Profile / Expedition).
-class HubSideRail extends StatelessWidget {
-  const HubSideRail({super.key, required this.items});
-
-  final List<HubRailItem> items;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 62,
-      decoration: BoxDecoration(
-        color: HubColors.panel,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: HubColors.frameGold, width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.45),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(13),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (var i = 0; i < items.length; i++) ...[
-              if (i > 0)
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: HubColors.frameGold.withValues(alpha: 0.28),
-                ),
-              _RailButton(item: items[i]),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class HubRailItem {
-  const HubRailItem({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.badge = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final bool badge;
-}
-
-class _RailButton extends StatelessWidget {
-  const _RailButton({required this.item});
-
-  final HubRailItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: item.label,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: item.onTap,
-          child: SizedBox(
-            width: 60,
-            height: 64,
-            child: Stack(
-              alignment: Alignment.topCenter,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(3, 9, 3, 5),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(item.icon, color: HubColors.frameGold, size: 24),
-                      const SizedBox(height: 3),
-                      Text(
-                        item.label,
-                        maxLines: 1,
-                        style: const TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          color: MythDuskColors.parchment,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (item.badge)
-                  Positioned(
-                    right: 9,
-                    top: 7,
-                    child: Container(
-                      width: 9,
-                      height: 9,
-                      decoration: BoxDecoration(
-                        color: MythDuskColors.ember,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: MythDuskColors.ink, width: 1),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// Cosmetic path rank from campaign clears (not competitive ranked).
 class HubRankBadge extends StatelessWidget {
-  const HubRankBadge({super.key, required this.clears, this.onTap});
+  const HubRankBadge({super.key, required this.clears});
 
   final int clears;
-  final VoidCallback? onTap;
 
   static String labelFor(int clears) {
     if (clears >= 150) return 'Myth III';
@@ -204,70 +85,47 @@ class HubRankBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = labelFor(clears);
-    return GestureDetector(
-      onTap: onTap,
+    return Tooltip(
+      message: 'Cosmetic path rank from campaign clears',
       child: Container(
-        width: 72,
-        padding: const EdgeInsets.fromLTRB(5, 7, 5, 8),
+        padding: const EdgeInsets.fromLTRB(8, 5, 10, 5),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xEE13222B), Color(0xF20A151D)],
-          ),
+          color: HubColors.panel,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: HubColors.frameGold, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
+          border: Border.all(color: HubColors.frameMuted),
         ),
-        child: Column(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Stack(
-              alignment: Alignment.center,
+            Icon(
+              Icons.shield_outlined,
+              size: 18,
+              color: MythDuskColors.parchment.withValues(alpha: 0.85),
+            ),
+            const SizedBox(width: 6),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.shield,
-                  size: 35,
-                  color: const Color(0xFF8D552D),
-                  shadows: [
-                    Shadow(
-                      color: HubColors.frameGold.withValues(alpha: 0.55),
-                      blurRadius: 6,
-                    ),
-                  ],
+                Text(
+                  'PATH RANK',
+                  style: TextStyle(
+                    fontSize: 8,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.6,
+                    color: MythDuskColors.parchment.withValues(alpha: 0.7),
+                  ),
                 ),
-                const Icon(
-                  Icons.auto_awesome,
-                  size: 16,
-                  color: HubColors.frameGold,
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: MythDuskColors.parchment,
+                    height: 1.1,
+                  ),
                 ),
               ],
-            ),
-            const Text(
-              'RANK',
-              style: TextStyle(
-                fontSize: 8,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.8,
-                color: HubColors.frameGold,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-                color: MythDuskColors.softGold,
-                height: 1.15,
-              ),
             ),
           ],
         ),
@@ -299,10 +157,10 @@ class HubPrepSlot extends StatelessWidget {
           CustomPaint(
             painter: _HexFramePainter(),
             child: SizedBox(
-              width: 62,
-              height: 68,
+              width: 54,
+              height: 60,
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(9),
                 child: Image.asset(
                   assetPath,
                   fit: BoxFit.contain,
@@ -342,21 +200,21 @@ class HubLockedPrepSlot extends StatelessWidget {
         CustomPaint(
           painter: _HexFramePainter(dim: true),
           child: const SizedBox(
-            width: 62,
-            height: 68,
+            width: 54,
+            height: 60,
             child: Icon(Icons.lock_outline, color: MythDuskColors.muted),
           ),
         ),
         const SizedBox(height: 2),
         SizedBox(
-          width: 64,
+          width: 58,
           child: Text(
             unlockHint,
             textAlign: TextAlign.center,
             maxLines: 2,
-            style: const TextStyle(
-              fontSize: 8,
-              color: MythDuskColors.muted,
+            style: TextStyle(
+              fontSize: 9,
+              color: MythDuskColors.parchment.withValues(alpha: 0.72),
               height: 1.1,
             ),
           ),
@@ -375,15 +233,11 @@ class _HexFramePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final path = _hexPath(size);
     final fill = Paint()
-      ..color = HubColors.panel.withValues(alpha: dim ? 0.5 : 0.85);
+      ..color = HubColors.panel.withValues(alpha: dim ? 0.5 : 0.92);
     final stroke = Paint()
-      ..color = HubColors.frameGold.withValues(alpha: dim ? 0.35 : 0.9)
+      ..color = HubColors.frameMuted.withValues(alpha: dim ? 0.45 : 0.9)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.8;
-    final glow = Paint()
-      ..color = HubColors.frameGold.withValues(alpha: dim ? 0.0 : 0.2)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-    canvas.drawPath(path, glow);
+      ..strokeWidth = 1.5;
     canvas.drawPath(path, fill);
     canvas.drawPath(path, stroke);
   }
@@ -426,7 +280,7 @@ class HubCampaignButton extends StatelessWidget {
       button: true,
       label: 'Enter Campaign',
       child: SizedBox(
-        height: 62,
+        height: 58,
         child: Stack(
           clipBehavior: Clip.none,
           alignment: Alignment.center,
@@ -445,7 +299,7 @@ class HubCampaignButton extends StatelessWidget {
                       'Enter Campaign',
                       style: TextStyle(
                         fontFamily: 'Georgia',
-                        fontSize: 20,
+                        fontSize: 19,
                         fontWeight: FontWeight.w800,
                         color: Color(0xFFFFF3D1),
                         letterSpacing: 0.3,
@@ -459,12 +313,12 @@ class HubCampaignButton extends StatelessWidget {
               ),
             ),
             Positioned(
-              top: -7,
+              top: -6,
               child: Transform.rotate(
                 angle: math.pi / 4,
                 child: Container(
-                  width: 15,
-                  height: 15,
+                  width: 13,
+                  height: 13,
                   decoration: BoxDecoration(
                     color: const Color(0xFFE3A83C),
                     border: Border.all(color: const Color(0xFFFFE5A2)),
@@ -534,107 +388,89 @@ class _CampaignButtonPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-/// Daily / Weekly / Heroes secondary toggle row.
-class HubModeTabs extends StatelessWidget {
-  const HubModeTabs({
+/// Combined prep peek + campaign progress + primary CTA.
+class HubPlayPanel extends StatelessWidget {
+  const HubPlayPanel({
     super.key,
-    required this.onDaily,
-    required this.onWeekly,
-    required this.onHeroes,
+    required this.prepSlots,
+    required this.onShop,
+    required this.progressTitle,
+    required this.progressSubtitle,
+    required this.completed,
+    required this.total,
+    required this.onEnterCampaign,
   });
 
-  final VoidCallback onDaily;
-  final VoidCallback onWeekly;
-  final VoidCallback onHeroes;
+  final Widget prepSlots;
+  final VoidCallback onShop;
+  final String progressTitle;
+  final String progressSubtitle;
+  final int completed;
+  final int total;
+  final VoidCallback onEnterCampaign;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _ModeTab(
-            label: 'Daily',
-            onTap: onDaily,
-            active: true,
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      decoration: BoxDecoration(
+        color: HubColors.panel,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: HubColors.frameMuted),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _ModeTab(
-            label: 'Weekly',
-            onTap: onWeekly,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _ModeTab(
-            label: 'Heroes',
-            onTap: onHeroes,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ModeTab extends StatelessWidget {
-  const _ModeTab({
-    required this.label,
-    required this.onTap,
-    this.active = false,
-  });
-
-  final String label;
-  final VoidCallback onTap;
-  final bool active;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Ink(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: HubColors.panel,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: HubColors.frameGold.withValues(alpha: 0.4),
-            ),
-          ),
-          child: Stack(
-            alignment: Alignment.center,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
             children: [
               Text(
-                label,
+                'Prep',
                 style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: active ? HubColors.glow : MythDuskColors.parchment,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: MythDuskColors.parchment.withValues(alpha: 0.95),
                 ),
               ),
-              if (active)
-                const Positioned(
-                  bottom: -3,
-                  child: Icon(
-                    Icons.arrow_drop_down,
-                    size: 15,
-                    color: HubColors.frameGold,
+              const Spacer(),
+              GestureDetector(
+                onTap: onShop,
+                child: Text(
+                  'Shop',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: HubColors.glow.withValues(alpha: 0.95),
                   ),
                 ),
+              ),
             ],
           ),
-        ),
+          const SizedBox(height: 8),
+          prepSlots,
+          const SizedBox(height: 10),
+          _HubProgressStrip(
+            title: progressTitle,
+            subtitle: progressSubtitle,
+            completed: completed,
+            total: total,
+          ),
+          const SizedBox(height: 10),
+          HubCampaignButton(onPressed: onEnterCampaign),
+        ],
       ),
     );
   }
 }
 
-/// Chapter / act campaign progress card (mockup style).
-class HubProgressBar extends StatelessWidget {
-  const HubProgressBar({
-    super.key,
+class _HubProgressStrip extends StatelessWidget {
+  const _HubProgressStrip({
     required this.title,
     required this.subtitle,
     required this.completed,
@@ -650,143 +486,199 @@ class HubProgressBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = total <= 0 ? 0.0 : (completed / total).clamp(0.0, 1.0);
     final pct = (t * 100).round();
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: HubColors.panel,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: HubColors.frameGold.withValues(alpha: 0.65)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Opacity(
-              opacity: 0.22,
-              child: Image.asset(
-                GameAssets.homeBackground,
-                fit: BoxFit.cover,
-                alignment: Alignment.centerRight,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: MythDuskColors.parchment,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle.isEmpty ? 'Node $completed / $total' : subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: MythDuskColors.parchment.withValues(alpha: 0.78),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-          const Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xF20A1520), Color(0xA80A1520)],
-                ),
+            Text(
+              '$pct%',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: HubColors.glow,
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w800,
-                              color: MythDuskColors.parchment,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            subtitle.isEmpty
-                                ? 'Node $completed / $total'
-                                : subtitle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: MythDuskColors.muted,
-                            ),
-                          ),
-                        ],
-                      ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(5),
+          child: Stack(
+            children: [
+              Container(height: 8, color: MythDuskColors.mist),
+              FractionallySizedBox(
+                widthFactor: t,
+                child: Container(
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [HubColors.glowDim, HubColors.glow],
                     ),
-                    Text(
-                      '$pct%',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: HubColors.glow,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Icon(
-                      Icons.all_inbox_rounded,
-                      size: 26,
-                      color: HubColors.frameGold,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(5),
-                  child: Stack(
-                    children: [
-                      Container(height: 9, color: MythDuskColors.mist),
-                      FractionallySizedBox(
-                        widthFactor: t,
-                        child: Container(
-                          height: 9,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [HubColors.glowDim, HubColors.glow],
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: HubColors.glow.withValues(alpha: 0.55),
-                                blurRadius: 8,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                 ),
-              ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Quiet retention chips under the campaign CTA.
+class HubRetentionChips extends StatelessWidget {
+  const HubRetentionChips({
+    super.key,
+    required this.onDaily,
+    required this.onWeekly,
+    this.showExpedition = false,
+    this.expeditionInProgress = false,
+    this.onExpedition,
+  });
+
+  final VoidCallback onDaily;
+  final VoidCallback onWeekly;
+  final bool showExpedition;
+  final bool expeditionInProgress;
+  final VoidCallback? onExpedition;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _RetentionChip(
+            label: 'Daily',
+            onTap: onDaily,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _RetentionChip(
+            label: 'Weekly',
+            onTap: onWeekly,
+          ),
+        ),
+        if (showExpedition && onExpedition != null) ...[
+          const SizedBox(width: 8),
+          Expanded(
+            child: _RetentionChip(
+              label: expeditionInProgress ? 'Continue' : 'Expedition',
+              onTap: onExpedition!,
+              badge: expeditionInProgress,
             ),
           ),
         ],
+      ],
+    );
+  }
+}
+
+class _RetentionChip extends StatelessWidget {
+  const _RetentionChip({
+    required this.label,
+    required this.onTap,
+    this.badge = false,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+  final bool badge;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(vertical: 9),
+          decoration: BoxDecoration(
+            color: HubColors.panel,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: HubColors.frameMuted),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (badge) ...[
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: const BoxDecoration(
+                        color: HubColors.glow,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                  ],
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: MythDuskColors.parchment.withValues(alpha: 0.9),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-/// Bottom hub navigation (Home active; others bind later).
+/// Bottom hub navigation.
 class HubBottomNav extends StatelessWidget {
   const HubBottomNav({
     super.key,
     required this.onHome,
-    required this.onHero,
-    required this.onInventory,
+    required this.onHeroes,
+    required this.onShop,
     required this.onRanked,
     required this.onMore,
     this.onMoreLongPress,
   });
 
   final VoidCallback onHome;
-  final VoidCallback onHero;
-  final VoidCallback onInventory;
+  final VoidCallback onHeroes;
+  final VoidCallback onShop;
   final VoidCallback onRanked;
   final VoidCallback onMore;
   final VoidCallback? onMoreLongPress;
@@ -798,7 +690,7 @@ class HubBottomNav extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xEE071018),
         border: Border(
-          top: BorderSide(color: HubColors.frameGold.withValues(alpha: 0.25)),
+          top: BorderSide(color: HubColors.frameMuted.withValues(alpha: 0.7)),
         ),
       ),
       child: Row(
@@ -812,17 +704,17 @@ class HubBottomNav extends StatelessWidget {
           ),
           _NavItem(
             icon: Icons.face_retouching_natural,
-            label: 'Hero',
-            onTap: onHero,
+            label: 'Heroes',
+            onTap: onHeroes,
           ),
           _NavItem(
-            icon: Icons.inventory_2_outlined,
-            label: 'Inventory',
-            onTap: onInventory,
+            icon: Icons.storefront_outlined,
+            label: 'Shop',
+            onTap: onShop,
           ),
           _NavItem(
             icon: Icons.shield_outlined,
-            label: 'Ranked',
+            label: '1v1',
             onTap: onRanked,
           ),
           _NavItem(
