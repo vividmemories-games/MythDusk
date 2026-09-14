@@ -29,6 +29,8 @@ void main() {
         .configuration
         .routes
         .whereType<GoRoute>();
+    expect(routes.any((r) => r.path == '/splash'), isTrue);
+    expect(routes.any((r) => r.path == '/login'), isTrue);
     expect(routes.any((r) => r.path == '/heroes'), isTrue);
     expect(routes.any((r) => r.path == '/hero_unlock/:heroId'), isTrue);
     expect(routes.any((r) => r.path == '/profile'), isTrue);

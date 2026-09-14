@@ -31,5 +31,37 @@
       "port": 4000
     },
     "singleProjectMode": true
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "buildConfigurations": {
+          ".": {
+            "projectId": "mythdusk-ec0c7",
+            "appId": "1:935090044330:android:0e7bd47636946d89203fd3",
+            "fileOutput": "android/app/google-services.json"
+          }
+        }
+      },
+      "ios": {
+        "targets": {
+          "Runner": {
+            "projectId": "mythdusk-ec0c7",
+            "appId": "1:935090044330:ios:c57accd18c4c1a8e203fd3",
+            "uploadDebugSymbols": true,
+            "fileOutput": "ios/Runner/GoogleService-Info.plist"
+          }
+        }
+      },
+      "dart": {
+        "lib/firebase/firebase_options.dart": {
+          "projectId": "mythdusk-ec0c7",
+          "configurations": {
+            "android": "1:935090044330:android:0e7bd47636946d89203fd3",
+            "ios": "1:935090044330:ios:c57accd18c4c1a8e203fd3"
+          }
+        }
+      }
+    }
   }
 }

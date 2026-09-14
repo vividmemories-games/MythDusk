@@ -1,6 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/auth/domain/auth_redirect.dart';
+import '../../features/auth/domain/auth_session_gate.dart';
+import '../../features/auth/presentation/login_screen.dart';
+import '../../features/auth/presentation/splash_screen.dart';
+import '../../features/auth/providers/auth_provider.dart';
 import '../../features/battle/presentation/battle_result_screen.dart';
 import '../../features/battle/presentation/battle_screen.dart';
 import '../../features/campaign/presentation/briefing_screen.dart';
@@ -17,12 +23,38 @@ import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/profile/presentation/settings_screen.dart';
 import '../../features/profile/presentation/shop_screen.dart';
 import '../../features/weekly/presentation/weekly_screen.dart';
+import '../../firebase/firebase_bootstrap.dart';
 import '../../shared/presentation/content_error_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
+  final refresh = ValueNotifier<int>(0);
+  ref.listen(authIdentityProvider, (_, __) {
+    refresh.value++;
+  });
+  ref.onDispose(refresh.dispose);
+
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: '/splash',
+    refreshListenable: refresh,
+    redirect: (context, state) {
+      return authRedirect(
+        location: state.matchedLocation,
+        splashComplete: AuthSessionGate.splashComplete,
+        firebaseReady: FirebaseBootstrap.isReady,
+        signedIn: ref.read(authServiceProvider).current != null,
+      );
+    },
     routes: [
+      GoRoute(
+        path: '/splash',
+        name: 'splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: '/login',
+        name: 'login',
+        builder: (context, state) => const LoginScreen(),
+      ),
       GoRoute(
         path: '/',
         name: 'home',

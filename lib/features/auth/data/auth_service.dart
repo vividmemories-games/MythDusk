@@ -8,6 +8,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../../../firebase/firebase_bootstrap.dart';
+import '../../../firebase/firebase_options.dart';
 import '../domain/auth_identity.dart';
 
 class AuthService {
@@ -69,7 +70,9 @@ class AuthService {
       return const AuthLinkResult.unavailable();
     }
     try {
-      final google = GoogleSignIn();
+      final google = GoogleSignIn(
+        serverClientId: DefaultFirebaseOptions.googleWebClientId,
+      );
       final account = await google.signIn();
       if (account == null) {
         return const AuthLinkResult.cancelled();
@@ -90,6 +93,13 @@ class AuthService {
 
   Future<void> signOut() async {
     if (!FirebaseBootstrap.isReady) return;
+    try {
+      await GoogleSignIn(
+        serverClientId: DefaultFirebaseOptions.googleWebClientId,
+      ).signOut();
+    } catch (error) {
+      debugPrint('Google sign-out skipped: $error');
+    }
     await _auth.signOut();
   }
 

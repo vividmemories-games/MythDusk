@@ -57,3 +57,4 @@ flutter:
     - assets/images/powerups/
     - assets/images/maps/
     - assets/enemies/bosses/
+    - assets/branding/app_icon_512x512.png

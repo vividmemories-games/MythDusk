@@ -1,12 +1,11 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../firebase/firebase_bootstrap.dart';
-import '../data/auth_service.dart';
-import '../domain/link_conflict.dart';
 import '../providers/auth_provider.dart';
+import 'auth_brand_buttons.dart';
+import 'auth_link_feedback.dart';
 
 class AccountSettingsSection extends ConsumerWidget {
   const AccountSettingsSection({super.key});
@@ -22,106 +21,74 @@ class AccountSettingsSection extends ConsumerWidget {
         const SizedBox(height: 8),
         if (!FirebaseBootstrap.isReady)
           const Text(
-            'Cloud save starts after Firebase console setup and emulators '
-            '(FLAVOR=dev). Progress stays on this device until then.',
+            'Cloud save starts after Firebase is ready. Progress stays on '
+            'this device until then.',
           )
         else if (identity == null)
-          const Text('Connecting guest account…')
-        else ...[
-          Text(
-            identity.isAnonymous
-                ? 'Guest · ${identity.uid}'
-                : 'Signed in · ${identity.displayName ?? identity.uid}',
-          ),
-          const SizedBox(height: 8),
-          if (identity.isAnonymous) ...[
-            if (defaultTargetPlatform == TargetPlatform.iOS)
-              FilledButton.tonal(
-                onPressed: () => _linkApple(context, ref),
-                child: const Text('Continue with Apple'),
+          const Text('Connecting account…')
+        else
+          AuthBrandPanel(
+            children: [
+              Text(
+                identity.isAnonymous
+                    ? 'Playing as Guest'
+                    : 'Signed in as ${identity.displayName ?? 'Wanderer'}',
+                style: Theme.of(context).textTheme.titleMedium,
               ),
-            const SizedBox(height: 8),
-            FilledButton.tonal(
-              onPressed: () => _linkGoogle(context, ref),
-              child: const Text('Continue with Google'),
-            ),
-          ] else
-            OutlinedButton(
-              onPressed: () => ref.read(authServiceProvider).signOut(),
-              child: const Text('Sign out'),
-            ),
-        ],
+              const SizedBox(height: 6),
+              Text(
+                identity.isAnonymous
+                    ? 'Link a brand account to keep this save in the cloud.'
+                    : 'Cloud save is on. Sign out returns you to login.',
+              ),
+              const SizedBox(height: 14),
+              if (identity.isAnonymous) ...[
+                if (AuthBrandButtons.showApple) ...[
+                  AuthBrandButtons.apple(
+                    onPressed: () => _apple(context, ref),
+                    label: 'Sign in with Apple',
+                  ),
+                  const SizedBox(height: 10),
+                ],
+                AuthBrandButtons.google(
+                  onPressed: () => _google(context, ref),
+                  label: 'Sign in with Google',
+                ),
+                const SizedBox(height: 10),
+              ],
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton(
+                  onPressed: () => ref.read(authServiceProvider).signOut(),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: MythDuskColors.parchment,
+                    side: const BorderSide(color: MythDuskColors.softGold),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    identity.isAnonymous ? 'Back to login' : 'Sign out',
+                  ),
+                ),
+              ),
+            ],
+          ),
         const Divider(height: 28, color: MythDuskColors.mist),
       ],
     );
   }
 
-  Future<void> _linkApple(BuildContext context, WidgetRef ref) async {
+  Future<void> _apple(BuildContext context, WidgetRef ref) async {
     final result = await ref.read(authServiceProvider).linkApple();
     if (!context.mounted) return;
-    await _handle(context, ref, result);
+    await showAuthLinkFeedback(context, ref, result);
   }
 
-  Future<void> _linkGoogle(BuildContext context, WidgetRef ref) async {
+  Future<void> _google(BuildContext context, WidgetRef ref) async {
     final result = await ref.read(authServiceProvider).linkGoogle();
     if (!context.mounted) return;
-    await _handle(context, ref, result);
-  }
-
-  Future<void> _handle(
-    BuildContext context,
-    WidgetRef ref,
-    AuthLinkResult result,
-  ) async {
-    if (result.isConflict) {
-      final choice = await showDialog<LinkConflictChoice>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Account already exists'),
-          content: const Text(
-            'This Apple/Google account already has a MythDusk cloud save. '
-            'Keep this guest progress, or switch to the existing cloud '
-            'profile. Currencies are never merged.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () =>
-                  Navigator.pop(context, LinkConflictChoice.keepGuest),
-              child: const Text('Keep guest'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(
-                context,
-                LinkConflictChoice.switchToExisting,
-              ),
-              child: const Text('Switch to cloud'),
-            ),
-          ],
-        ),
-      );
-      if (!context.mounted || choice == null) return;
-      if (choice == LinkConflictChoice.switchToExisting &&
-          result.existingCredential != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Sign in on the existing account from the other device, '
-              'or retry after signing out of this guest.',
-            ),
-          ),
-        );
-      }
-      return;
-    }
-    final message = switch (result.kind) {
-      AuthLinkKind.linked => 'Account linked.',
-      AuthLinkKind.signedIn => 'Signed in.',
-      AuthLinkKind.cancelled => 'Cancelled.',
-      AuthLinkKind.unavailable => 'Firebase is not ready.',
-      AuthLinkKind.failed => result.message ?? 'Could not link account.',
-      AuthLinkKind.conflict => 'Account conflict.',
-    };
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    await showAuthLinkFeedback(context, ref, result);
   }
 }

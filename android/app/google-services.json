@@ -1,0 +1,62 @@
+{
+  "project_info": {
+    "project_number": "935090044330",
+    "project_id": "mythdusk-ec0c7",
+    "storage_bucket": "mythdusk-ec0c7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:935090044330:android:0e7bd47636946d89203fd3",
+        "android_client_info": {
+          "package_name": "com.vividmemories.mythdusk"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "935090044330-74gsk53bape13af0sr8kcuo9ahiq0ejq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.vividmemories.mythdusk",
+            "certificate_hash": "959ab1d5b41fce740036e62cd18057074d5db3e9"
+          }
+        },
+        {
+          "client_id": "935090044330-p2p6pnt6qqpgb46iqrkro3rrvbsumka7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.vividmemories.mythdusk",
+            "certificate_hash": "f23c2e3acc08f88bc615fd871a5c752480dcdefe"
+          }
+        },
+        {
+          "client_id": "935090044330-ilf62gj41tcgued79dsdjltv2e4eljvn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCqILRe5jZntZeddWToTyc-mjJLZ5L6S1c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "935090044330-ilf62gj41tcgued79dsdjltv2e4eljvn.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "935090044330-huujhlk00tlj4tuet5bdgm73m53r5bde.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.vividmemories.mythdusk"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

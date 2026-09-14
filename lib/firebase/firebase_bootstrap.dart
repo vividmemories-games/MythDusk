@@ -19,12 +19,13 @@ abstract final class FirebaseBootstrap {
 
   static bool get isReady => _ready;
 
-  /// Dev flavor talks to emulators. Prod waits for a real Project ID via
-  /// `--dart-define=FIREBASE_PROJECT_ID=...` after console setup.
+  /// Dev flavor talks to emulators. Prod initializes when FlutterFire
+  /// options point at the real console project.
   static bool get shouldInitialize {
     const projectId = String.fromEnvironment('FIREBASE_PROJECT_ID');
     if (projectId.isNotEmpty) return true;
-    return AppFlavor.isDev;
+    if (AppFlavor.isDev) return true;
+    return DefaultFirebaseOptions.hasProductionOptions;
   }
 
   static Future<void> initialize() async {
