@@ -113,16 +113,16 @@ sealed class EnemyEffect {
 
   static Map<String, double> _parseSpawnWeights(Object? raw) {
     if (raw is! Map) {
-      throw FormatException('Enemy effect weights must be a map');
+      throw const FormatException('Enemy effect weights must be a map');
     }
     if (raw.isEmpty) {
-      throw FormatException('Enemy effect weights must be non-empty');
+      throw const FormatException('Enemy effect weights must be non-empty');
     }
     final weights = <String, double>{};
     for (final entry in raw.entries) {
       final key = entry.key;
       if (key is! String || key.isEmpty) {
-        throw FormatException('Enemy effect weight keys must be strings');
+        throw const FormatException('Enemy effect weight keys must be strings');
       }
       final known = TileColorId.tryParse(key);
       if (known == null) {

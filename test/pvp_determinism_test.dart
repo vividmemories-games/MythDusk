@@ -54,8 +54,8 @@ void main() {
       uidA: 'a',
       uidB: 'b',
       seed: 42,
-      loadoutA: const PvpLoadout(heroId: 'mage', skillIds: ['fireball']),
-      loadoutB: const PvpLoadout(heroId: 'knight', skillIds: []),
+      loadoutA: PvpLoadout(heroId: 'mage', skillIds: ['fireball']),
+      loadoutB: PvpLoadout(heroId: 'knight', skillIds: []),
       currentUid: 'a',
     );
     final fromA = PvpDuelEngine.replay(match: match, viewerUid: 'a');

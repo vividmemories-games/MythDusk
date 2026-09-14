@@ -161,7 +161,7 @@ class ExpeditionRunState {
   bool get isInProgress => !isComplete && !isFailed;
 
   ExpeditionEncounter get encounter {
-    final encounters = ExpeditionBalance.encounters;
+    const encounters = ExpeditionBalance.encounters;
     final idx = battleIndex.clamp(0, encounters.length - 1);
     return encounters[idx];
   }

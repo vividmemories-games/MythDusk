@@ -1,5 +1,7 @@
 /// Patches Ch4–10 campaign JSON with per-node board variety.
 /// Run: dart run tool/patch_ch4_10_boards.dart
+library;
+
 import 'dart:convert';
 import 'dart:io';
 

@@ -66,7 +66,7 @@ class _LockedBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final need = ExpeditionBalance.minCampaignClears;
+    const need = ExpeditionBalance.minCampaignClears;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [

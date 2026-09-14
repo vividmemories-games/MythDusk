@@ -60,7 +60,7 @@ void main() {
 
   group('PlayerProfile loadouts', () {
     test('combatHero exposes only equipped skills', () {
-      final profile = PlayerProfile(
+      const profile = PlayerProfile(
         equippedSkillIdsByHero: {
           'mage': ['frost_ward', 'arcane_bolt'],
         },

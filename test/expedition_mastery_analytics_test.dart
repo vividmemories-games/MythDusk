@@ -103,7 +103,7 @@ void main() {
     });
 
     test('skill 4 hidden until unlocked', () {
-      final mage = HeroCatalog.mage;
+      const mage = HeroCatalog.mage;
       final locked = HeroLoadout.availableSkills(mage, {});
       expect(locked.length, 3);
       expect(locked.any((s) => s.id == 'meteor_shard'), isFalse);
@@ -116,7 +116,7 @@ void main() {
     test('mastery claim condition math', () {
       final def = MasteryCatalog.forHero('mage').first;
       expect(def.condition, MasteryConditionType.winsWithHero);
-      final counters = const HeroMasteryCounters(wins: 3);
+      const counters = HeroMasteryCounters(wins: 3);
       expect(counters.valueFor(def.condition) >= def.target, isTrue);
     });
   });

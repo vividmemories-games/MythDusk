@@ -66,7 +66,7 @@ void main() {
       final prefs = await SharedPreferences.getInstance();
       final notifier = ProfileNotifier(prefs);
       final contract = DailySchedule.forDate(DateTime(2026, 8, 10));
-      final progress = BattleProgress(
+      const progress = BattleProgress(
         playerTurnNumber: 5,
         tilesClearedByColor: {
           'red': 40,
