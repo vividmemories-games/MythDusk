@@ -567,3 +567,19 @@ Heroes / Profile copy, Balancing Bible §5.3, economy migration tests.
 
 **Status:** Accepted
 
+---
+
+## 2026-09-28 — V1 launch plan locked (production push)
+
+**Decision:** Execute toward production using [V1_Launch.md](V1_Launch.md) as sequencing authority.
+
+- **V1 ships:** single-hero campaign (200-node spine), Daily/Weekly, server-authoritative settlement when Firebase is ready, Crashlytics/analytics, soft IAP starter pack for Gate B, battle pass **off**.
+- **V1 cuts:** equipment, parties, admin dashboard, interstitial ads, hero gacha, full 200-node balance pass (early chapters only for Gate B).
+- **Ordered workstreams:** W1 settlement → W2 release hygiene → W3 IAP → W4 early-game feel → W5 store packaging.
+- Gates: **A** internal soft build → **B** closed soft launch → **C** public store.
+- Older “Firebase later / Phase 2 session” wording in [PHASES](../PHASES.md) yields to V1_Launch for launch sequencing; combat rules in [GAMEPLAY](../GAMEPLAY.md) stay locked.
+
+**Reason:** Content and combat spine are far enough; the blocker is trustworthy economy + store readiness, not more modes.
+
+**Status:** Accepted — next implementation: W1 callable client + `ensureUser` + `submitBattleRun` path
+

@@ -3,9 +3,9 @@
 | Field | Value |
 |-------|-------|
 | **Status** | Active — V1.0 scope locked; later phases specified, not implemented |
-| **Last Updated** | 2026-08-21 |
-| **Authority** | Numbers in [Balancing_Bible](Balancing_Bible.md); product rules here |
-| **Related** | [Economy](Economy.md) · [Progression](Progression.md) · [PHASES](../PHASES.md) · `.cursor/rules/08-monetization-economy.mdc` |
+| **Last Updated** | 2026-09-28 |
+| **Authority** | Numbers in [Balancing_Bible](Balancing_Bible.md); product rules here; ship order in [V1_Launch](../00_Project/V1_Launch.md) |
+| **Related** | [Economy](Economy.md) · [Progression](Progression.md) · [V1 Launch](../00_Project/V1_Launch.md) · [PHASES](../PHASES.md) · `.cursor/rules/08-monetization-economy.mdc` |
 
 Convenience and cosmetics only. Campaign heroes stay guaranteed milestone unlocks. No gacha on existing campaign heroes. No exclusive combat power behind pay.
 
@@ -58,9 +58,9 @@ Gems / IAP must not purchase:
 
 **Out of V1.0:** hero summons, early-access campaign heroes, auto-renew subscriptions, interstitial ads, move purchases, large cosmetic art sets, 5+ contextual bundles.
 
-## Phase 0–1 (now)
+## Phase 0–1 (baseline — largely done)
 
-Local foundations. No real money, no ads SDK, no Firebase settlement.
+Local foundations shipped. Production push moves to [V1_Launch](../00_Project/V1_Launch.md) W1+ (server settlement) then soft IAP. No real money / ads SDK until those gates.
 
 | Surface | Behavior |
 |---------|----------|

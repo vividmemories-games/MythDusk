@@ -37,5 +37,8 @@ flutter run
 
 Home → **Twilight Road** (5 nodes) → battle with cascades + rockets/bombs → victory rewards → unlock next. Local persisted profile.
 
+## V1 production push
+
+Launch sequencing (gates A→B→C, workstreams W1–W5): [docs/00_Project/V1_Launch.md](docs/00_Project/V1_Launch.md).
 
 Agent rules: `AGENTS.md` and `.cursor/rules/` (product name **MythDusk**; former working titles Mythora / Relicbound).
