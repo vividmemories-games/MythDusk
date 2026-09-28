@@ -20,9 +20,9 @@
 | Role | Duration | Code constant / note |
 |------|----------|----------------------|
 | Swap settle | ~100ms | Brief pause after swap before clear |
-| Match destroy | 240ms | `BattleController.clearDuration` |
-| Gravity fall | 280ms | `fallDuration` |
-| Spawn drop-in | 300ms | `spawnDuration` |
+| Match destroy | 220ms | `BattleController.clearDuration` |
+| Gravity fall | 240ms | `fallDuration` |
+| Spawn drop-in | 260ms | `spawnDuration` |
 | Combat FX (hit flash/shake) | 360ms | `combatFxDuration` |
 | Skill cast cue | 400ms | `castFxDuration` (lunge + gold flash) |
 | Wind shove / lane gust | 520ms | `windFxDuration` |

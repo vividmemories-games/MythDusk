@@ -11,11 +11,12 @@ When documents disagree, the **higher document wins**:
 ```text
 Vision
   → GAMEPLAY.md (combat / puzzle rules)
-  → Balancing Bible (numbers — Phase 2)
-  → Economy / Progression / Heroes / Enemies
+  → V1_Launch.md (production sequencing — overrides PHASES for ship order)
+  → Balancing Bible (numbers)
+  → Economy / Progression / Heroes / Enemies / Monetization
   → Design System (Theme, Animations)
   → Asset Bible (when art production starts)
-  → Technical (Architecture, Coding Standards)
+  → Technical (Architecture, Coding Standards, Firebase)
   → Implementation
 ```
 
@@ -26,7 +27,8 @@ Lower docs may **extend** higher ones; they must not redefine them. Record excep
 | I need to… | Read |
 |------------|------|
 | Understand the game | [Vision](00_Project/Vision.md), [GAMEPLAY](GAMEPLAY.md) |
-| See phase plan | [PHASES](PHASES.md) |
+| Ship V1 / production gates | [V1 Launch](00_Project/V1_Launch.md) |
+| See historical phase plan | [PHASES](PHASES.md) |
 | Check a locked choice | [Decisions](00_Project/Decisions.md) |
 | Balance / content (Phase 2) | [Balancing Bible](01_Game_Design/Balancing_Bible.md) |
 | Economy / monetization | [Economy](01_Game_Design/Economy.md), [Monetization](01_Game_Design/Monetization.md), [Progression](01_Game_Design/Progression.md) |
@@ -44,7 +46,7 @@ docs/
 ├── README.md                 # this file
 ├── GAMEPLAY.md               # combat authority
 ├── PHASES.md                 # phase plan + locked product table
-├── 00_Project/               # Vision, Decisions
+├── 00_Project/               # Vision, Decisions, V1_Launch
 ├── 01_Game_Design/           # balance, economy, heroes, enemies, content architecture
 ├── 02_Design_System/         # dusk theme + motion
 ├── 04_Technical/             # architecture, coding standards, Firebase

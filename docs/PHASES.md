@@ -2,11 +2,13 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Active |
-| **Last Updated** | 2026-07-10 |
-| **Related** | [docs home](README.md) · [Vision](00_Project/Vision.md) · [Decisions](00_Project/Decisions.md) · [GAMEPLAY](GAMEPLAY.md) |
+| **Status** | Active — historical phase map; **launch sequencing** → [V1_Launch](00_Project/V1_Launch.md) |
+| **Last Updated** | 2026-09-28 |
+| **Related** | [docs home](README.md) · [Vision](00_Project/Vision.md) · [Decisions](00_Project/Decisions.md) · [GAMEPLAY](GAMEPLAY.md) · [V1 Launch](00_Project/V1_Launch.md) |
 
 Living decision log: [00_Project/Decisions.md](00_Project/Decisions.md).
+
+**Production push (2026-09-28):** Phase 1 vertical slice is done and exceeded (200-level campaign, retention modes, Firebase scaffolding). Do **not** wait for a greenfield “Phase 2 session” before shipping. Follow [V1_Launch.md](00_Project/V1_Launch.md) gates A→B→C. Balancing Bible + admin pipeline remain valuable post–Gate A; they are not blockers for internal soft builds.
 
 ## Locked product decisions
 
@@ -68,6 +70,8 @@ Living decision log: [00_Project/Decisions.md](00_Project/Decisions.md).
 ---
 
 ## Phase 2 — Balancing Bible + Content Pipeline
+
+Still valuable after Gate A. **Does not block** internal soft launch if early chapters feel fair. Prefer server settlement (V1 W1) first.
 
 Dedicated session. Scope to refine then:
 
