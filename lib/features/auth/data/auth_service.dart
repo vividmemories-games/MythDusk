@@ -56,7 +56,7 @@ class AuthService {
         rawNonce: rawNonce,
         accessToken: apple.authorizationCode,
       );
-      return _linkOrSignIn(oauth);
+      return await _linkOrSignIn(oauth);
     } on FirebaseAuthException catch (error) {
       return AuthLinkResult.fromFirebase(error);
     } catch (error) {
@@ -82,7 +82,7 @@ class AuthService {
         idToken: tokens.idToken,
         accessToken: tokens.accessToken,
       );
-      return _linkOrSignIn(oauth);
+      return await _linkOrSignIn(oauth);
     } on FirebaseAuthException catch (error) {
       return AuthLinkResult.fromFirebase(error);
     } catch (error) {
