@@ -1,7 +1,14 @@
+import 'dart:math';
+
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mythdusk/features/battle/domain/battle_state.dart';
+import 'package:mythdusk/features/battle/presentation/animated_puzzle_board.dart';
 import 'package:mythdusk/features/battle/presentation/match_collect_fx.dart';
 import 'package:mythdusk/features/battle/presentation/match_collect_overlay.dart';
+import 'package:mythdusk/features/heroes/domain/hero_def.dart';
+import 'package:mythdusk/features/puzzle/domain/puzzle_board.dart';
+import 'package:mythdusk/features/puzzle/domain/tile_id_gen.dart';
 
 void main() {
   group('capMatchCollectParticles', () {
@@ -79,5 +86,28 @@ void main() {
       expect(mid.dx, 50);
       expect(mid.dy, lessThan(100));
     });
+  });
+
+  testWidgets('leaving a board without hints does not throw on dispose',
+      (tester) async {
+    final battle = BattleState.initial(
+      hero: HeroCatalog.mage,
+      board: PuzzleBoard.squarePlayable(random: Random(1), ids: TileIdGen(1)),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SizedBox(
+          width: 400,
+          height: 400,
+          child: AnimatedPuzzleBoard(
+            battle: battle,
+            onTap: (_, __) {},
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pumpWidget(const SizedBox.shrink());
+    expect(tester.takeException(), isNull);
   });
 }

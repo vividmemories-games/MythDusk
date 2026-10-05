@@ -839,14 +839,15 @@ class _PulseRing extends StatefulWidget {
 
 class _PulseRingState extends State<_PulseRing>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1200),
-  );
+  late final AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
     if (widget.enabled) _controller.repeat(reverse: true);
   }
 

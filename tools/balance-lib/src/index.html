@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0c0914" />
+    <meta
+      name="description"
+      content="A private scenario simulator for MythDusk's level unlock, summon, and monetization balance."
+    />
+    <title>MythDusk Balance Lab</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"><span></span></div>
+        <div>
+          <p class="eyebrow">PRIVATE DESIGN TOOL</p>
+          <h1>MythDusk <span>Balance Lab</span></h1>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="button button-quiet" id="resetButton" type="button">Reset</button>
+        <button class="button button-primary" id="saveBaselineButton" type="button">Save as baseline</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero-panel" aria-labelledby="sim-title">
+        <div class="hero-copy">
+          <p class="eyebrow gold">PROGRESSION + SUMMONS, SIDE BY SIDE</p>
+          <h2 id="sim-title">Tune the journey.<br /><span>See the pressure points.</span></h2>
+          <p>
+            Core heroes stay guaranteed through level progression. Summons expand the roster and create optional purchase moments—they never replace earned unlocks.
+          </p>
+        </div>
+        <div class="dual-path" aria-label="MythDusk hero acquisition model">
+          <article>
+            <div class="path-icon level-icon">L</div>
+            <div>
+              <span>CORE PATH</span>
+              <strong>Level unlocks</strong>
+              <small>Guaranteed • permanent • skill-driven</small>
+            </div>
+          </article>
+          <div class="path-plus" aria-hidden="true">+</div>
+          <article>
+            <div class="path-icon summon-icon">✦</div>
+            <div>
+              <span>EXPANSION PATH</span>
+              <strong>Optional summons</strong>
+              <small>Variety • collection • convenience</small>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="workspace-grid" aria-label="Simulator controls and results">
+        <aside class="control-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">MODEL SETUP</p>
+              <h2>Scenario controls</h2>
+            </div>
+            <span class="dirty-pill" id="scenarioStatus">Matches baseline</span>
+          </div>
+
+          <div class="preset-row" aria-label="Scenario presets">
+            <button class="preset active" data-preset="balanced" type="button">Balanced hybrid</button>
+            <button class="preset" data-preset="progression" type="button">Progression-first</button>
+            <button class="preset" data-preset="summon" type="button">Summon-forward</button>
+          </div>
+
+          <div class="control-group">
+            <div class="group-title">
+              <span class="step-number">01</span>
+              <div><h3>Core hero progression</h3><p>Guaranteed unlocks players earn by leveling.</p></div>
+            </div>
+            <label class="field full">
+              <span>Hero unlock levels</span>
+              <div class="milestone-inputs">
+                <span class="starter-chip">Starter · Lv 1</span>
+                <label><small>Hero II</small><input id="unlock1" type="number" min="2" max="99" value="5" /></label>
+                <label><small>Hero III</small><input id="unlock2" type="number" min="3" max="99" value="25" /></label>
+                <label><small>Hero IV</small><input id="unlock3" type="number" min="4" max="100" value="50" /></label>
+              </div>
+            </label>
+            <div class="field-grid">
+              <label class="field"><span>Simulation horizon</span><div class="input-unit"><input id="horizonWeeks" type="number" min="4" max="52" value="12" /><em>weeks</em></div></label>
+              <label class="field"><span>Weekly free currency</span><div class="input-unit"><input id="weeklyCurrency" type="number" min="0" max="10000" step="50" value="450" /><em>shards</em></div></label>
+              <label class="field"><span>Starting currency</span><div class="input-unit"><input id="startingCurrency" type="number" min="0" max="10000" step="50" value="600" /><em>shards</em></div></label>
+              <label class="field"><span>Currency per level</span><div class="input-unit"><input id="currencyPerLevel" type="number" min="0" max="1000" step="10" value="75" /><em>shards</em></div></label>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="group-title">
+              <span class="step-number">02</span>
+              <div><h3>Summon mechanics</h3><p>Optional roster expansion alongside level heroes.</p></div>
+              <label class="switch"><input id="summonsEnabled" type="checkbox" checked /><span></span><b>On</b></label>
+            </div>
+            <div class="field-grid summon-fields">
+              <label class="field"><span>Summons open</span><div class="input-unit"><input id="summonUnlockLevel" type="number" min="1" max="99" value="8" /><em>level</em></div></label>
+              <label class="field"><span>Cost per pull</span><div class="input-unit"><input id="pullCost" type="number" min="1" max="5000" step="50" value="300" /><em>shards</em></div></label>
+              <label class="field"><span>Featured hero rate</span><div class="input-unit"><input id="featuredRate" type="number" min="0.1" max="100" step="0.1" value="2" /><em>%</em></div></label>
+              <label class="field"><span>Hard pity</span><div class="input-unit"><input id="pityPulls" type="number" min="1" max="500" value="60" /><em>pulls</em></div></label>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="group-title">
+              <span class="step-number">03</span>
+              <div><h3>Offers & player segments</h3><p>Directional purchase opportunities—not a revenue forecast.</p></div>
+            </div>
+            <div class="field-grid">
+              <label class="field"><span>First offer</span><div class="input-unit"><input id="firstOfferLevel" type="number" min="1" max="99" value="10" /><em>level</em></div></label>
+              <label class="field"><span>Offer cadence</span><div class="input-unit"><input id="offersPerMonth" type="number" min="0" max="12" step="1" value="2" /><em>/ month</em></div></label>
+              <label class="field"><span>Pack price</span><div class="input-unit"><input id="packPrice" type="number" min="1" max="2000" step="10" value="79" /><em>NOK</em></div></label>
+              <label class="field"><span>Currency per pack</span><div class="input-unit"><input id="packCurrency" type="number" min="1" max="50000" step="100" value="1800" /><em>shards</em></div></label>
+            </div>
+
+            <details>
+              <summary>Advanced segment assumptions <span>4 segments</span></summary>
+              <div class="segment-editor" id="segmentEditor"></div>
+            </details>
+          </div>
+        </aside>
+
+        <div class="results-panel">
+          <div class="results-head">
+            <div>
+              <p class="eyebrow">LIVE OUTCOMES</p>
+              <h2>Current vs baseline</h2>
+            </div>
+            <div class="legend"><span class="current-dot"></span>Current <span class="baseline-dot"></span>Baseline</div>
+          </div>
+
+          <div class="kpi-grid" id="kpiGrid" aria-live="polite"></div>
+
+          <article class="chart-card">
+            <div class="card-heading">
+              <div><h3>Progression runway</h3><p>Projected level by player segment</p></div>
+              <div class="chart-legend" id="chartLegend"></div>
+            </div>
+            <div class="chart-wrap"><svg id="progressionChart" role="img" aria-label="Projected level progression by player segment"></svg></div>
+            <div class="milestone-strip" id="milestoneStrip"></div>
+          </article>
+
+          <article class="table-card">
+            <div class="card-heading">
+              <div><h3>Segment outcomes</h3><p>At the selected simulation horizon</p></div>
+              <span class="assumption-label">ESTIMATED</span>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Player</th><th>Final level</th><th>Core heroes</th><th>Total pulls</th><th>Offer windows</th><th>Expected buys</th><th>Spend</th></tr></thead>
+                <tbody id="outcomeRows"></tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="insight-card">
+            <div class="card-heading">
+              <div><h3>Balance signals</h3><p>Rules of thumb to guide the next test</p></div>
+              <span id="healthBadge" class="health-badge">Reviewing</span>
+            </div>
+            <div class="insights" id="insights"></div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>MYTHDUSK · INTERNAL BALANCE LAB</span>
+      <p>Results are directional estimates from editable assumptions—not observed player data.</p>
+    </footer>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

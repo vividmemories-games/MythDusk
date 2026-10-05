@@ -249,14 +249,15 @@ class _WindLane extends StatefulWidget {
 
 class _WindLaneState extends State<_WindLane>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 700),
-  );
+  late final AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
     if (widget.pulsing) _controller.repeat();
   }
 
@@ -843,12 +844,18 @@ class _MatchClearBurst extends StatefulWidget {
 
 class _MatchClearBurstState extends State<_MatchClearBurst>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: widget.duration == Duration.zero
-        ? const Duration(milliseconds: 1)
-        : widget.duration,
-  )..forward();
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: widget.duration == Duration.zero
+          ? const Duration(milliseconds: 1)
+          : widget.duration,
+    )..forward();
+  }
 
   @override
   void dispose() {
@@ -945,14 +952,15 @@ class _HintPulse extends StatefulWidget {
 
 class _HintPulseState extends State<_HintPulse>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 900),
-  );
+  late final AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
     if (widget.enabled) {
       _controller.repeat(reverse: true);
     }

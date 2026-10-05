@@ -1,0 +1,13 @@
+{
+  "name": "mythdusk-balance-lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/model.test.mjs",
+    "test:ui": "node tests/visual.cjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
