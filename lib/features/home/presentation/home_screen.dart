@@ -13,12 +13,13 @@ import '../../cosmetics/domain/cosmetic_catalog.dart';
 import '../../expedition/domain/expedition_models.dart';
 import '../../heroes/domain/hero_def.dart';
 import '../../heroes/domain/hero_unlocks.dart';
-import '../../prep/domain/prep_item.dart';
 import '../../profile/domain/economy_balance.dart';
 import '../../profile/providers/mock_profile_provider.dart';
 import 'home_hub_widgets.dart';
 import 'home_more_sheet.dart';
 import 'home_progress.dart';
+import 'home_mode_tiles.dart';
+import '../../../shared/widgets/challenge_art.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -77,8 +78,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 colors: [
                   Color(0x66071118),
                   Color(0x33071118),
-                  Color(0x99071118),
-                  Color(0xE6071118),
+                  Color(0x55071118),
+                  Color(0xAA071118),
                 ],
                 stops: [0, 0.28, 0.62, 1],
               ),
@@ -91,78 +92,110 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   bottom: false,
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(14, 6, 14, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _HubHeader(
-                          clears: clears,
-                          coins: profile.coins,
-                          gems: profile.gems,
-                          livesLabel: livesLabel,
-                          onLivesTap: () => _onLivesTap(context, ref),
-                          onSettings: () => context.push('/settings'),
-                        ),
-                        Expanded(
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              final heroH = (constraints.maxHeight - 48)
-                                  .clamp(88.0, 220.0);
-                              return Center(
-                                child: _HeroStage(
-                                  hero: selected,
-                                  profile: profile,
-                                  height: heroH,
-                                  onTap: () => context.push('/heroes'),
-                                  onPrev: () => _cycleHero(ref, -1),
-                                  onNext: () => _cycleHero(ref, 1),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        progressAsync.when(
-                          data: (p) => HubPlayPanel(
-                            prepSlots: _prepSlots(context, profile),
-                            onShop: () => context.push('/shop'),
-                            progressTitle: '${p.actTitle} · ${p.chapterTitle}',
-                            progressSubtitle:
-                                'Node ${p.completedInChapter} / ${p.totalInChapter}',
-                            completed: p.completedInChapter,
-                            total: p.totalInChapter,
-                            onEnterCampaign: () => _enterCampaign(context, ref),
-                          ),
-                          loading: () => HubPlayPanel(
-                            prepSlots: _prepSlots(context, profile),
-                            onShop: () => context.push('/shop'),
-                            progressTitle: 'Campaign',
-                            progressSubtitle: 'Loading…',
-                            completed: 0,
-                            total: 20,
-                            onEnterCampaign: () => _enterCampaign(context, ref),
-                          ),
-                          error: (_, __) => HubPlayPanel(
-                            prepSlots: _prepSlots(context, profile),
-                            onShop: () => context.push('/shop'),
-                            progressTitle: 'Campaign',
-                            progressSubtitle: 'Node $clears',
-                            completed: clears.clamp(0, 20),
-                            total: 20,
-                            onEnterCampaign: () => _enterCampaign(context, ref),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        HubRetentionChips(
-                          onDaily: () => context.push('/daily'),
-                          onWeekly: () => context.push('/weekly'),
-                          showExpedition: profile.completedNodeIds.length >=
-                              ExpeditionBalance.minCampaignClears,
-                          expeditionInProgress:
-                              profile.activeExpedition?.isInProgress ?? false,
-                          onExpedition: () => context.push('/expedition'),
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                    ),
+                    child: LayoutBuilder(builder: (context, constraints) {
+                      final largeText =
+                          MediaQuery.textScalerOf(context).scale(14) > 18;
+                      final contentHeight = constraints.maxHeight
+                          .clamp(largeText ? 980.0 : 650.0, double.infinity);
+                      return SingleChildScrollView(
+                          child: SizedBox(
+                              height: contentHeight,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  _HubHeader(
+                                    clears: clears,
+                                    coins: profile.coins,
+                                    gems: profile.gems,
+                                    livesLabel: livesLabel,
+                                    onLivesTap: () => _onLivesTap(context, ref),
+                                    onSettings: () => context.push('/settings'),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 6),
+                                    child: Text('MYTHDUSK',
+                                        textAlign: TextAlign.center,
+                                        style: challengeTextStyle(12)
+                                            .copyWith(letterSpacing: 5)),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  const ChallengeDivider(),
+                                  Expanded(
+                                    child: LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        final heroH = (constraints.maxHeight -
+                                                MediaQuery.textScalerOf(context)
+                                                        .scale(22)
+                                                        .clamp(48.0,
+                                                            double.infinity) *
+                                                    1.6)
+                                            .clamp(64.0, 230.0);
+                                        return Center(
+                                            child: _HeroStage(
+                                          hero: selected,
+                                          profile: profile,
+                                          height: heroH,
+                                          onTap: () => context.push('/heroes'),
+                                          onPrev: () => _cycleHero(ref, -1),
+                                          onNext: () => _cycleHero(ref, 1),
+                                        ));
+                                      },
+                                    ),
+                                  ),
+                                  progressAsync.when(
+                                    data: (p) => HubPlayPanel(
+                                      progressTitle:
+                                          '${p.actTitle} · ${p.chapterTitle}',
+                                      progressSubtitle:
+                                          'Node ${p.completedInChapter} / ${p.totalInChapter}',
+                                      completed: p.completedInChapter,
+                                      total: p.totalInChapter,
+                                      onWorldMap: () =>
+                                          _openWorldMap(context, ref),
+                                      onEnterCampaign: () =>
+                                          _enterCampaign(context, ref),
+                                    ),
+                                    loading: () => HubPlayPanel(
+                                      progressTitle: 'Campaign',
+                                      progressSubtitle: 'Loading…',
+                                      completed: 0,
+                                      total: 20,
+                                      onWorldMap: () =>
+                                          _openWorldMap(context, ref),
+                                      onEnterCampaign: () =>
+                                          _enterCampaign(context, ref),
+                                    ),
+                                    error: (_, __) => HubPlayPanel(
+                                      progressTitle: 'Campaign',
+                                      progressSubtitle: 'Node $clears',
+                                      completed: clears.clamp(0, 20),
+                                      total: 20,
+                                      onWorldMap: () =>
+                                          _openWorldMap(context, ref),
+                                      onEnterCampaign: () =>
+                                          _enterCampaign(context, ref),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  HubArenaTile(
+                                      onTap: () => context.push('/challenge')),
+                                  const SizedBox(height: 8),
+                                  HubRetentionChips(
+                                    onDaily: () => context.push('/daily'),
+                                    onWeekly: () => context.push('/weekly'),
+                                    showExpedition:
+                                        profile.completedNodeIds.length >=
+                                            ExpeditionBalance.minCampaignClears,
+                                    expeditionInProgress: profile
+                                            .activeExpedition?.isInProgress ??
+                                        false,
+                                    onExpedition: () =>
+                                        context.push('/expedition'),
+                                  ),
+                                  const SizedBox(height: 8),
+                                ],
+                              )));
+                    }),
                   ),
                 ),
               ),
@@ -194,33 +227,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _prepSlots(BuildContext context, PlayerProfile profile) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (final id in PrepItemId.values) ...[
-          HubPrepSlot(
-            assetPath: id.assetPath,
-            count: profile.prepCount(id),
-            onTap: () => context.push('/shop'),
-          ),
-          const SizedBox(width: 8),
-        ],
-        const HubLockedPrepSlot(
-          unlockHint: 'Unlocks at Act III',
-        ),
-      ],
-    );
-  }
-
-  void _enterCampaign(BuildContext context, WidgetRef ref) {
+  Future<void> _enterCampaign(BuildContext context, WidgetRef ref) async {
     ref.read(profileProvider.notifier).tickLifeRegen();
     final lives = ref.read(profileProvider).lives;
     if (lives <= 0) {
       _showNoLivesDialog(context, ref);
       return;
     }
+    try {
+      final progress = await ref.read(homeCampaignProgressProvider.future);
+      if (!context.mounted) return;
+      ref.read(selectedCampaignChapterIdProvider.notifier).state =
+          progress.chapterId;
+      if (progress.nextNodeId != null) {
+        context.push('/briefing/${Uri.encodeComponent(progress.nextNodeId!)}');
+      } else {
+        context.push('/chapters');
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Could not load your journey. Please try again.')));
+      }
+    }
+  }
+
+  void _openWorldMap(BuildContext context, WidgetRef ref) {
     final progress = ref.read(homeCampaignProgressProvider).asData?.value;
     if (progress != null) {
       ref.read(selectedCampaignChapterIdProvider.notifier).state =
@@ -426,6 +458,33 @@ class _HubHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (MediaQuery.textScalerOf(context).scale(14) > 18) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          Expanded(child: HubRankBadge(clears: clears)),
+          IconButton(
+              tooltip: 'Settings',
+              onPressed: onSettings,
+              icon: const Icon(Icons.settings, color: MythDuskColors.parchment))
+        ]),
+        const SizedBox(height: 6),
+        Wrap(spacing: 6, runSpacing: 6, children: [
+          HubResourceChip(
+              label: '$coins',
+              icon: Icons.monetization_on,
+              iconColor: MythDuskColors.amber),
+          HubResourceChip(
+              label: '$gems',
+              icon: Icons.diamond,
+              iconColor: const Color(0xFF5B9BD5)),
+          HubResourceChip(
+              label: livesLabel,
+              icon: Icons.favorite,
+              iconColor: MythDuskColors.ember,
+              onTap: onLivesTap),
+        ]),
+      ]);
+    }
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -463,7 +522,7 @@ class _HubHeader extends StatelessWidget {
         IconButton(
           tooltip: 'Settings',
           padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
           onPressed: onSettings,
           icon: Icon(
             Icons.settings,
@@ -511,9 +570,8 @@ class _HeroStage extends StatelessWidget {
                   child: SizedBox(
                     width: height * 0.88,
                     height: height * 0.24,
-                    child: CustomPaint(
-                      painter: _HeroPedestalPainter(),
-                    ),
+                    child: Image.asset(GameAssets.homeDais,
+                        fit: BoxFit.contain, excludeFromSemantics: true),
                   ),
                 ),
                 Positioned.fill(
@@ -541,6 +599,7 @@ class _HeroStage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             IconButton(
+              tooltip: 'Previous hero',
               onPressed: onPrev,
               icon: Icon(
                 Icons.chevron_left,
@@ -548,7 +607,8 @@ class _HeroStage extends StatelessWidget {
                 size: 28,
               ),
             ),
-            GestureDetector(
+            Flexible(
+                child: GestureDetector(
               onTap: onTap,
               child: Text(
                 [
@@ -556,13 +616,11 @@ class _HeroStage extends StatelessWidget {
                   if (profile.equippedTitleId != null)
                     CosmeticCatalog.byId(profile.equippedTitleId!)?.name,
                 ].whereType<String>().join(' · '),
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontSize: 22,
-                      color: MythDuskColors.parchment,
-                    ),
+                style: challengeTextStyle(22, bold: true),
               ),
-            ),
+            )),
             IconButton(
+              tooltip: 'Next hero',
               onPressed: onNext,
               icon: Icon(
                 Icons.chevron_right,
@@ -575,48 +633,4 @@ class _HeroStage extends StatelessWidget {
       ],
     );
   }
-}
-
-class _HeroPedestalPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final shadow = Rect.fromLTWH(
-      size.width * 0.1,
-      size.height * 0.42,
-      size.width * 0.8,
-      size.height * 0.4,
-    );
-    canvas.drawOval(
-      shadow,
-      Paint()
-        ..color = const Color(0x99000000)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
-    );
-
-    final rect =
-        Rect.fromLTWH(0, size.height * 0.22, size.width, size.height * 0.58);
-    canvas.drawOval(
-      rect,
-      Paint()
-        ..color = HubColors.glow.withValues(alpha: 0.1)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
-    );
-    canvas.drawOval(
-      rect,
-      Paint()
-        ..shader = const RadialGradient(
-          colors: [Color(0x66325868), Color(0xE808141C)],
-        ).createShader(rect),
-    );
-    canvas.drawOval(
-      rect,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2
-        ..color = HubColors.glow.withValues(alpha: 0.22),
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

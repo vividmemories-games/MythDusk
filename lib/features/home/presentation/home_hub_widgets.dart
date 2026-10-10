@@ -1,8 +1,7 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../shared/widgets/challenge_art.dart';
 
 /// Hub accents: gold is reserved for the primary campaign CTA.
 abstract final class HubColors {
@@ -37,7 +36,7 @@ class HubResourceChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: HubColors.panel,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: HubColors.frameMuted.withValues(alpha: 0.85)),
+        border: Border.all(color: HubColors.frameGold.withValues(alpha: 0.85)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.35),
@@ -92,7 +91,7 @@ class HubRankBadge extends StatelessWidget {
         decoration: BoxDecoration(
           color: HubColors.panel,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: HubColors.frameMuted),
+          border: Border.all(color: HubColors.frameGold),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -103,7 +102,8 @@ class HubRankBadge extends StatelessWidget {
               color: MythDuskColors.parchment.withValues(alpha: 0.85),
             ),
             const SizedBox(width: 6),
-            Column(
+            Flexible(
+                child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -126,7 +126,7 @@ class HubRankBadge extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
+            )),
           ],
         ),
       ),
@@ -134,339 +134,46 @@ class HubRankBadge extends StatelessWidget {
   }
 }
 
-/// Hex-framed prep inventory slot.
-class HubPrepSlot extends StatelessWidget {
-  const HubPrepSlot({
-    super.key,
-    required this.assetPath,
-    required this.count,
-    required this.onTap,
-  });
-
-  final String assetPath;
-  final int count;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CustomPaint(
-            painter: _HexFramePainter(),
-            child: SizedBox(
-              width: 54,
-              height: 60,
-              child: Padding(
-                padding: const EdgeInsets.all(9),
-                child: Image.asset(
-                  assetPath,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Icon(
-                    Icons.science_outlined,
-                    color: MythDuskColors.muted,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            '×$count',
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: MythDuskColors.parchment,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class HubLockedPrepSlot extends StatelessWidget {
-  const HubLockedPrepSlot({super.key, required this.unlockHint});
-
-  final String unlockHint;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        CustomPaint(
-          painter: _HexFramePainter(dim: true),
-          child: const SizedBox(
-            width: 54,
-            height: 60,
-            child: Icon(Icons.lock_outline, color: MythDuskColors.muted),
-          ),
-        ),
-        const SizedBox(height: 2),
-        SizedBox(
-          width: 58,
-          child: Text(
-            unlockHint,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            style: TextStyle(
-              fontSize: 9,
-              color: MythDuskColors.parchment.withValues(alpha: 0.72),
-              height: 1.1,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _HexFramePainter extends CustomPainter {
-  _HexFramePainter({this.dim = false});
-
-  final bool dim;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final path = _hexPath(size);
-    final fill = Paint()
-      ..color = HubColors.panel.withValues(alpha: dim ? 0.5 : 0.92);
-    final stroke = Paint()
-      ..color = HubColors.frameMuted.withValues(alpha: dim ? 0.45 : 0.9)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    canvas.drawPath(path, fill);
-    canvas.drawPath(path, stroke);
-  }
-
-  Path _hexPath(Size size) {
-    final w = size.width;
-    final h = size.height;
-    final cx = w / 2;
-    final cy = h / 2;
-    final r = math.min(w, h) / 2 - 1;
-    final path = Path();
-    for (var i = 0; i < 6; i++) {
-      final a = -math.pi / 2 + i * math.pi / 3;
-      final x = cx + r * math.cos(a);
-      final y = cy + r * math.sin(a);
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldRepaint(covariant _HexFramePainter oldDelegate) =>
-      oldDelegate.dim != dim;
-}
-
-/// Ornate primary campaign CTA (beveled gold plate).
-class HubCampaignButton extends StatelessWidget {
-  const HubCampaignButton({super.key, required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: 'Enter Campaign',
-      child: SizedBox(
-        height: 58,
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.center,
-          children: [
-            Positioned.fill(
-              child: CustomPaint(painter: _CampaignButtonPainter()),
-            ),
-            Positioned.fill(
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: onPressed,
-                  customBorder: const StadiumBorder(),
-                  child: const Center(
-                    child: Text(
-                      'Enter Campaign',
-                      style: TextStyle(
-                        fontFamily: 'Georgia',
-                        fontSize: 19,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFFFFF3D1),
-                        letterSpacing: 0.3,
-                        shadows: [
-                          Shadow(color: Color(0xAA5A2F08), blurRadius: 3),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              top: -6,
-              child: Transform.rotate(
-                angle: math.pi / 4,
-                child: Container(
-                  width: 13,
-                  height: 13,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE3A83C),
-                    border: Border.all(color: const Color(0xFFFFE5A2)),
-                    boxShadow: const [
-                      BoxShadow(color: Color(0xAAE3A83C), blurRadius: 8),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CampaignButtonPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final path = Path()
-      ..moveTo(18, 2)
-      ..lineTo(size.width - 18, 2)
-      ..lineTo(size.width - 2, size.height / 2)
-      ..lineTo(size.width - 18, size.height - 2)
-      ..lineTo(18, size.height - 2)
-      ..lineTo(2, size.height / 2)
-      ..close();
-
-    final glow = Paint()
-      ..color = const Color(0xBBD28B20)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 11);
-    canvas.drawPath(path, glow);
-
-    final fill = Paint()
-      ..shader = const LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [Color(0xFFF0B94A), Color(0xFFC77B1C), Color(0xFF8E4B11)],
-      ).createShader(Offset.zero & size);
-    canvas.drawPath(path, fill);
-
-    final outer = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2
-      ..color = const Color(0xFFFFD873);
-    canvas.drawPath(path, outer);
-
-    final innerPath = Path()
-      ..moveTo(24, 7)
-      ..lineTo(size.width - 24, 7)
-      ..lineTo(size.width - 9, size.height / 2)
-      ..lineTo(size.width - 24, size.height - 7)
-      ..lineTo(24, size.height - 7)
-      ..lineTo(9, size.height / 2)
-      ..close();
-    canvas.drawPath(
-      innerPath,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1
-        ..color = const Color(0x99FFF0BE),
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-/// Combined prep peek + campaign progress + primary CTA.
+/// Campaign progress and the primary journey action.
 class HubPlayPanel extends StatelessWidget {
-  const HubPlayPanel({
-    super.key,
-    required this.prepSlots,
-    required this.onShop,
-    required this.progressTitle,
-    required this.progressSubtitle,
-    required this.completed,
-    required this.total,
-    required this.onEnterCampaign,
-  });
-
-  final Widget prepSlots;
-  final VoidCallback onShop;
+  const HubPlayPanel(
+      {super.key,
+      required this.progressTitle,
+      required this.progressSubtitle,
+      required this.completed,
+      required this.total,
+      required this.onEnterCampaign,
+      required this.onWorldMap});
   final String progressTitle;
   final String progressSubtitle;
   final int completed;
   final int total;
   final VoidCallback onEnterCampaign;
-
+  final VoidCallback onWorldMap;
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-      decoration: BoxDecoration(
-        color: HubColors.panel,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: HubColors.frameMuted),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
+  Widget build(BuildContext context) => ChallengePanel(
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Text(
-                'Prep',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  color: MythDuskColors.parchment.withValues(alpha: 0.95),
-                ),
-              ),
-              const Spacer(),
-              GestureDetector(
-                onTap: onShop,
-                child: Text(
-                  'Shop',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: HubColors.glow.withValues(alpha: 0.95),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          prepSlots,
-          const SizedBox(height: 10),
           _HubProgressStrip(
-            title: progressTitle,
-            subtitle: progressSubtitle,
-            completed: completed,
-            total: total,
-          ),
-          const SizedBox(height: 10),
-          HubCampaignButton(onPressed: onEnterCampaign),
+              title: progressTitle,
+              subtitle: progressSubtitle,
+              completed: completed,
+              total: total),
+          const SizedBox(height: 8),
+          ChallengePlayButton(
+              enabled: true,
+              onPressed: onEnterCampaign,
+              label: 'Continue Journey'),
+          Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: onWorldMap,
+                icon: const Icon(Icons.map_outlined, size: 16),
+                label: Text('World Map', style: challengeTextStyle(12)),
+              )),
         ],
-      ),
-    );
-  }
+      ));
 }
 
 class _HubProgressStrip extends StatelessWidget {
@@ -499,11 +206,7 @@ class _HubProgressStrip extends StatelessWidget {
                     title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      color: MythDuskColors.parchment,
-                    ),
+                    style: challengeTextStyle(16, bold: true),
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -622,11 +325,12 @@ class _RetentionChip extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Ink(
-          padding: const EdgeInsets.symmetric(vertical: 9),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          height: 64,
           decoration: BoxDecoration(
             color: HubColors.panel,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: HubColors.frameMuted),
+            border: Border.all(color: HubColors.frameGold),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -646,10 +350,16 @@ class _RetentionChip extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                   ],
+                  if (label == 'Daily' || label == 'Weekly') ...[
+                    ChallengeArtIcon(label == 'Daily' ? 'spiral' : 'coin',
+                        size: 36),
+                    const SizedBox(width: 6),
+                  ],
                   Text(
                     label,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontFamily: 'DailySerif',
+                      fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: MythDuskColors.parchment.withValues(alpha: 0.9),
                     ),
@@ -747,7 +457,8 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = active ? HubColors.glow : MythDuskColors.muted;
-    return InkWell(
+    return Expanded(
+        child: InkWell(
       onTap: onTap,
       onLongPress: onLongPress,
       borderRadius: BorderRadius.circular(10),
@@ -781,6 +492,6 @@ class _NavItem extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ));
   }
 }

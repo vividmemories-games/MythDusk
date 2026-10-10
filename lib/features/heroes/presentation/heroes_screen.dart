@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/analytics_providers.dart';
 import '../../../core/analytics/gameplay_analytics.dart';
 import '../../../core/assets/game_assets.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../shared/widgets/myth_hub_shell.dart';
+import '../../../shared/widgets/challenge_art.dart';
 import '../../../core/widgets/cosmetic_hero_art.dart';
+import '../../../core/widgets/skill_art.dart';
 import '../../cosmetics/domain/cosmetic_catalog.dart';
 import '../../home/presentation/home_hub_widgets.dart';
 import '../../mastery/domain/mastery_catalog.dart';
@@ -73,33 +75,30 @@ class _HeroesScreenState extends ConsumerState<HeroesScreen> {
     final isSelected = profile.selectedHeroId == hero.id;
     final textTheme = Theme.of(context).textTheme;
 
-    return Scaffold(
-      backgroundColor: MythDuskColors.ink,
-      appBar: AppBar(
-        title: const Text('Heroes'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: Center(
-              child: HubResourceChip(
+    return MythHubShell(
+      title: 'Heroes',
+      subtitle: 'Choose your champion. Shape their power.',
+      resources: Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            HubResourceChip(
                 label: '${profile.coins}',
                 icon: Icons.monetization_on,
-                iconColor: MythDuskColors.amber,
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: ListView(
+                iconColor: MythDuskColors.amber),
+            HubResourceChip(
+                label: '${profile.gems}',
+                icon: Icons.diamond,
+                iconColor: const Color(0xFF5B9BD5))
+          ]),
+      child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
         children: [
           SizedBox(
-            height: 220,
-            child: PageView.builder(
+            height: 200,
+            child: HeroPedestal(
+                child: PageView.builder(
               controller: _pageController,
               itemCount: _heroes.length,
               onPageChanged: _onPageChanged,
@@ -113,6 +112,7 @@ class _HeroesScreenState extends ConsumerState<HeroesScreen> {
                     assetPath: GameAssets.hero(h.id),
                     profile: profile,
                     locked: !pageUnlocked,
+                    showPlate: false,
                     fit: BoxFit.contain,
                     errorBuilder: (_, __, ___) => const Icon(
                       Icons.person,
@@ -122,12 +122,13 @@ class _HeroesScreenState extends ConsumerState<HeroesScreen> {
                   ),
                 );
               },
-            ),
+            )),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
+                tooltip: 'Previous hero',
                 onPressed: _index > 0 ? () => _goTo(_index - 1) : null,
                 icon: const Icon(
                   Icons.chevron_left,
@@ -139,10 +140,11 @@ class _HeroesScreenState extends ConsumerState<HeroesScreen> {
                 child: Text(
                   viewed.name,
                   textAlign: TextAlign.center,
-                  style: textTheme.headlineMedium,
+                  style: challengeTextStyle(27, bold: true),
                 ),
               ),
               IconButton(
+                tooltip: 'Next hero',
                 onPressed: _index < _heroes.length - 1
                     ? () => _goTo(_index + 1)
                     : null,
@@ -181,18 +183,8 @@ class _HeroesScreenState extends ConsumerState<HeroesScreen> {
               ),
             ),
           ],
-          const SizedBox(height: 16),
-          Text('Cosmetics', style: textTheme.titleMedium),
-          Text(
-            unlocked
-                ? 'Overlays and titles are visual only — they do not change combat.'
-                : 'Unlock this hero to equip cosmetics.',
-            style: textTheme.bodyMedium?.copyWith(fontSize: 12),
-          ),
-          const SizedBox(height: 8),
-          _CosmeticsPanel(heroId: hero.id, canEdit: unlocked),
           const SizedBox(height: 20),
-          Text('Skills', style: textTheme.titleMedium),
+          Text('Skills', style: challengeTextStyle(18, bold: true)),
           Text(
             unlocked
                 ? 'Equip exactly two for battle. Tap an unequipped skill to swap it in.'
@@ -234,8 +226,18 @@ class _HeroesScreenState extends ConsumerState<HeroesScreen> {
               );
             },
           ),
+          const SizedBox(height: 16),
+          Text('Cosmetics', style: challengeTextStyle(18, bold: true)),
+          Text(
+            unlocked
+                ? 'Overlays and titles are visual only — they do not change combat.'
+                : 'Unlock this hero to equip cosmetics.',
+            style: textTheme.bodyMedium?.copyWith(fontSize: 12),
+          ),
+          const SizedBox(height: 8),
+          _CosmeticsPanel(heroId: hero.id, canEdit: unlocked),
           const SizedBox(height: 12),
-          Text('Mastery', style: textTheme.titleMedium),
+          Text('Mastery', style: challengeTextStyle(18, bold: true)),
           Text(
             unlocked
                 ? 'Long-term challenges unlock skill 4 and cosmetics.'
@@ -248,7 +250,7 @@ class _HeroesScreenState extends ConsumerState<HeroesScreen> {
             const SizedBox(height: 8),
           ],
           const SizedBox(height: 12),
-          Text('Personality', style: textTheme.titleMedium),
+          Text('Personality', style: challengeTextStyle(18, bold: true)),
           Text(
             unlocked
                 ? 'Train ${viewed.name} only — upgrades do not transfer between heroes.'
@@ -315,14 +317,20 @@ class _SkillCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: Opacity(
+                      opacity: locked ? .45 : 1,
+                      child: SkillArt(skill: skill, size: 48))),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       skill.name,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
+                      style: challengeTextStyle(
+                        14,
+                        bold: true,
                         color: locked
                             ? MythDuskColors.muted
                             : MythDuskColors.parchment,
@@ -355,14 +363,17 @@ class _SkillCard extends StatelessWidget {
               else if (canEdit)
                 Padding(
                   padding: const EdgeInsets.only(left: 8, top: 2),
-                  child: Text(
-                    equipped ? 'Equipped' : 'Tap to equip',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: equipped ? HubColors.glow : MythDuskColors.muted,
-                    ),
-                  ),
+                  child: SizedBox(
+                      width: 65,
+                      child: Text(
+                        equipped ? 'Equipped' : 'Equip',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color:
+                              equipped ? HubColors.glow : MythDuskColors.muted,
+                        ),
+                      )),
                 ),
             ],
           ),
@@ -435,15 +446,8 @@ class _CosmeticRow extends ConsumerWidget {
       CosmeticSlot.frame => profile.equippedFrameId == def.id,
     };
 
-    return Container(
+    return RelicPanel(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: HubColors.panel,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: HubColors.frameGold.withValues(alpha: 0.4),
-        ),
-      ),
       child: Row(
         children: [
           Expanded(
@@ -517,22 +521,16 @@ class _MasteryRow extends ConsumerWidget {
     final claimed = profile.isMasteryClaimed(def.id);
     final met = current >= def.target;
     final rewardLabel = switch (def.rewardType) {
-      MasteryRewardType.unlockSkill => 'Unlock ${def.rewardSkillId}',
+      MasteryRewardType.unlockSkill =>
+        'Unlock ${HeroCatalog.byId(heroId).skills.firstWhere((s) => s.id == def.rewardSkillId).name}',
       MasteryRewardType.cosmeticTitle =>
         CosmeticCatalog.byId(def.rewardCosmeticId ?? '')?.name ?? 'Title',
       MasteryRewardType.cosmeticFrame =>
         CosmeticCatalog.byId(def.rewardCosmeticId ?? '')?.name ?? 'Frame',
     };
 
-    return Container(
+    return RelicPanel(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: HubColors.panel,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: HubColors.frameGold.withValues(alpha: 0.4),
-        ),
-      ),
       child: Row(
         children: [
           Expanded(
@@ -611,13 +609,8 @@ class _UpgradeRow extends ConsumerWidget {
     final pct = ((mult - 1) * 100).round();
     final canBuy = canEdit && cost > 0 && profile.coins >= cost;
 
-    return Container(
+    return RelicPanel(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: HubColors.panel,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: HubColors.frameGold.withValues(alpha: 0.4)),
-      ),
       child: Row(
         children: [
           Expanded(

@@ -77,20 +77,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Enter Campaign'));
-    await tester.pumpAndSettle();
-    expect(find.byType(ChapterSelectScreen), findsOneWidget);
-
-    await tester.tap(find.text('Twilight Road'));
-    await _pumpUntilFound(tester, find.text('1. Goblin Path'));
-    expect(find.byType(CampaignScreen), findsOneWidget);
-
-    await tester.tap(find.text('1. Goblin Path'));
+    await tester.tap(find.text('Continue Journey'));
     await tester.pumpAndSettle();
     expect(find.byType(BriefingScreen), findsOneWidget);
-    expect(find.text('Goblin Path'), findsOneWidget);
+    expect(find.text('Goblin Path'), findsNothing);
+    expect(find.text('Goblin Scout'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Battle'));
+    await tester.tap(find.widgetWithText(TextButton, 'Battle'));
     await tester.pumpAndSettle();
     expect(find.text('Complete test battle'), findsOneWidget);
 
@@ -100,12 +93,4 @@ void main() {
     expect(find.textContaining('Goblin Scout'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
-}
-
-Future<void> _pumpUntilFound(WidgetTester tester, Finder finder) async {
-  for (var i = 0; i < 30; i++) {
-    await tester.pump(const Duration(milliseconds: 100));
-    if (finder.evaluate().isNotEmpty) return;
-  }
-  throw TestFailure('Timed out waiting for the campaign node');
 }

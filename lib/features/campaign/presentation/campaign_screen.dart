@@ -125,31 +125,30 @@ class _CampaignScreenState extends ConsumerState<CampaignScreen> {
                           : null,
                       child: mapLayer,
                     ),
-                  _MapHeader(
-                    chapter: chapter,
-                    act: act,
-                    acts: chapter.acts,
-                    completed: profile.completedNodeIds,
-                    editMode: editMode,
-                    onToggleEdit: AppFlavor.showQaTools
-                        ? () {
-                            ref.read(pinEditModeProvider.notifier).state =
-                                !editMode;
-                          }
-                        : null,
-                    onExportPins: () => _exportPins(context, chapter, act),
-                    onExportAllPins: () => _exportAllPins(context),
-                    onClearActPins: () => _clearActPins(chapter, act),
-                    onClearAllPins: _clearAllPins,
-                    onSelectAct: (id) {
-                      final next = chapter.actById(id);
-                      if (!editMode &&
-                          !chapter.isActUnlocked(
-                              next, profile.completedNodeIds)) {
-                        return;
-                      }
-                      setState(() => _selectedActId = id);
-                    },
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: _MapHeader(
+                      chapter: chapter,
+                      act: act,
+                      acts: chapter.acts,
+                      completed: profile.completedNodeIds,
+                      editMode: editMode,
+                      onExportPins: () => _exportPins(context, chapter, act),
+                      onExportAllPins: () => _exportAllPins(context),
+                      onClearActPins: () => _clearActPins(chapter, act),
+                      onClearAllPins: _clearAllPins,
+                      onSelectAct: (id) {
+                        final next = chapter.actById(id);
+                        if (!editMode &&
+                            !chapter.isActUnlocked(
+                                next, profile.completedNodeIds)) {
+                          return;
+                        }
+                        setState(() => _selectedActId = id);
+                      },
+                    ),
                   ),
                   if (editMode)
                     Positioned(
@@ -361,6 +360,15 @@ class _CampaignScreenState extends ConsumerState<CampaignScreen> {
   }
 }
 
+void _leaveCampaign(BuildContext context) {
+  final router = GoRouter.of(context);
+  if (router.canPop()) {
+    router.pop();
+  } else {
+    router.go('/chapters');
+  }
+}
+
 class _MapHeader extends StatelessWidget {
   const _MapHeader({
     required this.chapter,
@@ -369,7 +377,6 @@ class _MapHeader extends StatelessWidget {
     required this.completed,
     required this.onSelectAct,
     required this.editMode,
-    required this.onToggleEdit,
     required this.onExportPins,
     required this.onExportAllPins,
     required this.onClearActPins,
@@ -382,7 +389,6 @@ class _MapHeader extends StatelessWidget {
   final Set<String> completed;
   final ValueChanged<String> onSelectAct;
   final bool editMode;
-  final VoidCallback? onToggleEdit;
   final VoidCallback onExportPins;
   final VoidCallback onExportAllPins;
   final VoidCallback onClearActPins;
@@ -394,6 +400,7 @@ class _MapHeader extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -406,14 +413,17 @@ class _MapHeader extends StatelessWidget {
                   ),
                   child: InkWell(
                     customBorder: const CircleBorder(),
-                    onTap: () => context.pop(),
-                    child: const SizedBox(
-                      width: 38,
-                      height: 38,
-                      child: Icon(
-                        Icons.arrow_back,
-                        size: 20,
-                        color: MythDuskColors.parchment,
+                    onTap: () => _leaveCampaign(context),
+                    child: const Tooltip(
+                      message: 'Back to chapters',
+                      child: SizedBox(
+                        width: 48,
+                        height: 48,
+                        child: Icon(
+                          Icons.arrow_back,
+                          size: 20,
+                          color: MythDuskColors.parchment,
+                        ),
                       ),
                     ),
                   ),
@@ -440,36 +450,8 @@ class _MapHeader extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                if (onToggleEdit != null)
-                  Material(
-                    color: editMode
-                        ? MythDuskColors.amber.withValues(alpha: 0.35)
-                        : MythDuskColors.ink.withValues(alpha: 0.55),
-                    shape: CircleBorder(
-                      side: BorderSide(
-                        color: editMode
-                            ? MythDuskColors.amber
-                            : Colors.white.withValues(alpha: 0.12),
-                      ),
-                    ),
-                    child: InkWell(
-                      customBorder: const CircleBorder(),
-                      onTap: onToggleEdit,
-                      child: SizedBox(
-                        width: 38,
-                        height: 38,
-                        child: Icon(
-                          Icons.open_with,
-                          size: 18,
-                          color: editMode
-                              ? MythDuskColors.amber
-                              : MythDuskColors.parchment,
-                        ),
-                      ),
-                    ),
-                  ),
                 if (editMode) ...[
+                  const SizedBox(width: 8),
                   const SizedBox(width: 6),
                   Material(
                     color: MythDuskColors.ink.withValues(alpha: 0.55),

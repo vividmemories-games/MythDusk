@@ -98,13 +98,13 @@ void main() {
 
     expect(find.text('PATH RANK'), findsOneWidget);
     expect(find.text('Bronze I'), findsOneWidget);
-    expect(find.text('Prep'), findsOneWidget);
-    expect(find.text('Enter Campaign'), findsOneWidget);
+    expect(find.text('Prep'), findsNothing);
+    expect(find.text('Continue Journey'), findsOneWidget);
     expect(find.text('Daily'), findsOneWidget);
     expect(find.text('Weekly'), findsOneWidget);
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Heroes'), findsOneWidget);
-    expect(find.text('Shop'), findsAtLeastNWidgets(2));
+    expect(find.text('Shop'), findsOneWidget);
     expect(find.text('1v1'), findsOneWidget);
     expect(find.text('More'), findsOneWidget);
     expect(find.text('Act I · Twilight Road'), findsOneWidget);
@@ -183,7 +183,7 @@ void main() {
     await pumpHome(tester, size: const Size(360, 640));
 
     expect(find.text('PATH RANK'), findsOneWidget);
-    expect(find.text('Enter Campaign'), findsOneWidget);
+    expect(find.text('Continue Journey'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

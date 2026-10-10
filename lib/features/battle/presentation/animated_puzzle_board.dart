@@ -7,6 +7,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../puzzle/domain/board_cell.dart';
 import '../../puzzle/domain/tile_color.dart';
 import '../domain/battle_state.dart';
+import 'board_overlay_art.dart';
 import 'match_collect_fx.dart';
 
 /// Flat match-3 board, bottom-anchored above the skill dock.
@@ -140,7 +141,6 @@ class _BoardSurface extends StatelessWidget {
                     color: board.at(row, col).color,
                     special: board.at(row, col).special,
                     overlayId: board.at(row, col).overlayId,
-                    suppressesResources: board.at(row, col).suppressesResources,
                     cellW: cellW,
                     cellH: cellH,
                     gap: gap,
@@ -189,14 +189,9 @@ class _BoardSlotBackdrop extends StatelessWidget {
   Widget build(BuildContext context) {
     final left = col * (cellW + gap);
     final top = row * (cellH + gap);
-    Color? fill;
-    if (cell.masked) {
-      fill = MythDuskColors.ink.withValues(alpha: 0.55);
-    } else if (cell.isSolidObstacle) {
-      fill = const Color(0xFF5A6A72);
-    } else {
-      fill = MythDuskColors.deepTeal.withValues(alpha: 0.25);
-    }
+    final fill = cell.masked
+        ? MythDuskColors.ink.withValues(alpha: 0.55)
+        : MythDuskColors.deepTeal.withValues(alpha: 0.25);
     return Positioned(
       left: left,
       top: top,
@@ -206,16 +201,17 @@ class _BoardSlotBackdrop extends StatelessWidget {
         decoration: BoxDecoration(
           color: fill,
           borderRadius: BorderRadius.circular(cellW * 0.22),
-          border: cell.isSolidObstacle
-              ? Border.all(color: MythDuskColors.mist.withValues(alpha: 0.7))
-              : null,
         ),
         child: cell.isSolidObstacle
-            ? Center(
-                child: Icon(
-                  Icons.terrain,
-                  size: cellW * 0.4,
-                  color: MythDuskColors.parchment.withValues(alpha: 0.7),
+            ? Padding(
+                padding: EdgeInsets.all(cellW * 0.04),
+                child: Image.asset(
+                  GameAssets.overlayRock,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Icon(
+                    Icons.terrain,
+                    color: MythDuskColors.parchment,
+                  ),
                 ),
               )
             : null,
@@ -444,7 +440,6 @@ class _BoardTile extends StatefulWidget {
     required this.color,
     required this.special,
     required this.overlayId,
-    required this.suppressesResources,
     required this.cellW,
     required this.cellH,
     required this.gap,
@@ -468,7 +463,6 @@ class _BoardTile extends StatefulWidget {
   final TileColor? color;
   final TileSpecial special;
   final String? overlayId;
-  final bool suppressesResources;
   final double cellW;
   final double cellH;
   final double gap;
@@ -653,39 +647,9 @@ class _BoardTileState extends State<_BoardTile> {
                     if (widget.overlayId != null)
                       Positioned.fill(
                         child: IgnorePointer(
-                          child: AnimatedOpacity(
-                            opacity: 1,
-                            duration: const Duration(milliseconds: 200),
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: widget.suppressesResources
-                                      ? const Color(0xFF9B59B6)
-                                      : const Color(0xFF3D9B6E),
-                                  width: widget.hazardPulse ? 3.5 : 2.5,
-                                ),
-                                color: (widget.suppressesResources
-                                        ? const Color(0xFF9B59B6)
-                                        : const Color(0xFF3D9B6E))
-                                    .withValues(
-                                  alpha: widget.hazardPulse ? 0.4 : 0.22,
-                                ),
-                              ),
-                              child: Align(
-                                alignment: Alignment.topRight,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(2),
-                                  child: Icon(
-                                    widget.suppressesResources
-                                        ? Icons.science
-                                        : Icons.grass,
-                                    size: widget.cellW * 0.28,
-                                    color: MythDuskColors.parchment,
-                                  ),
-                                ),
-                              ),
-                            ),
+                          child: BoardOverlayArt(
+                            overlayId: widget.overlayId!,
+                            emphasize: widget.hazardPulse,
                           ),
                         ),
                       ),

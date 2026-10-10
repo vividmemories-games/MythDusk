@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/assets/game_assets.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../shared/widgets/challenge_art.dart';
+import '../../../shared/widgets/relic_frame.dart';
 import '../../profile/providers/mock_profile_provider.dart';
 import '../data/campaign_repository.dart';
 import '../data/chapter_medal_catalog.dart';
 import '../domain/chapter_medal.dart';
 
-/// Pick a campaign chapter, then open its act map.
+/// Illustrated realm browser; quick continuation lives on Home.
 class ChapterSelectScreen extends ConsumerWidget {
   const ChapterSelectScreen({super.key});
 
@@ -17,143 +20,223 @@ class ChapterSelectScreen extends ConsumerWidget {
     final indexAsync = ref.watch(campaignIndexProvider);
     final selectedId = ref.watch(selectedCampaignChapterIdProvider);
     final profile = ref.watch(profileProvider);
-    final completed = profile.completedNodeIds;
-    final textTheme = Theme.of(context).textTheme;
-
+    final chapterAsync = ref.watch(campaignChapterProvider);
     return Scaffold(
       backgroundColor: MythDuskColors.ink,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        title: const Text('Campaign'),
-      ),
-      body: indexAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Failed to load chapters: $e')),
-        data: (index) {
-          return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-            itemCount: index.chapters.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (context, i) {
-              final entry = index.chapters[i];
-              final unlocked = entry.isUnlocked(completed);
-              final selected = entry.id == selectedId;
-              final medals = ChapterMedalCatalog.forChapter(entry.id);
-              final claimedCount = medals
+      body: Stack(children: [
+        Positioned.fill(
+            child: Image.asset(GameAssets.homeBackground, fit: BoxFit.cover)),
+        const Positioned.fill(child: ColoredBox(color: Color(0xCC07151C))),
+        SafeArea(
+            child: Column(children: [
+          Padding(
+              padding: const EdgeInsets.fromLTRB(8, 8, 16, 4),
+              child: Row(children: [
+                IconButton(
+                    tooltip: 'Back to home',
+                    icon: const Icon(Icons.chevron_left,
+                        color: MythDuskColors.softGold),
+                    onPressed: () {
+                      final router = GoRouter.of(context);
+                      if (router.canPop()) {
+                        router.pop();
+                      } else {
+                        router.go('/');
+                      }
+                    }),
+                Expanded(
+                    child: Text('Realms of MythDusk',
+                        textAlign: TextAlign.center,
+                        style: challengeTextStyle(21, bold: true))),
+              ])),
+          const ChallengeDivider(),
+          Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text('Choose a path through the dusk',
+                  style: challengeTextStyle(12))),
+          Expanded(
+              child: indexAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (_, __) => const Center(
+                child: Text('Could not load realms. Please try again.')),
+            data: (index) {
+              final selected = index.tryById(selectedId);
+              final current = selected != null &&
+                      selected.isUnlocked(profile.completedNodeIds)
+                  ? selected
+                  : index.first;
+              final medals = ChapterMedalCatalog.forChapter(current.id);
+              final claimed = medals
                   .where((m) => profile.isChapterMedalClaimed(m.id))
                   .length;
+              final chapter = chapterAsync.asData?.value;
+              final matches = chapter?.id == current.id;
+              final done = matches
+                  ? chapter!.nodes
+                      .where((n) => profile.completedNodeIds.contains(n.id))
+                      .length
+                  : 0;
+              final total = matches ? chapter!.nodes.length : 0;
+              void explore(CampaignIndexEntry entry) {
+                ref.read(selectedCampaignChapterIdProvider.notifier).state =
+                    entry.id;
+                context.push('/campaign');
+              }
 
-              return Material(
-                color: selected
-                    ? MythDuskColors.deepTeal
-                    : MythDuskColors.deepTeal.withValues(alpha: 0.55),
-                borderRadius: BorderRadius.circular(14),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(14),
-                  onTap: unlocked
-                      ? () {
-                          ref
-                              .read(selectedCampaignChapterIdProvider.notifier)
-                              .state = entry.id;
-                          context.push('/campaign');
-                        }
-                      : null,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            CircleAvatar(
-                              backgroundColor: unlocked
-                                  ? MythDuskColors.amber.withValues(alpha: 0.25)
-                                  : MythDuskColors.mist.withValues(alpha: 0.2),
-                              child: Text(
-                                '${entry.order}',
-                                style: textTheme.titleMedium?.copyWith(
-                                  color: unlocked
-                                      ? MythDuskColors.amber
-                                      : MythDuskColors.muted,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    entry.title,
-                                    style: textTheme.titleMedium?.copyWith(
-                                      color: unlocked
-                                          ? MythDuskColors.parchment
-                                          : MythDuskColors.muted,
-                                    ),
-                                  ),
-                                  if (entry.subtitle.isNotEmpty)
-                                    Text(
-                                      entry.subtitle,
-                                      style: textTheme.bodyMedium?.copyWith(
-                                        fontSize: 12,
-                                        color:
-                                            MythDuskColors.softGold.withValues(
-                                          alpha: unlocked ? 1 : 0.5,
-                                        ),
-                                      ),
-                                    ),
-                                  if (!unlocked)
-                                    Text(
-                                      'Clear the previous chapter finale',
-                                      style: textTheme.bodyMedium?.copyWith(
-                                        fontSize: 11,
-                                        color: MythDuskColors.muted,
-                                      ),
-                                    )
-                                  else if (medals.isNotEmpty)
-                                    Text(
-                                      'Medals $claimedCount/${medals.length}',
-                                      style: textTheme.bodyMedium?.copyWith(
-                                        fontSize: 11,
-                                        color: MythDuskColors.softGold,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                            Icon(
-                              unlocked
-                                  ? (selected
-                                      ? Icons.play_arrow_rounded
-                                      : Icons.chevron_right)
-                                  : Icons.lock_outline,
-                              color: unlocked
-                                  ? MythDuskColors.amber
-                                  : MythDuskColors.muted,
-                            ),
-                          ],
-                        ),
-                        if (unlocked && selected && medals.isNotEmpty) ...[
-                          const SizedBox(height: 10),
-                          _SelectedChapterMedals(
-                            chapterId: entry.id,
-                            medals: medals,
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-              );
+              return ListView(
+                  padding: const EdgeInsets.fromLTRB(14, 4, 14, 24),
+                  children: [
+                    _RealmCard(
+                        entry: current,
+                        featured: true,
+                        unlocked: true,
+                        detail: matches
+                            ? '${chapter!.currentAct(profile.completedNodeIds).title} · $done / $total cleared'
+                            : current.subtitle,
+                        progress: total == 0 ? null : done / total,
+                        onTap: () => explore(current)),
+                    if (medals.isNotEmpty)
+                      Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: ChallengePanel(
+                              child: ExpansionTile(
+                                  tilePadding: EdgeInsets.zero,
+                                  childrenPadding: EdgeInsets.zero,
+                                  iconColor: MythDuskColors.softGold,
+                                  collapsedIconColor: MythDuskColors.softGold,
+                                  title: Text('Chapter Medals',
+                                      style:
+                                          challengeTextStyle(16, bold: true)),
+                                  subtitle: Text(
+                                      '$claimed / ${medals.length} claimed',
+                                      style: challengeTextStyle(12)),
+                                  children: [
+                                _SelectedChapterMedals(
+                                    chapterId: current.id, medals: medals)
+                              ]))),
+                    Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Text('Beyond the Twilight',
+                            style: challengeTextStyle(17, bold: true))),
+                    for (var i = 0; i < index.chapters.length; i++)
+                      if (index.chapters[i].id != current.id)
+                        Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: _RealmCard(
+                                entry: index.chapters[i],
+                                featured: false,
+                                unlocked: index.chapters[i]
+                                    .isUnlocked(profile.completedNodeIds),
+                                detail: index.chapters[i]
+                                        .isUnlocked(profile.completedNodeIds)
+                                    ? index.chapters[i].subtitle
+                                    : 'Clear ${i > 0 ? index.chapters[i - 1].title : 'the previous realm'} to unlock',
+                                onTap: () => explore(index.chapters[i]))),
+                  ]);
             },
-          );
-        },
-      ),
+          )),
+        ])),
+      ]),
     );
   }
+}
+
+class _RealmCard extends StatelessWidget {
+  const _RealmCard(
+      {required this.entry,
+      required this.featured,
+      required this.unlocked,
+      required this.detail,
+      required this.onTap,
+      this.progress});
+  final CampaignIndexEntry entry;
+  final bool featured, unlocked;
+  final String detail;
+  final VoidCallback onTap;
+  final double? progress;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+      button: true,
+      enabled: unlocked,
+      child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+              onTap: unlocked ? onTap : null,
+              child: Stack(children: [
+                Positioned.fill(
+                    child: Image.asset(
+                        GameAssets.battleBackground(entry.asset
+                            .split('/')
+                            .last
+                            .replaceAll('.json', '')),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            const ColoredBox(color: MythDuskColors.deepTeal))),
+                Positioned.fill(
+                    child: DecoratedBox(
+                        decoration: BoxDecoration(
+                            gradient: LinearGradient(colors: [
+                  Color(unlocked ? 0xE607151C : 0xEE07151C),
+                  const Color(0x6607151C)
+                ])))),
+                Padding(
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (featured) ...[
+                            Text('CURRENT REALM',
+                                style: challengeTextStyle(10,
+                                    color: MythDuskColors.softGold)),
+                            const SizedBox(height: 8)
+                          ],
+                          Text(entry.title,
+                              style: challengeTextStyle(featured ? 25 : 19,
+                                  bold: true,
+                                  color: unlocked
+                                      ? MythDuskColors.parchment
+                                      : MythDuskColors.muted)),
+                          const SizedBox(height: 8),
+                          Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (!unlocked) ...[
+                                  const Icon(Icons.lock_outline,
+                                      size: 16, color: MythDuskColors.muted),
+                                  const SizedBox(width: 6)
+                                ],
+                                Expanded(
+                                    child: Text(detail,
+                                        style: challengeTextStyle(12,
+                                            color: unlocked
+                                                ? MythDuskColors.parchment
+                                                : MythDuskColors.muted))),
+                              ]),
+                          if (featured) ...[
+                            const SizedBox(height: 10),
+                            if (progress != null)
+                              Row(children: [
+                                Expanded(
+                                    child: LinearProgressIndicator(
+                                        value: progress!.clamp(0, 1),
+                                        color: const Color(0xFF3ECFCB),
+                                        backgroundColor:
+                                            MythDuskColors.deepTeal)),
+                                const SizedBox(width: 10),
+                                Text('${(progress! * 100).round()}%',
+                                    style: challengeTextStyle(12))
+                              ]),
+                            const SizedBox(height: 32),
+                            ChallengePlayButton(
+                                enabled: unlocked,
+                                onPressed: onTap,
+                                label: 'Explore Realm'),
+                          ] else
+                            const SizedBox(height: 18),
+                        ])),
+                const Positioned.fill(child: RelicFrame()),
+              ]))));
 }
 
 class _SelectedChapterMedals extends ConsumerWidget {

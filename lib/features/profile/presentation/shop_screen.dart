@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/analytics_providers.dart';
 import '../../../core/analytics/gameplay_analytics.dart';
 import '../../../core/config/app_flavor.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../shared/widgets/myth_hub_shell.dart';
+import '../../../shared/widgets/challenge_art.dart';
 import '../../home/presentation/home_hub_widgets.dart';
 import '../../prep/domain/prep_item.dart';
 import '../../heroes/domain/hero_unlocks.dart';
@@ -25,46 +26,46 @@ class ShopScreen extends ConsumerWidget {
     final profile = ref.watch(profileProvider);
     final textTheme = Theme.of(context).textTheme;
 
-    return Scaffold(
-      backgroundColor: MythDuskColors.ink,
-      appBar: AppBar(
-        title: const Text('Shop'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: Center(
-              child: HubResourceChip(
+    return MythHubShell(
+      title: 'Shop',
+      subtitle: 'Supplies for the road ahead.',
+      resources: Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            HubResourceChip(
                 label: '${profile.coins}',
                 icon: Icons.monetization_on,
-                iconColor: MythDuskColors.amber,
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: ListView(
+                iconColor: MythDuskColors.amber),
+            HubResourceChip(
+                label: '${profile.gems}',
+                icon: Icons.diamond,
+                iconColor: const Color(0xFF5B9BD5))
+          ]),
+      child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
         children: [
-          Text(
-            'Prep for the next fight. Prices in coins.',
-            style: textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 16),
-          const _StarterPackCard(),
-          const SizedBox(height: 16),
-          const _ValuePackCard(),
-          const SizedBox(height: 16),
-          const _BundlesCard(),
-          const SizedBox(height: 16),
-          const _BattlePassCard(),
-          const SizedBox(height: 16),
+          Text('Battle supplies', style: challengeTextStyle(18, bold: true)),
+          const SizedBox(height: 4),
+          Text('Optional aids · prices in coins', style: textTheme.bodyMedium),
+          const SizedBox(height: 12),
           for (final id in PrepItemId.values) ...[
             _ShopRow(id: id),
             const SizedBox(height: 10),
+          ],
+          const SizedBox(height: 12),
+          Text('Offers', style: challengeTextStyle(18, bold: true)),
+          const SizedBox(height: 8),
+          const _StarterPackCard(),
+          const SizedBox(height: 10),
+          const _ValuePackCard(),
+          const SizedBox(height: 10),
+          const _BundlesCard(),
+          if (RemoteConfigKeys.defaults[RemoteConfigKeys.battlePassEnabled] ==
+              true) ...[
+            const SizedBox(height: 10),
+            const _BattlePassCard(),
           ],
         ],
       ),
@@ -84,13 +85,8 @@ class _ShopRow extends ConsumerWidget {
     final canBuy = profile.coins >= cost;
     final owned = profile.prepCount(id);
 
-    return Container(
+    return RelicPanel(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: HubColors.panel,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: HubColors.frameGold.withValues(alpha: 0.4)),
-      ),
       child: Row(
         children: [
           SizedBox(
@@ -110,10 +106,7 @@ class _ShopRow extends ConsumerWidget {
               children: [
                 Text(
                   id.displayName,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: MythDuskColors.parchment,
-                  ),
+                  style: challengeTextStyle(14, bold: true),
                 ),
                 Text(
                   '${id.blurb} · owned ×$owned',
@@ -144,7 +137,14 @@ class _ShopRow extends ConsumerWidget {
                     );
                   }
                 : null,
-            child: Text('$cost'),
+            child: Semantics(
+                label: 'Buy ${id.displayName} for $cost coins',
+                child: ExcludeSemantics(
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  const Icon(Icons.monetization_on, size: 16),
+                  const SizedBox(width: 4),
+                  Text('$cost'),
+                ]))),
           ),
         ],
       ),
@@ -161,13 +161,8 @@ class _StarterPackCard extends ConsumerWidget {
     final claimed = profile.hasClaimedStarterPack();
     final canClaim = AppFlavor.showQaTools && !claimed;
 
-    return Container(
+    return RelicPanel(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: HubColors.panel,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: HubColors.frameGold.withValues(alpha: 0.55)),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -185,7 +180,7 @@ class _StarterPackCard extends ConsumerWidget {
                 : '+${StarterPackBalance.coins} coins, '
                     '+${StarterPackBalance.gems} gems, Dusk Sash overlay. '
                     'Visuals and currency only. '
-                    'Future SKU: ${IapCatalog.starterPack.id}.',
+                    'Available when the store opens.',
             style:
                 Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12),
           ),
@@ -231,13 +226,8 @@ class _ValuePackCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final claimed =
         ref.watch(profileProvider).hasClaimedStarterPack('value_pack_30d');
-    return Container(
+    return RelicPanel(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: HubColors.panel,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: HubColors.frameGold.withValues(alpha: 0.4)),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -253,7 +243,7 @@ class _ValuePackCard extends ConsumerWidget {
             '+${IapGrantTable.value30DayUpfrontGems} gems up front, then '
             '${IapGrantTable.value30DayDailyGems}/day for '
             '${IapGrantTable.value30DayLengthDays} days. Manual repurchase. '
-            'SKU ${IapCatalog.value30Day.id}.',
+            'Available when the store opens.',
             style:
                 Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12),
           ),
@@ -300,13 +290,8 @@ class _BundlesCard extends ConsumerWidget {
           if (HeroUnlocks.isUnlocked(id, profile.completedNodeIds.length)) id,
       },
     );
-    return Container(
+    return RelicPanel(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: HubColors.panel,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: HubColors.frameGold.withValues(alpha: 0.4)),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -320,8 +305,7 @@ class _BundlesCard extends ConsumerWidget {
           const SizedBox(height: 4),
           Text(
             bundles.isEmpty
-                ? 'Unlocks after a chapter celebration or extra hero — never '
-                    'as a difficulty-spike paywall.'
+                ? 'New offers appear as you explore realms and unlock heroes.'
                 : bundles.map((b) => b.title).join(' · '),
             style:
                 Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12),
@@ -339,13 +323,8 @@ class _BattlePassCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final enabled =
         RemoteConfigKeys.defaults[RemoteConfigKeys.battlePassEnabled] as bool;
-    return Container(
+    return RelicPanel(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: HubColors.panel,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: HubColors.frameGold.withValues(alpha: 0.4)),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

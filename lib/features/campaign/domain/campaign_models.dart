@@ -237,6 +237,19 @@ class CampaignChapter {
     return null;
   }
 
+  /// First unfinished node that respects both act and node unlock gates.
+  CampaignNode? nextPlayableNode(Set<String> completed) {
+    for (final act in acts) {
+      if (!isActUnlocked(act, completed)) continue;
+      for (final node in act.nodes) {
+        if (!completed.contains(node.id) && isUnlocked(node.id, completed)) {
+          return node;
+        }
+      }
+    }
+    return null;
+  }
+
   bool isUnlocked(String nodeId, Set<String> completedNodeIds) {
     final node = nodeById(nodeId);
     if (node.order == 0) return true;

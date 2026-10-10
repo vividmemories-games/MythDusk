@@ -3,8 +3,10 @@ import '../../features/puzzle/domain/tile_color.dart';
 
 /// Central asset paths for presentation wiring.
 abstract final class GameAssets {
-  static const homeBackground =
-      'assets/images/backgrounds/bg_home_mythspire_night.webp';
+  static const homeBackground = 'assets/images/home/courtyard.webp';
+  static const homeDais = 'assets/images/home/dais.webp';
+  static const arenaBackground = 'assets/images/home/arena.webp';
+
   static const homeBackgroundFallback =
       'assets/images/backgrounds/bg_home_dusk.webp';
   static const battleTwilightRoad =
@@ -52,6 +54,9 @@ abstract final class GameAssets {
       };
 
   static String hero(String heroId) => 'assets/heroes/hero_$heroId.webp';
+
+  /// Glossy stone blocker. Stands in for the old terrain icon on rock cells.
+  static const overlayRock = 'assets/images/tiles/overlay_rock.png';
 
   static String tile(TileColor color) => switch (color) {
         TileColor.red => 'assets/images/tiles/tile_red.png',

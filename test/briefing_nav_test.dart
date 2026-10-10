@@ -6,6 +6,9 @@ import 'package:mythdusk/core/router/app_router.dart';
 import 'package:mythdusk/features/campaign/data/campaign_repository.dart';
 import 'package:mythdusk/features/campaign/domain/campaign_models.dart';
 import 'package:mythdusk/features/campaign/presentation/briefing_screen.dart';
+import 'package:mythdusk/features/campaign/presentation/campaign_screen.dart';
+import 'package:mythdusk/features/campaign/presentation/chapter_select_screen.dart';
+import 'package:mythdusk/features/puzzle/domain/level_board_config.dart';
 import 'package:mythdusk/features/profile/providers/mock_profile_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -73,7 +76,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('First Steps'), findsOneWidget);
+    expect(find.text('First Steps'), findsNothing);
+    expect(find.text('Goblin Scout'), findsOneWidget);
     expect(find.text('Battle'), findsOneWidget);
 
     await tester.ensureVisible(find.text('Battle'));
@@ -165,11 +169,93 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('First Steps'), findsOneWidget);
-    expect(find.widgetWithText(FilledButton, 'Battle'), findsOneWidget);
+    expect(find.text('First Steps'), findsNothing);
+    expect(find.text('Goblin Scout'), findsOneWidget);
+    expect(find.widgetWithText(TextButton, 'Battle'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
     semantics.dispose();
+  });
+
+  test('vine corners describe the corner binders', () {
+    const cfg = LevelBoardConfig(templateId: 'board_vine_corners_01');
+    final brief = boardBriefFor(cfg);
+    expect(brief.title, 'Vine corners');
+    expect(brief.detail, contains('corners'));
+  });
+
+  testWidgets('campaign back returns to chapters when nothing is underneath',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final chapter = _stubChapter();
+    final router = GoRouter(
+      initialLocation: '/campaign',
+      routes: [
+        GoRoute(
+          path: '/campaign',
+          builder: (_, __) => const CampaignScreen(),
+        ),
+        GoRoute(
+          path: '/chapters',
+          builder: (_, __) => const Scaffold(body: Text('chapters')),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          campaignChapterProvider.overrideWith((ref) async => chapter),
+        ],
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+    final back = find.byTooltip('Back to chapters');
+    for (var i = 0; i < 30 && back.evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(back, findsOneWidget);
+
+    await tester.tap(back);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('chapters'), findsOneWidget);
+  });
+
+  testWidgets('chapter select back returns home when nothing is underneath',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final router = GoRouter(
+      initialLocation: '/chapters',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, __) => const Scaffold(body: Text('home')),
+        ),
+        GoRoute(
+          path: '/chapters',
+          builder: (_, __) => const ChapterSelectScreen(),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Back to home'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('home'), findsOneWidget);
   });
 
   test('app router includes /briefing/:nodeId', () async {

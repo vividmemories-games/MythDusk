@@ -41,6 +41,10 @@ flutter_launcher_icons:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: DailySerif
+      fonts:
+        - asset: assets/fonts/LibreBaskerville.ttf
   assets:
     - assets/levels/
     - assets/boards/
@@ -49,6 +53,8 @@ flutter:
     - assets/images/tiles/
     - assets/images/skills/
     - assets/images/icons/
+    - assets/images/daily/
+    - assets/images/home/
     - assets/images/ui/
     - assets/images/vfx/
     - assets/images/prep/

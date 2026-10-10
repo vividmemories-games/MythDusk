@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/assets/game_assets.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../shared/widgets/myth_hub_shell.dart';
+import '../../../shared/widgets/challenge_art.dart';
 import '../../../core/widgets/cosmetic_hero_art.dart';
 import '../../cosmetics/domain/cosmetic_catalog.dart';
 import '../../home/presentation/home_hub_widgets.dart';
@@ -27,22 +29,17 @@ class ProfileScreen extends ConsumerWidget {
     final livesDetail =
         nextLife == null ? 'Full' : 'Next in ${_formatRegen(nextLife)}';
 
-    return Scaffold(
-      backgroundColor: MythDuskColors.ink,
-      appBar: AppBar(
-        title: const Text('Profile'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-      ),
-      body: ListView(
+    return MythHubShell(
+      title: 'Profile',
+      subtitle: 'Your legend in the making.',
+      child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
         children: [
           Center(
             child: SizedBox(
-              height: 140,
-              child: CosmeticHeroArt(
+              height: 176,
+              child: HeroPedestal(
+                  child: CosmeticHeroArt(
                 heroId: hero.id,
                 assetPath: GameAssets.hero(hero.id),
                 profile: profile,
@@ -53,14 +50,14 @@ class ProfileScreen extends ConsumerWidget {
                   size: 88,
                   color: MythDuskColors.muted,
                 ),
-              ),
+              )),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             hero.name,
             textAlign: TextAlign.center,
-            style: textTheme.headlineMedium,
+            style: challengeTextStyle(27, bold: true),
           ),
           if (profile.equippedTitleId != null)
             Text(
@@ -118,7 +115,7 @@ class ProfileScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Campaign', style: textTheme.titleMedium),
+                  Text('Campaign', style: challengeTextStyle(18, bold: true)),
                   const SizedBox(height: 6),
                   Text(
                     '${p.actTitle} · ${p.chapterTitle}',
@@ -164,7 +161,8 @@ class ProfileScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Prep inventory', style: textTheme.titleMedium),
+                Text('Prep inventory',
+                    style: challengeTextStyle(18, bold: true)),
                 const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -204,7 +202,7 @@ class ProfileScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Personality (selected hero)',
-                    style: textTheme.titleMedium),
+                    style: challengeTextStyle(18, bold: true)),
                 Text(
                   profile.selectedHero.name,
                   style: textTheme.bodyMedium?.copyWith(
@@ -282,16 +280,7 @@ class _Panel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: HubColors.panel,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: HubColors.frameGold.withValues(alpha: 0.45)),
-      ),
-      child: child,
-    );
+    return RelicPanel(child: child);
   }
 }
 

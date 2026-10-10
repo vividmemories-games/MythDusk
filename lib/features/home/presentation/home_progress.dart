@@ -15,6 +15,7 @@ class HomeCampaignProgress {
     required this.completedInChapter,
     required this.totalInChapter,
     required this.chapterId,
+    this.nextNodeId,
   });
 
   final String chapterTitle;
@@ -22,6 +23,7 @@ class HomeCampaignProgress {
   final int completedInChapter;
   final int totalInChapter;
   final String chapterId;
+  final String? nextNodeId;
 }
 
 /// Furthest unlocked chapter + act progress for the hub.
@@ -50,5 +52,6 @@ final homeCampaignProgressProvider =
     completedInChapter: done,
     totalInChapter: chapter.nodes.length,
     chapterId: entry.id,
+    nextNodeId: chapter.nextPlayableNode(completed)?.id,
   );
 });

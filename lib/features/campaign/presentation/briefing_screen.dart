@@ -5,12 +5,15 @@ import 'package:go_router/go_router.dart';
 import '../../../core/assets/game_assets.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../battle/domain/enemy_def.dart';
-import '../../campaign/data/campaign_repository.dart';
-import '../../campaign/domain/campaign_models.dart';
 import '../../prep/domain/prep_item.dart';
 import '../../profile/providers/mock_profile_provider.dart';
 import '../../puzzle/domain/level_board_config.dart';
 import '../../../shared/presentation/content_error_screen.dart';
+import '../data/campaign_repository.dart';
+import '../domain/campaign_models.dart';
+import '../../../shared/widgets/challenge_art.dart';
+import '../../../core/widgets/opaque_character_art.dart';
+import 'briefing_widgets.dart';
 
 /// Pre-battle briefing with embedded prep loadout (campaign path).
 class BriefingScreen extends ConsumerStatefulWidget {
@@ -32,26 +35,6 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
     return '${n.year}-$m-$d';
   }
 
-  String _boardRules(LevelBoardConfig cfg) {
-    final parts = <String>[];
-    if (cfg.effectiveMovers.isNotEmpty) {
-      parts.add('Wind shifts rows each turn');
-    }
-    if (cfg.hazardSpawn != null) {
-      parts.add('Hazards may spread');
-    }
-    final tid = cfg.templateId ?? '';
-    if (tid.contains('mistfen') || tid.contains('sticky')) {
-      parts.add('Sticky / poison tiles');
-    } else if (tid.contains('bridge')) {
-      parts.add('Narrow bridge board');
-    } else if (tid.contains('vine')) {
-      parts.add('Vine corners');
-    }
-    if (parts.isEmpty) return 'Open board — match to fuel skills';
-    return parts.join(' · ');
-  }
-
   Future<void> _startBattle(CampaignNode node) async {
     final list = _selected.toList();
     if (list.isNotEmpty) {
@@ -61,6 +44,15 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
     ref.read(pendingBossPrepProvider.notifier).state = list;
     if (!mounted) return;
     context.push('/battle/${node.id}');
+  }
+
+  void _leave() {
+    final router = GoRouter.of(context);
+    if (router.canPop()) {
+      router.pop();
+    } else {
+      router.go('/campaign');
+    }
   }
 
   @override
@@ -102,292 +94,229 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
     EnemyDef enemy,
   ) {
     final profile = ref.watch(profileProvider);
-    final textTheme = Theme.of(context).textTheme;
-    final board = chapter.boardFor(node);
+    final brief = boardBriefFor(chapter.boardFor(node));
     final hero = profile.combatHero();
     final heaviest = enemy.heaviestSkill;
 
     return Scaffold(
       backgroundColor: MythDuskColors.ink,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 4, 12, 0),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => context.pop(),
-                    tooltip: 'Back to campaign',
-                    icon: const Icon(Icons.arrow_back,
-                        color: MythDuskColors.parchment),
-                  ),
-                  Expanded(
-                    child: Text(
-                      node.name,
-                      style: textTheme.headlineMedium?.copyWith(
-                        color: MythDuskColors.parchment,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+      body: Stack(fit: StackFit.expand, children: [
+        Image.asset(GameAssets.battleBackground(chapter.backgroundId),
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) =>
+                const ColoredBox(color: MythDuskColors.ink)),
+        const DecoratedBox(
+            decoration: BoxDecoration(
+                gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+              Color(0x55071118),
+              Color(0x88071118),
+              Color(0xBB071118)
+            ]))),
+        SafeArea(
+            child: Center(
+                child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: IconButton(
+                      onPressed: _leave,
+                      tooltip: 'Back to campaign',
+                      icon: const Icon(Icons.chevron_left,
+                          size: 32, color: MythDuskColors.softGold)),
+                )),
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                children: [
-                  _Card(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 72,
-                          height: 72,
-                          child: Image.asset(
-                            GameAssets.enemy(enemy.id, bossForm: node.bossForm),
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => const Icon(
-                              Icons.pest_control,
-                              size: 40,
-                              color: MythDuskColors.ember,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                enemy.name,
-                                style: textTheme.titleMedium?.copyWith(
-                                  color: MythDuskColors.softGold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
+                child: ListView(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+              children: [
+                Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                  Expanded(
+                      flex: 4,
+                      child: SizedBox(
+                          height: (MediaQuery.sizeOf(context).width * .48)
+                              .clamp(140.0, 220.0),
+                          child: OpaqueCharacterArt(
+                              assetPath: GameAssets.enemy(enemy.id,
+                                  bossForm: node.bossForm),
+                              showPlate: false,
+                              alignment: Alignment.bottomCenter))),
+                  const SizedBox(width: 10),
+                  Expanded(
+                      flex: 6,
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(enemy.name,
+                                style: challengeTextStyle(24,
+                                    bold: true,
+                                    color: MythDuskColors.softGold)),
+                            const SizedBox(height: 8),
+                            Text(
                                 enemy.blurb.isEmpty
                                     ? 'A foe on the dusk road.'
                                     : enemy.blurb,
-                                style: textTheme.bodyMedium?.copyWith(
-                                  color: MythDuskColors.muted,
-                                  fontSize: 13,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Likely: ${heaviest.intentLabel}',
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontSize: 12,
-                                  color: MythDuskColors.ember,
-                                ),
-                              ),
-                              Text(
-                                'HP ${enemy.maxHp}'
-                                '${node.isBoss ? ' · Boss' : ''}',
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontSize: 12,
-                                  color: MythDuskColors.parchment,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  _Card(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Board',
-                            style: textTheme.titleMedium
-                                ?.copyWith(color: MythDuskColors.softGold)),
-                        const SizedBox(height: 4),
-                        Text(
-                          _boardRules(board),
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: MythDuskColors.parchment,
-                            fontSize: 13,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Reward: ${node.coinReward} coins'
-                          '${node.prepDrops.isEmpty ? '' : ' · prep drop chance'}',
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: MythDuskColors.muted,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  _Card(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Hero: ${hero.name}',
-                          style: textTheme.titleMedium
-                              ?.copyWith(color: MythDuskColors.softGold),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          hero.skills
-                              .map((s) => '${s.name} (${s.apCost} AP)')
-                              .join(' · '),
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: MythDuskColors.muted,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: TextButton(
-                            onPressed: () => context.push('/heroes'),
-                            child: const Text('Edit loadout'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Select aids (optional)',
-                    style: textTheme.titleMedium
-                        ?.copyWith(color: MythDuskColors.parchment),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Up to ${PrepBalance.maxEquipped}. Spent when battle starts.',
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: MythDuskColors.muted,
-                      fontSize: 12,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ...PrepItemId.values.map((id) {
-                    final count = profile.prepCount(id);
-                    final selected = _selected.contains(id);
-                    final canSelect = count > 0 &&
-                        (selected ||
-                            _selected.length < PrepBalance.maxEquipped);
-                    final secondWindBlocked = id == PrepItemId.secondWind &&
-                        profile.secondWindUsedDay == _todayKey();
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Material(
-                        color: selected
-                            ? MythDuskColors.mist
-                            : MythDuskColors.deepTeal.withValues(alpha: 0.7),
-                        borderRadius: BorderRadius.circular(12),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(12),
-                          onTap: (!canSelect || secondWindBlocked)
-                              ? null
-                              : () {
-                                  setState(() {
-                                    if (selected) {
-                                      _selected.remove(id);
-                                    } else {
-                                      _selected.add(id);
-                                    }
-                                  });
-                                },
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                  width: 40,
-                                  height: 40,
-                                  child: Image.asset(
-                                    id.assetPath,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (_, __, ___) =>
-                                        const Icon(Icons.science_outlined),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(id.displayName,
-                                          style: textTheme.titleMedium),
-                                      Text(
-                                        secondWindBlocked
-                                            ? 'Already used today'
-                                            : '${id.blurb} · own $count',
-                                        style: textTheme.bodyMedium?.copyWith(
-                                          fontSize: 11,
-                                          color: secondWindBlocked
-                                              ? MythDuskColors.ember
-                                              : MythDuskColors.muted,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Icon(
-                                  selected
-                                      ? Icons.check_circle
-                                      : Icons.circle_outlined,
-                                  color: selected
-                                      ? MythDuskColors.amber
-                                      : MythDuskColors.muted,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            ),
+                                style: challengeTextStyle(13)),
+                            const SizedBox(height: 10),
+                            BriefingMetaLine(
+                                icon: Icons.crisis_alert,
+                                color: MythDuskColors.ember,
+                                text: 'Likely: ${heaviest.intentLabel}'),
+                            const SizedBox(height: 5),
+                            BriefingMetaLine(
+                                icon: Icons.favorite,
+                                color: const Color(0xFFE15B64),
+                                text:
+                                    'HP ${enemy.maxHp}${node.isBoss ? ' · Boss' : ''}'),
+                          ])),
+                ]),
+                const SizedBox(height: 12),
+                Text(brief.title,
+                    style: challengeTextStyle(14,
+                        bold: true, color: MythDuskColors.softGold)),
+                const SizedBox(height: 3),
+                Text(brief.detail, style: challengeTextStyle(12)),
+                const SizedBox(height: 6),
+                BriefingMetaLine(
+                    icon: Icons.monetization_on,
+                    color: MythDuskColors.amber,
+                    text:
+                        'Reward ${node.coinReward} coins${node.prepDrops.isEmpty ? '' : ' · prep drop chance'}'),
+                const SizedBox(height: 12),
+                BriefingLoadout(
+                    hero: hero,
+                    profile: profile,
+                    onEdit: () => context.push('/heroes')),
+                const SizedBox(height: 12),
+                Text('Select aids (optional)',
+                    style: challengeTextStyle(19, bold: true)),
+                const SizedBox(height: 4),
+                Text(
+                    'Up to ${PrepBalance.maxEquipped} spent when battle starts.',
+                    style: challengeTextStyle(12, color: MythDuskColors.muted)),
+                const SizedBox(height: 8),
+                LayoutBuilder(builder: (context, constraints) {
+                  final stacked = constraints.maxWidth < 330 ||
+                      MediaQuery.textScalerOf(context).scale(14) > 21;
+                  final cards = [
+                    for (final id in PrepItemId.values)
+                      BriefingPrepCard(
+                          id: id,
+                          count: profile.prepCount(id),
+                          selected: _selected.contains(id),
+                          blocked: id == PrepItemId.secondWind &&
+                              profile.secondWindUsedDay == _todayKey(),
+                          canSelect: _canSelect(id, profile),
+                          onTap: () => _toggle(id))
+                  ];
+                  if (stacked) {
+                    return Column(children: [
+                      for (final card in cards)
+                        Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: card)
+                    ]);
+                  }
+                  return IntrinsicHeight(
+                      child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                        for (var i = 0; i < cards.length; i++) ...[
+                          if (i > 0) const SizedBox(width: 8),
+                          Expanded(child: cards[i]),
+                        ]
+                      ]));
+                }),
+              ],
+            )),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: FilledButton(
-                onPressed: () => _startBattle(node),
-                child: Text(
-                  _selected.isEmpty
-                      ? 'Battle'
-                      : 'Battle (${_selected.length} prep)',
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+                padding: const EdgeInsets.fromLTRB(14, 4, 14, 10),
+                child: ChallengePlayButton(
+                    enabled: true,
+                    onPressed: () => _startBattle(node),
+                    label: _selected.isEmpty
+                        ? 'Battle'
+                        : 'Battle (${_selected.length} prep)')),
+          ]),
+        ))),
+      ]),
     );
+  }
+
+  bool _canSelect(PrepItemId id, PlayerProfile profile) {
+    final count = profile.prepCount(id);
+    final selected = _selected.contains(id);
+    final room = selected || _selected.length < PrepBalance.maxEquipped;
+    final blocked =
+        id == PrepItemId.secondWind && profile.secondWindUsedDay == _todayKey();
+    return count > 0 && room && !blocked;
+  }
+
+  void _toggle(PrepItemId id) {
+    final profile = ref.read(profileProvider);
+    if (!_canSelect(id, profile) && !_selected.contains(id)) return;
+    if (id == PrepItemId.secondWind &&
+        profile.secondWindUsedDay == _todayKey()) {
+      return;
+    }
+    setState(() {
+      if (_selected.contains(id)) {
+        _selected.remove(id);
+      } else if (profile.prepCount(id) > 0 &&
+          _selected.length < PrepBalance.maxEquipped) {
+        _selected.add(id);
+      }
+    });
   }
 }
 
-class _Card extends StatelessWidget {
-  const _Card({required this.child});
+/// Player-facing board summary for the briefing card.
+class BoardBrief {
+  const BoardBrief({required this.title, required this.detail});
 
-  final Widget child;
+  final String title;
+  final String detail;
+}
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: MythDuskColors.deepTeal.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-      ),
-      child: child,
+BoardBrief boardBriefFor(LevelBoardConfig cfg) {
+  final tid = cfg.templateId ?? '';
+  final BoardBrief base;
+  if (tid.contains('sticky') || tid.contains('mistfen')) {
+    base = const BoardBrief(
+      title: 'Sticky marsh',
+      detail: 'Vines and poison cling to the tiles.',
+    );
+  } else if (tid.contains('vine')) {
+    base = const BoardBrief(
+      title: 'Vine corners',
+      detail: 'Twisted vines block the corners.',
+    );
+  } else if (tid.contains('bridge')) {
+    base = const BoardBrief(
+      title: 'Narrow bridge',
+      detail: 'Only a thin path stays open.',
+    );
+  } else {
+    base = const BoardBrief(
+      title: 'Open board',
+      detail: 'Match tiles to fuel skills.',
     );
   }
+  final extra = <String>[];
+  if (cfg.effectiveMovers.isNotEmpty) {
+    extra.add('Wind shifts rows each turn.');
+  }
+  if (cfg.hazardSpawn != null) {
+    extra.add('Hazards may spread.');
+  }
+  if (extra.isEmpty) return base;
+  return BoardBrief(
+    title: base.title,
+    detail: '${base.detail} ${extra.join(' ')}',
+  );
 }
