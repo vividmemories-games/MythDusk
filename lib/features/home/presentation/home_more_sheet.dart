@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../shared/widgets/challenge_art.dart';
+import '../../../shared/widgets/myth_hub_shell.dart';
 import '../../expedition/domain/expedition_models.dart';
 
 /// Destinations that should not sit on the Home stage.
@@ -10,10 +12,12 @@ Future<void> showHomeMoreSheet(
   required bool expeditionInProgress,
   required VoidCallback onProfile,
   required VoidCallback onExpedition,
+  required VoidCallback onSettings,
 }) {
   return showModalBottomSheet<void>(
     context: context,
-    backgroundColor: MythDuskColors.deepTeal,
+    backgroundColor: MythDuskColors.ink,
+    isScrollControlled: true,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -22,7 +26,8 @@ Future<void> showHomeMoreSheet(
           ? 'Clear ${ExpeditionBalance.minCampaignClears} campaign nodes'
           : (expeditionInProgress ? 'Run in progress' : 'Relic path');
       return SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
+            child: Padding(
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -42,43 +47,59 @@ Future<void> showHomeMoreSheet(
               Text(
                 'More',
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineMedium,
+                style: challengeTextStyle(23, bold: true),
               ),
               const SizedBox(height: 8),
-              ListTile(
-                leading: const Icon(
-                  Icons.person_outline,
-                  color: MythDuskColors.parchment,
+              const ChallengeDivider(),
+              const SizedBox(height: 12),
+              RelicPanel(
+                  child: Column(children: [
+                ListTile(
+                  leading: const Icon(
+                    Icons.person_outline,
+                    color: MythDuskColors.parchment,
+                  ),
+                  title: const Text('Profile'),
+                  subtitle: const Text('Progress, prep inventory, cosmetics'),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    onProfile();
+                  },
                 ),
-                title: const Text('Profile'),
-                subtitle: const Text('Progress, prep inventory, cosmetics'),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  onProfile();
-                },
-              ),
-              ListTile(
-                leading: const Icon(
-                  Icons.explore_outlined,
-                  color: MythDuskColors.parchment,
+                ListTile(
+                  leading: const Icon(
+                    Icons.explore_outlined,
+                    color: MythDuskColors.parchment,
+                  ),
+                  title: const Text('Expedition'),
+                  subtitle: Text(expeditionSubtitle),
+                  trailing: expeditionInProgress
+                      ? const Icon(
+                          Icons.circle,
+                          size: 10,
+                          color: Color(0xFF3ECFCB),
+                        )
+                      : null,
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    onExpedition();
+                  },
                 ),
-                title: const Text('Expedition'),
-                subtitle: Text(expeditionSubtitle),
-                trailing: expeditionInProgress
-                    ? const Icon(
-                        Icons.circle,
-                        size: 10,
-                        color: Color(0xFF3ECFCB),
-                      )
-                    : null,
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  onExpedition();
-                },
-              ),
+                ListTile(
+                    leading: const Icon(Icons.settings_outlined,
+                        color: MythDuskColors.softGold),
+                    title: const Text('Settings'),
+                    subtitle: const Text('Preferences and account'),
+                    trailing: const Icon(Icons.chevron_right,
+                        color: MythDuskColors.softGold),
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+                      onSettings();
+                    }),
+              ])),
             ],
           ),
-        ),
+        )),
       );
     },
   );

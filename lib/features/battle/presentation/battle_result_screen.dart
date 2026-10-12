@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../shared/widgets/myth_hub_shell.dart';
+import '../../../shared/widgets/challenge_art.dart';
 import '../../../core/assets/game_assets.dart';
 import '../../../core/analytics/analytics_providers.dart';
 import '../../../core/analytics/gameplay_analytics.dart';
@@ -219,14 +221,19 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
       if (next.isNotEmpty) nextNodeId = next.first.id;
     }
 
-    return Scaffold(
-      body: SafeArea(
+    return MythHubShell(
+      title: 'Battle Chronicle',
+      onBack: _leaveHome,
+      subtitle: args.won
+          ? 'A new page in your legend.'
+          : 'The path awaits your return.',
+      child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Spacer(),
+              const SizedBox(height: 24),
               if (args.won && args.bossFled) ...[
                 Center(
                   child: Image.asset(
@@ -238,6 +245,12 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                 ),
                 const SizedBox(height: 12),
               ],
+              Icon(args.won ? Icons.workspace_premium : Icons.shield_outlined,
+                  size: 64,
+                  color: args.won
+                      ? MythDuskColors.softGold
+                      : MythDuskColors.ember),
+              const SizedBox(height: 12),
               Text(
                 !args.won
                     ? 'Defeat'
@@ -245,8 +258,9 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                         ? 'Boss fled'
                         : 'Victory',
                 textAlign: TextAlign.center,
-                style: textTheme.displayLarge?.copyWith(
-                  fontSize: 40,
+                style: challengeTextStyle(
+                  36,
+                  bold: true,
                   color: args.won ? MythDuskColors.amber : MythDuskColors.ember,
                 ),
               ),
@@ -263,13 +277,8 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
               if (args.won ||
                   (args.isExpedition && !args.won && _grantedCoins > 0)) ...[
                 const SizedBox(height: 24),
-                Container(
+                RelicPanel(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: MythDuskColors.deepTeal,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: MythDuskColors.mist),
-                  ),
                   child: Column(
                     children: [
                       Text('Rewards', style: textTheme.titleMedium),
@@ -334,7 +343,7 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                   ),
                 ),
               ],
-              const Spacer(),
+              const SizedBox(height: 24),
               if (args.won &&
                   !args.isWeekly &&
                   !args.isDaily &&

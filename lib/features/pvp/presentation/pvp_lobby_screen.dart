@@ -4,6 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/assets/game_assets.dart';
+import '../../../shared/widgets/myth_hub_shell.dart';
+import '../../../shared/widgets/challenge_art.dart';
+import '../../home/presentation/home_mode_tiles.dart';
 import '../../../firebase/firebase_bootstrap.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../profile/providers/mock_profile_provider.dart';
@@ -99,38 +103,35 @@ class _PvpLobbyScreenState extends ConsumerState<PvpLobbyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: MythDuskColors.ink,
-      appBar: AppBar(
-        title: const Text('Live 1v1'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-      ),
-      body: ListView(
+    return MythHubShell(
+      title: '1v1 Arena',
+      subtitle: 'Two champions. One victor.',
+      backgroundAsset: GameAssets.arenaBackground,
+      child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
         children: [
+          ExcludeSemantics(
+              child: IgnorePointer(
+                  child: HubArenaTile(onTap: () {}, showAction: false))),
+          const SizedBox(height: 16),
+          Text('The challenge', style: challengeTextStyle(18, bold: true)),
+          const SizedBox(height: 8),
           Text(
-            'Challenge a player who is online now. Hero vs hero, same battle '
-            'screen. Invites last ${pvpInviteTtl.inSeconds} seconds. '
-            'No offline / correspondence matches.',
+            'Invite a player who is online now. Share your code or enter theirs. '
+            'Invites last ${pvpInviteTtl.inSeconds} seconds.',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),
           if (!FirebaseBootstrap.isReady)
             Text(
-              'Firebase emulators are off — this device uses an in-memory '
-              'match. Start emulators with FLAVOR=dev for two-device play.',
+              'Local preview · two-device challenges require an online connection.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: MythDuskColors.amber,
                   ),
             ),
           const SizedBox(height: 16),
-          FilledButton(
-            onPressed: _busy ? null : _create,
-            child: const Text('Create challenge'),
-          ),
+          ChallengePlayButton(
+              enabled: !_busy, onPressed: _create, label: 'Create challenge'),
           if (_open != null) ...[
             const SizedBox(height: 12),
             SelectableText(
@@ -149,6 +150,8 @@ class _PvpLobbyScreenState extends ConsumerState<PvpLobbyScreen> {
             ),
           ],
           const Divider(height: 32, color: MythDuskColors.mist),
+          Text('Join a challenger', style: challengeTextStyle(18, bold: true)),
+          const SizedBox(height: 10),
           TextField(
             controller: _joinCode,
             textCapitalization: TextCapitalization.characters,

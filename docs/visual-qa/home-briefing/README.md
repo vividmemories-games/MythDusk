@@ -66,3 +66,13 @@ Profile retains selected-hero cosmetics, path rank, economy/lives, chapter progr
 Native iPhone 17 Pro Max screenshots: `heroes-pro-max.png`, `shop-pro-max.png`, `profile-pro-max.png`. Reproduce with `flutter run -t tool/hub_preview.dart --dart-define=QA_SCREEN=heroes` (or `shop` / `profile`). These fixture runs use mocked profile storage.
 
 Validation: all 322 tests pass; Flutter analysis and diff whitespace checks pass. Six new golden/layout checks cover the three screens on Pro Max and compact phones at 200% text. Four action tests verify exact coin/inventory changes, insufficient funds, ability swapping, mastery locks, and locked hero browsing. Existing profile navigation tests also pass. Native builds retain the previously documented plugin warnings; no production deployment or backend/IAP logic changes were made.
+
+## Final hub screens
+
+Settings, the 1v1 lobby, Expedition, and battle results now use the shared atmospheric shell. Settings groups Account and Preferences in engraved panels. More is a scrollable engraved sheet with Profile, Expedition, and Settings shortcuts. The lobby uses opposing portraits, arena scenery, a gold Create challenge action, and a separate join-code section; its decorative banner has no action semantics. Results use outcome iconography, serif titles, framed rewards, and scrollable actions; the new Back control uses the existing encounter-cleanup Home action. Expedition keeps all phases and progression actions while allowing the content to scroll at enlarged text sizes.
+
+Existing account linking, preferences, PvP repository behavior, matchmaking, rewards, continue costs/limits, ad gates, and Expedition rules remain unchanged. No dependencies, backend changes, or deployments were added. Cross-device online PvP was not exercised by this visual pass; fixture challenge creation uses the existing in-memory repository.
+
+Native arena screenshot: `arena-lobby-pro-max.png`. Reproduce using `flutter run -t tool/hub_preview.dart --dart-define=QA_SCREEN=challenge`. Other fixture values: `settings`, `expedition`, `victory`, and `defeat`. Golden previews are under `test/goldens/*-final-1.0.png` and `*-final-2.0.png`.
+
+Validation: full 334-test suite passed; Flutter analysis is clean. Twelve new visual/action checks cover normal and compact 200% text layouts, preference changes, local challenge creation, and accessible result actions. Shared-panel goldens were also refreshed after fixing ListTile ink surfaces. Native build shows only the existing plugin lifecycle/Swift Package Manager warnings documented above.

@@ -6,6 +6,8 @@ import '../../../core/analytics/analytics_providers.dart';
 import '../../../core/analytics/gameplay_analytics.dart';
 import '../../../core/assets/game_assets.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../shared/widgets/myth_hub_shell.dart';
+import '../../../shared/widgets/challenge_art.dart';
 import '../../../core/widgets/opaque_character_art.dart';
 import '../../heroes/domain/hero_def.dart';
 import '../../heroes/domain/hero_unlocks.dart';
@@ -26,34 +28,30 @@ class ExpeditionScreen extends ConsumerWidget {
     final run = profile.activeExpedition;
     final textTheme = Theme.of(context).textTheme;
 
-    return Scaffold(
-      backgroundColor: MythDuskColors.ink,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        title: const Text('Expedition'),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-          child: !unlocked
-              ? _LockedBody(
-                  clears: profile.completedNodeIds.length,
-                  textTheme: textTheme,
-                )
-              : run == null ||
-                      run.phase == ExpeditionPhase.settled ||
-                      run.phase == ExpeditionPhase.failed
-                  ? _HubStart(
-                      profile: profile,
-                      settled: run,
-                      textTheme: textTheme,
-                    )
-                  : run.phase == ExpeditionPhase.relicPick
-                      ? _RelicPick(run: run, textTheme: textTheme)
-                      : _ActiveRun(
-                          run: run, profile: profile, textTheme: textTheme),
-        ),
-      ),
+    return MythHubShell(
+      title: 'Expedition',
+      subtitle: 'Walk the relic path. Carry what you earn.',
+      child: SingleChildScrollView(
+          child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+        child: !unlocked
+            ? _LockedBody(
+                clears: profile.completedNodeIds.length,
+                textTheme: textTheme,
+              )
+            : run == null ||
+                    run.phase == ExpeditionPhase.settled ||
+                    run.phase == ExpeditionPhase.failed
+                ? _HubStart(
+                    profile: profile,
+                    settled: run,
+                    textTheme: textTheme,
+                  )
+                : run.phase == ExpeditionPhase.relicPick
+                    ? _RelicPick(run: run, textTheme: textTheme)
+                    : _ActiveRun(
+                        run: run, profile: profile, textTheme: textTheme),
+      )),
     );
   }
 }
@@ -70,15 +68,14 @@ class _LockedBody extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Relic Expedition',
-            style: textTheme.displayLarge?.copyWith(fontSize: 28)),
+        Text('Relic Expedition', style: challengeTextStyle(26, bold: true)),
         const SizedBox(height: 12),
         Text(
           'Clear $need campaign nodes to open the relic path. '
           'Progress: $clears / $need.',
           style: textTheme.bodyMedium,
         ),
-        const Spacer(),
+        const SizedBox(height: 24),
         FilledButton(
           onPressed: () => context.go('/campaign'),
           child: const Text('Continue campaign'),
@@ -105,8 +102,7 @@ class _HubStart extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Relic Expedition',
-            style: textTheme.displayLarge?.copyWith(fontSize: 28)),
+        Text('Relic Expedition', style: challengeTextStyle(26, bold: true)),
         const SizedBox(height: 8),
         Text(
           'Three scavenger fights, then a boss. Pick a relic after each win. '
@@ -147,7 +143,7 @@ class _HubStart extends ConsumerWidget {
                 ),
           ],
         ),
-        const Spacer(),
+        const SizedBox(height: 24),
         FilledButton(
           onPressed: profile.lives <= 0
               ? null
@@ -270,7 +266,7 @@ class _ActiveRun extends ConsumerWidget {
             ),
           const SizedBox(height: 12),
         ],
-        const Spacer(),
+        const SizedBox(height: 24),
         FilledButton(
           onPressed: () => _launch(context, ref),
           child: Text(encounter.isBoss ? 'Fight boss' : 'Enter fight'),

@@ -16,6 +16,10 @@ import 'package:mythdusk/features/heroes/domain/hero_def.dart';
 import 'package:mythdusk/features/heroes/presentation/heroes_screen.dart';
 import 'package:mythdusk/features/profile/presentation/profile_screen.dart';
 import 'package:mythdusk/features/profile/presentation/shop_screen.dart';
+import 'package:mythdusk/features/profile/presentation/settings_screen.dart';
+import 'package:mythdusk/features/pvp/presentation/pvp_lobby_screen.dart';
+import 'package:mythdusk/features/expedition/presentation/expedition_screen.dart';
+import 'package:mythdusk/features/battle/presentation/battle_result_screen.dart';
 import 'package:mythdusk/features/prep/domain/prep_item.dart';
 import 'package:mythdusk/features/profile/providers/mock_profile_provider.dart';
 
@@ -68,6 +72,8 @@ Future<Widget> hubPreview(
             path: '/briefing/:id',
             builder: (_, s) => BriefingScreen(nodeId: s.pathParameters['id']!)),
         for (final path in [
+          '/victory',
+          '/defeat',
           '/campaign',
           '/heroes',
           '/challenge',
@@ -81,6 +87,19 @@ Future<Widget> hubPreview(
           GoRoute(
               path: path,
               builder: (_, __) => switch (path) {
+                    '/settings' when screen == 'settings' =>
+                      const SettingsScreen(),
+                    '/challenge' when screen == 'challenge' =>
+                      const PvpLobbyScreen(),
+                    '/expedition' when screen == 'expedition' =>
+                      const ExpeditionScreen(),
+                    '/victory' || '/defeat' => BattleResultScreen(
+                        args: BattleResultArgs(
+                            won: path == '/victory',
+                            nodeId: 'node_07',
+                            nodeName: 'Shaman Bog',
+                            enemyName: 'Bog Shaman',
+                            coinReward: 50)),
                     '/heroes' when screen == 'heroes' => const HeroesScreen(),
                     '/shop' when screen == 'shop' => const ShopScreen(),
                     '/profile' when screen == 'profile' =>

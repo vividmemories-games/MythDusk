@@ -8,8 +8,9 @@ import '../../../shared/widgets/relic_frame.dart';
 
 /// Featured entry into the existing duel mode; all labels remain live text.
 class HubArenaTile extends StatelessWidget {
-  const HubArenaTile({super.key, required this.onTap});
+  const HubArenaTile({super.key, required this.onTap, this.showAction = true});
   final VoidCallback onTap;
+  final bool showAction;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +24,7 @@ class HubArenaTile extends StatelessWidget {
           child: InkWell(
             onTap: onTap,
             child: SizedBox(
-              height: largeText ? 140 : 108,
+              height: largeText ? (showAction ? 140 : 170) : 108,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -57,12 +58,13 @@ class HubArenaTile extends StatelessWidget {
                       child: Column(mainAxisSize: MainAxisSize.min, children: [
                     const Icon(Icons.sports_martial_arts,
                         color: MythDuskColors.softGold, size: 24),
-                    Text('1v1 Arena',
+                    Text(showAction ? '1v1 Arena' : 'Hero vs Hero',
                         style: challengeTextStyle(21, bold: true)),
-                    const SizedBox(height: 4),
-                    Text('Enter Arena ›',
-                        style: challengeTextStyle(14,
-                            color: MythDuskColors.softGold)),
+                    if (showAction) const SizedBox(height: 4),
+                    if (showAction)
+                      Text('Enter Arena ›',
+                          style: challengeTextStyle(14,
+                              color: MythDuskColors.softGold)),
                   ])),
                 ],
               ),

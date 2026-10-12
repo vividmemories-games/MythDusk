@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../shared/widgets/myth_hub_shell.dart';
+import '../../../shared/widgets/challenge_art.dart';
 import '../../auth/presentation/account_settings_section.dart';
 import '../providers/mock_profile_provider.dart';
 
@@ -15,60 +17,63 @@ class SettingsScreen extends ConsumerWidget {
     final profile = ref.watch(profileProvider);
     final notifier = ref.read(profileProvider.notifier);
 
-    return Scaffold(
-      backgroundColor: MythDuskColors.ink,
-      appBar: AppBar(
-        title: const Text('Settings'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-      ),
-      body: ListView(
+    return MythHubShell(
+      title: 'Settings',
+      subtitle: 'Make the journey your own.',
+      child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
         children: [
-          const AccountSettingsSection(),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(
-              Icons.person_outline,
-              color: MythDuskColors.softGold,
+          const RelicPanel(child: AccountSettingsSection()),
+          const SizedBox(height: 12),
+          RelicPanel(
+              child: Column(children: [
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(
+                Icons.person_outline,
+                color: MythDuskColors.softGold,
+              ),
+              title: const Text('Profile'),
+              subtitle: const Text('Progress, upgrades, and prep'),
+              trailing: const Icon(
+                Icons.chevron_right,
+                color: MythDuskColors.muted,
+              ),
+              onTap: () => context.push('/profile'),
             ),
-            title: const Text('Profile'),
-            subtitle: const Text('Progress, upgrades, and prep'),
-            trailing: const Icon(
-              Icons.chevron_right,
-              color: MythDuskColors.muted,
+          ])),
+          const SizedBox(height: 16),
+          Text('Preferences', style: challengeTextStyle(18, bold: true)),
+          const SizedBox(height: 8),
+          RelicPanel(
+              child: Column(children: [
+            SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Match hints'),
+              subtitle: const Text(
+                'Highlight a move after 5 seconds of idle play',
+              ),
+              activeThumbColor: MythDuskColors.amber,
+              value: profile.hintsEnabled,
+              onChanged: notifier.setHintsEnabled,
             ),
-            onTap: () => context.push('/profile'),
-          ),
-          const Divider(color: MythDuskColors.mist),
-          SwitchListTile.adaptive(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Match hints'),
-            subtitle: const Text(
-              'Highlight a move after 5 seconds of idle play',
+            SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Sound'),
+              subtitle: const Text('Battle and UI sound effects (coming soon)'),
+              activeThumbColor: MythDuskColors.amber,
+              value: profile.soundEnabled,
+              onChanged: notifier.setSoundEnabled,
             ),
-            activeThumbColor: MythDuskColors.amber,
-            value: profile.hintsEnabled,
-            onChanged: notifier.setHintsEnabled,
-          ),
-          SwitchListTile.adaptive(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Sound'),
-            subtitle: const Text('Battle and UI sound effects (coming soon)'),
-            activeThumbColor: MythDuskColors.amber,
-            value: profile.soundEnabled,
-            onChanged: notifier.setSoundEnabled,
-          ),
-          SwitchListTile.adaptive(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Haptics'),
-            subtitle: const Text('Light vibration on matches (coming soon)'),
-            activeThumbColor: MythDuskColors.amber,
-            value: profile.hapticsEnabled,
-            onChanged: notifier.setHapticsEnabled,
-          ),
+            SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Haptics'),
+              subtitle: const Text('Light vibration on matches (coming soon)'),
+              activeThumbColor: MythDuskColors.amber,
+              value: profile.hapticsEnabled,
+              onChanged: notifier.setHapticsEnabled,
+            ),
+          ])),
         ],
       ),
     );

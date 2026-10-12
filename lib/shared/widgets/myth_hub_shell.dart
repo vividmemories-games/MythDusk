@@ -12,17 +12,21 @@ class MythHubShell extends StatelessWidget {
       required this.title,
       required this.subtitle,
       required this.child,
-      this.resources});
+      this.resources,
+      this.onBack,
+      this.backgroundAsset = GameAssets.homeBackground});
   final String title, subtitle;
+  final String backgroundAsset;
   final Widget child;
   final Widget? resources;
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) => Scaffold(
         backgroundColor: MythDuskColors.ink,
         body: Stack(children: [
           Positioned.fill(
-              child: Image.asset(GameAssets.homeBackground,
+              child: Image.asset(backgroundAsset,
                   fit: BoxFit.cover, excludeFromSemantics: true)),
           const Positioned.fill(
               child: DecoratedBox(
@@ -40,14 +44,15 @@ class MythHubShell extends StatelessWidget {
                       tooltip: 'Back',
                       icon: const Icon(Icons.arrow_back,
                           color: MythDuskColors.softGold),
-                      onPressed: () {
-                        final router = GoRouter.of(context);
-                        if (router.canPop()) {
-                          router.pop();
-                        } else {
-                          router.go('/');
-                        }
-                      }),
+                      onPressed: onBack ??
+                          () {
+                            final router = GoRouter.of(context);
+                            if (router.canPop()) {
+                              router.pop();
+                            } else {
+                              router.go('/');
+                            }
+                          }),
                   Expanded(
                       child: Text(title,
                           style: challengeTextStyle(23, bold: true),
@@ -103,7 +108,7 @@ class RelicPanel extends StatelessWidget {
                         BoxShadow(color: Color(0x335DCAC5), blurRadius: 10)
                       ]
                     : null),
-            child: child),
+            child: Material(color: Colors.transparent, child: child)),
         const Positioned.fill(child: RelicFrame()),
       ]);
 }

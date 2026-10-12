@@ -208,6 +208,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   onRanked: () => context.push('/challenge'),
                   onMore: () => showHomeMoreSheet(
                     context,
+                    onSettings: () => context.push('/settings'),
                     expeditionUnlocked: profile.completedNodeIds.length >=
                         ExpeditionBalance.minCampaignClears,
                     expeditionInProgress:
