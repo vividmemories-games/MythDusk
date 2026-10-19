@@ -1,5 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Required before Play Console allows one-time IAP products. -->
+    <uses-permission android:name="com.android.vending.BILLING"/>
     <application
         android:label="MythDusk"
         android:name="${applicationName}"

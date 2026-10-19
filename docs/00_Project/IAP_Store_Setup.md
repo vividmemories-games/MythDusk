@@ -17,6 +17,22 @@ Agent cannot create store products or upload secrets. Complete H1–H5 before sa
 
 ## H1 — Create products
 
+### Play Console prerequisite (BILLING)
+
+Play blocks one-time products until an uploaded APK/AAB declares
+`com.android.vending.BILLING` (already in `android/app/src/main/AndroidManifest.xml`).
+
+1. Build a release AAB that includes `in_app_purchase` (current `master`).
+2. Upload to **Internal testing** (or any track) and let processing finish.
+3. Then **Monetize with Play → Products** unlocks “Create product”.
+
+```bash
+flutter build appbundle --release
+# Upload build/app/outputs/bundle/release/app-release.aab in Play Console
+```
+
+### Create SKUs
+
 1. **Play Console** → Monetize with Play → Products → create each ID → activate → attach to internal/closed testing track.
 2. **App Store Connect** → Your app → In-App Purchases → create each ID with matching type → submit with app version as required.
 
