@@ -8,6 +8,12 @@
   "private": true,
   "dependencies": {
     "firebase-admin": "^12.7.0",
-    "firebase-functions": "^6.3.2"
+    "firebase-functions": "^6.3.2",
+    "google-auth-library": "^11.3.1",
+    "googleapis": "^186.0.0",
+    "jsonwebtoken": "^9.0.3"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10"
   }
 }

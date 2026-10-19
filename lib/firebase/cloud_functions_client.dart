@@ -71,6 +71,42 @@ class CloudFunctionsClient {
       gems: (data['gems'] as num?)?.toInt() ?? 0,
     );
   }
+
+  Future<ValidateIapResult> validateIapReceipt({
+    required String productId,
+    required String receiptId,
+    required String platform,
+    required String verificationData,
+    String? qaToken,
+  }) async {
+    final callable = _functions.httpsCallable('validateIapReceipt');
+    final response = await callable.call(<String, dynamic>{
+      'productId': productId,
+      'receiptId': receiptId,
+      'platform': platform,
+      'verificationData': verificationData,
+      if (qaToken != null) 'qaToken': qaToken,
+    });
+    final data = Map<String, dynamic>.from(response.data as Map);
+    return ValidateIapResult.fromMap(data);
+  }
+}
+
+class ValidateIapResult {
+  const ValidateIapResult({
+    required this.productId,
+    required this.alreadyProcessed,
+  });
+
+  factory ValidateIapResult.fromMap(Map<String, dynamic> data) {
+    return ValidateIapResult(
+      productId: data['productId'] as String? ?? '',
+      alreadyProcessed: data['alreadyProcessed'] == true,
+    );
+  }
+
+  final String productId;
+  final bool alreadyProcessed;
 }
 
 class EnsureUserResult {

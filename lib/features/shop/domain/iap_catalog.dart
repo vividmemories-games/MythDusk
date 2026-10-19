@@ -1,8 +1,7 @@
 import '../../profile/domain/economy_balance.dart';
 
-/// Placeholder store product ids. No IAP SDK in this phase.
-/// Grants must go through Cloud Functions when wired (see
-/// docs/01_Game_Design/Monetization.md Phase 2).
+/// Store product ids for Play / App Store (must match console SKUs).
+/// Grants only via Cloud Functions `validateIapReceipt`.
 abstract final class IapCatalog {
   static const starterPack = IapProductDef(
     id: 'mythdusk_starter_pack',

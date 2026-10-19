@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/analytics/analytics_providers.dart';
 import '../../../core/analytics/gameplay_analytics.dart';
-import '../../../core/config/app_flavor.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/myth_hub_shell.dart';
 import '../../../shared/widgets/challenge_art.dart';
@@ -14,8 +13,8 @@ import '../../shop/domain/iap_catalog.dart';
 import '../../shop/domain/offer_bundle_catalog.dart';
 import '../../battle_pass/domain/battle_pass_catalog.dart';
 import '../../../core/config/remote_config_values.dart';
-import '../domain/economy_balance.dart';
 import '../providers/mock_profile_provider.dart';
+import 'shop_iap_cards.dart';
 
 /// Prep shop: buy consumables with coins.
 class ShopScreen extends ConsumerWidget {
@@ -58,10 +57,28 @@ class ShopScreen extends ConsumerWidget {
           Text('Offers', style: challengeTextStyle(18, bold: true)),
           const SizedBox(height: 8),
           if (RemoteConfigValues.starterPackEnabled) ...[
-            const _StarterPackCard(),
+            const StarterPackIapCard(),
             const SizedBox(height: 10),
           ],
-          const _ValuePackCard(),
+          const ValuePackIapCard(),
+          const SizedBox(height: 10),
+          ConsumableIapCard(
+            title: 'Gem pouch',
+            blurb: '+${IapGrantTable.gemsSmall} gems.',
+            productId: IapCatalog.gemsSmall.id,
+          ),
+          const SizedBox(height: 10),
+          ConsumableIapCard(
+            title: 'Gem chest',
+            blurb: '+${IapGrantTable.gemsMedium} gems.',
+            productId: IapCatalog.gemsMedium.id,
+          ),
+          const SizedBox(height: 10),
+          ConsumableIapCard(
+            title: 'Prep box',
+            blurb: 'Vanguard Tonic ×2 and Aegis Flask ×1.',
+            productId: IapCatalog.prepBox.id,
+          ),
           const SizedBox(height: 10),
           const _BundlesCard(),
           if (RemoteConfigValues.battlePassEnabled) ...[
@@ -146,131 +163,6 @@ class _ShopRow extends ConsumerWidget {
                   const SizedBox(width: 4),
                   Text('$cost'),
                 ]))),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StarterPackCard extends ConsumerWidget {
-  const _StarterPackCard();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final profile = ref.watch(profileProvider);
-    final claimed = profile.hasClaimedStarterPack();
-    final canClaim = AppFlavor.showQaTools && !claimed;
-
-    return RelicPanel(
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Starter pack',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              color: MythDuskColors.parchment,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            claimed
-                ? 'Claimed — one-time entitlement.'
-                : '+${StarterPackBalance.coins} coins, '
-                    '+${StarterPackBalance.gems} gems, Dusk Sash overlay. '
-                    'Visuals and currency only. '
-                    'Available when the store opens.',
-            style:
-                Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12),
-          ),
-          const SizedBox(height: 10),
-          FilledButton(
-            onPressed: canClaim
-                ? () {
-                    final ok =
-                        ref.read(profileProvider.notifier).claimStarterPack();
-                    if (ok) {
-                      ref.read(gameplayAnalyticsProvider).log(
-                        GameplayAnalyticsEvents.starterPackClaimed,
-                        {'packId': StarterPackBalance.id},
-                      );
-                    }
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          ok ? 'Starter pack claimed' : 'Already claimed',
-                        ),
-                      ),
-                    );
-                  }
-                : null,
-            child: Text(
-              claimed
-                  ? 'Claimed'
-                  : AppFlavor.showQaTools
-                      ? 'Claim (QA)'
-                      : 'Coming with store',
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ValuePackCard extends ConsumerWidget {
-  const _ValuePackCard();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final claimed =
-        ref.watch(profileProvider).hasClaimedStarterPack('value_pack_30d');
-    return RelicPanel(
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            '30-day value pack',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              color: MythDuskColors.parchment,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '+${IapGrantTable.value30DayUpfrontGems} gems up front, then '
-            '${IapGrantTable.value30DayDailyGems}/day for '
-            '${IapGrantTable.value30DayLengthDays} days. Manual repurchase. '
-            'Available when the store opens.',
-            style:
-                Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12),
-          ),
-          const SizedBox(height: 10),
-          FilledButton(
-            onPressed: AppFlavor.showQaTools && !claimed
-                ? () {
-                    final ok = ref
-                        .read(profileProvider.notifier)
-                        .claimValuePack30Day();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          ok ? '30-day pack claimed (QA)' : 'Already claimed',
-                        ),
-                      ),
-                    );
-                  }
-                : null,
-            child: Text(
-              claimed
-                  ? 'Claimed'
-                  : AppFlavor.showQaTools
-                      ? 'Claim (QA)'
-                      : 'Coming with store',
-            ),
           ),
         ],
       ),

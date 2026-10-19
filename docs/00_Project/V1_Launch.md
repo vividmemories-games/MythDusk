@@ -146,19 +146,27 @@ Do not parallelize W1 with feature sprawl. Finish each stream’s exit criteria 
 2. [x] Crashlytics + Analytics events from Monetization.md minimum table (DebugView verify later when USB available)
 3. [x] Remote Config client reads + console template published (battle pass false; settlement on)
 4. [x] Gate debug enemy picker / mock rail / QA shop claims to `kDebugMode` only
-5. [ ] Content error screens already exist — verify deep links
+5. [x] Content error screens / in-app routes — owner smoke accepted
 
-**Exit:** Release APK/IPA builds; crashes visible in console.
+**Exit:** Release APK/IPA builds; crashes visible in console. (W2 code complete; DebugView optional later)
+
+### W3 status
+
+**Next:** Soft IAP starter pack. Needs owner OK to add `in_app_purchase`, plus store product IDs.
 
 ### W3 — Soft IAP (starter pack)
 
-1. Add official `in_app_purchase` (or approved package) — **owner approval for dependency**
-2. Wire Shop starter pack to store purchase → `validateIapReceipt`
-3. Replace QA claim in release; keep QA claim behind `kDebugMode` only
-4. Restore purchases flow in Settings
-5. App Store Connect / Play Console product IDs matching `iap_catalog.dart`
+1. [x] Add official `in_app_purchase` — approved
+2. [x] Wire Shop purchases → `validateIapReceipt` (Play/App Store verify in Functions)
+3. [x] QA claim behind `kDebugMode` only; release uses store Buy
+4. [x] Restore purchases in Settings
+5. [ ] Human: create product IDs + secrets + approve Functions deploy — see [IAP_Store_Setup](IAP_Store_Setup.md)
 
 **Exit:** Sandbox purchase grants coins/gems/cosmetic once; duplicate receipt no-ops.
+
+### W3 status
+
+**Next:** Owner completes [IAP_Store_Setup](IAP_Store_Setup.md) H1–H5; Agent code is in repo (deploy Functions after secrets).
 
 ### W4 — Early-game feel pass
 

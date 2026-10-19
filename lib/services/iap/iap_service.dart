@@ -4,11 +4,15 @@ class IapPurchaseRequest {
   const IapPurchaseRequest({
     required this.productId,
     required this.receiptId,
+    this.platform,
+    this.verificationData,
     this.qaToken,
   });
 
   final String productId;
   final String receiptId;
+  final String? platform;
+  final String? verificationData;
   final String? qaToken;
 }
 

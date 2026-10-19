@@ -3,8 +3,18 @@
 const {initializeApp} = require('firebase-admin/app');
 const {getFirestore, FieldValue} = require('firebase-admin/firestore');
 const {onCall, HttpsError} = require('firebase-functions/v2/https');
+const {defineSecret} = require('firebase-functions/params');
+const {
+  verifyAndroidPurchase,
+  verifyApplePurchase,
+} = require('./iap_verify');
 
 initializeApp();
+
+const playServiceAccountJson = defineSecret('PLAY_SERVICE_ACCOUNT_JSON');
+const appleIapKeyP8 = defineSecret('APPLE_IAP_KEY_P8');
+const appleIapKeyId = defineSecret('APPLE_IAP_KEY_ID');
+const appleIapIssuerId = defineSecret('APPLE_IAP_ISSUER_ID');
 
 const SCHEMA_VERSION = 14;
 const STARTING_COINS = 500;
@@ -276,90 +286,138 @@ exports.submitBattleRun = onCall(CALLABLE_OPTS, async (request) => {
 });
 
 /**
- * Emulator / QA receipts only. Production rejects until store secrets exist.
+ * Validates store receipts (Play / App Store) or emulator/QA tokens.
  * Never trust client-supplied coin/gem amounts — look up productId.
  */
-exports.validateIapReceipt = onCall(CALLABLE_OPTS, async (request) => {
-  const uid = requireAuth(request);
-  const productId = request.data && request.data.productId;
-  const receiptId = request.data && request.data.receiptId;
-  const qaToken = request.data && request.data.qaToken;
-  if (!productId || !receiptId) {
-    throw new HttpsError('invalid-argument', 'productId and receiptId required.');
-  }
-  const grant = IAP_GRANTS[productId];
-  if (!grant) {
-    throw new HttpsError('not-found', 'Unknown product.');
-  }
-
-  const projectId = process.env.GCLOUD_PROJECT || '';
-  const emulator = Boolean(process.env.FUNCTIONS_EMULATOR);
-  if (!emulator && qaToken !== `qa-${projectId}`) {
-    throw new HttpsError(
-      'failed-precondition',
-      'Store receipt validation is not configured. No client grants.',
-    );
-  }
-
-  const db = getFirestore();
-  const receiptRef = db.doc(`iap_receipts/${receiptId}`);
-  const userRef = db.doc(`users/${uid}`);
-
-  return db.runTransaction(async (tx) => {
-    const existing = await tx.get(receiptRef);
-    if (existing.exists && existing.data().processed === true) {
-      return {alreadyProcessed: true, productId};
+exports.validateIapReceipt = onCall(
+  {
+    invoker: 'public',
+    secrets: [
+      playServiceAccountJson,
+      appleIapKeyP8,
+      appleIapKeyId,
+      appleIapIssuerId,
+    ],
+  },
+  async (request) => {
+    const uid = requireAuth(request);
+    const productId = request.data && request.data.productId;
+    const receiptId = request.data && request.data.receiptId;
+    const platform = request.data && request.data.platform;
+    const verificationData = request.data && request.data.verificationData;
+    const qaToken = request.data && request.data.qaToken;
+    if (!productId || !receiptId) {
+      throw new HttpsError('invalid-argument', 'productId and receiptId required.');
     }
-    const userSnap = await tx.get(userRef);
-    if (!userSnap.exists) {
-      throw new HttpsError('not-found', 'Profile missing.');
+    const grant = IAP_GRANTS[productId];
+    if (!grant) {
+      throw new HttpsError('not-found', 'Unknown product.');
     }
-    const user = userSnap.data();
-    const claimed = Array.isArray(user.claimedStarterPackIds)
-      ? user.claimedStarterPackIds
-      : [];
-    if (grant.entitlementId && claimed.includes(grant.entitlementId)) {
+
+    const projectId = process.env.GCLOUD_PROJECT || '';
+    const emulator = Boolean(process.env.FUNCTIONS_EMULATOR);
+    const qaOk = qaToken === `qa-${projectId}`;
+
+    let verifiedPlatform = platform || 'unknown';
+    if (emulator || qaOk) {
+      verifiedPlatform = platform || 'qa';
+    } else {
+      try {
+        if (platform === 'android') {
+          await verifyAndroidPurchase({
+            productId,
+            purchaseToken: verificationData,
+            serviceAccountJson: playServiceAccountJson.value(),
+          });
+          verifiedPlatform = 'android';
+        } else if (platform === 'ios') {
+          await verifyApplePurchase({
+            productId,
+            transactionId: receiptId,
+            verificationData,
+            keyP8: appleIapKeyP8.value(),
+            keyId: appleIapKeyId.value(),
+            issuerId: appleIapIssuerId.value(),
+          });
+          verifiedPlatform = 'ios';
+        } else {
+          throw new HttpsError(
+            'invalid-argument',
+            'platform must be android or ios.',
+          );
+        }
+      } catch (error) {
+        if (error instanceof HttpsError) throw error;
+        console.error('IAP verification failed', error);
+        throw new HttpsError(
+          'failed-precondition',
+          error.message || 'Store receipt validation failed.',
+        );
+      }
+    }
+
+    const db = getFirestore();
+    const receiptRef = db.doc(`iap_receipts/${receiptId}`);
+    const userRef = db.doc(`users/${uid}`);
+
+    return db.runTransaction(async (tx) => {
+      const existing = await tx.get(receiptRef);
+      if (existing.exists && existing.data().processed === true) {
+        return {alreadyProcessed: true, productId};
+      }
+      const userSnap = await tx.get(userRef);
+      if (!userSnap.exists) {
+        throw new HttpsError('not-found', 'Profile missing.');
+      }
+      const user = userSnap.data();
+      const claimed = Array.isArray(user.claimedStarterPackIds)
+        ? user.claimedStarterPackIds
+        : [];
+      if (grant.entitlementId && claimed.includes(grant.entitlementId)) {
+        tx.set(receiptRef, {
+          uid,
+          productId,
+          platform: verifiedPlatform,
+          processed: true,
+          duplicateEntitlement: true,
+          processedAt: FieldValue.serverTimestamp(),
+        });
+        return {alreadyProcessed: true, productId};
+      }
+
+      const patch = {
+        coins: (user.coins ?? 0) + (grant.coins ?? 0),
+        gems: (user.gems ?? 0) + (grant.gems ?? 0),
+        updatedAt: FieldValue.serverTimestamp(),
+      };
+      if (grant.entitlementId) {
+        patch.claimedStarterPackIds = [...claimed, grant.entitlementId];
+      }
+      if (grant.cosmeticId) {
+        const cosmetics = Array.isArray(user.claimedCosmeticIds)
+          ? user.claimedCosmeticIds
+          : [];
+        if (!cosmetics.includes(grant.cosmeticId)) {
+          patch.claimedCosmeticIds = [...cosmetics, grant.cosmeticId];
+        }
+      }
+      if (grant.prep) {
+        const inv = {...(user.prepInventory || {})};
+        for (const [key, amount] of Object.entries(grant.prep)) {
+          inv[key] = (inv[key] ?? 0) + amount;
+        }
+        patch.prepInventory = inv;
+      }
+
       tx.set(receiptRef, {
         uid,
         productId,
+        platform: verifiedPlatform,
         processed: true,
-        duplicateEntitlement: true,
         processedAt: FieldValue.serverTimestamp(),
       });
-      return {alreadyProcessed: true, productId};
-    }
-
-    const patch = {
-      coins: (user.coins ?? 0) + (grant.coins ?? 0),
-      gems: (user.gems ?? 0) + (grant.gems ?? 0),
-      updatedAt: FieldValue.serverTimestamp(),
-    };
-    if (grant.entitlementId) {
-      patch.claimedStarterPackIds = [...claimed, grant.entitlementId];
-    }
-    if (grant.cosmeticId) {
-      const cosmetics = Array.isArray(user.claimedCosmeticIds)
-        ? user.claimedCosmeticIds
-        : [];
-      if (!cosmetics.includes(grant.cosmeticId)) {
-        patch.claimedCosmeticIds = [...cosmetics, grant.cosmeticId];
-      }
-    }
-    if (grant.prep) {
-      const inv = {...(user.prepInventory || {})};
-      for (const [key, amount] of Object.entries(grant.prep)) {
-        inv[key] = (inv[key] ?? 0) + amount;
-      }
-      patch.prepInventory = inv;
-    }
-
-    tx.set(receiptRef, {
-      uid,
-      productId,
-      processed: true,
-      processedAt: FieldValue.serverTimestamp(),
+      tx.update(userRef, patch);
+      return {alreadyProcessed: false, productId, grant};
     });
-    tx.update(userRef, patch);
-    return {alreadyProcessed: false, productId, grant};
-  });
-});
+  },
+);

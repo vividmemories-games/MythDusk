@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../services/iap/iap_providers.dart';
 import '../../../shared/widgets/myth_hub_shell.dart';
 import '../../../shared/widgets/challenge_art.dart';
 import '../../auth/presentation/account_settings_section.dart';
@@ -40,6 +41,27 @@ class SettingsScreen extends ConsumerWidget {
                 color: MythDuskColors.muted,
               ),
               onTap: () => context.push('/profile'),
+            ),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(
+                Icons.restore,
+                color: MythDuskColors.softGold,
+              ),
+              title: const Text('Restore purchases'),
+              subtitle: const Text(
+                'Re-apply owned starter pack and other non-consumables',
+              ),
+              onTap: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                await ref.read(iapCheckoutProvider).restore();
+                if (!context.mounted) return;
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Restore requested. Entitlements refreshed.'),
+                  ),
+                );
+              },
             ),
           ])),
           const SizedBox(height: 16),
