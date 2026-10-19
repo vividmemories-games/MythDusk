@@ -3,12 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mythdusk/core/config/app_flavor.dart';
 
 void main() {
-  test('showQaTools is true in debug test runs', () {
-    expect(kDebugMode, isTrue);
-    expect(AppFlavor.showQaTools, isTrue);
+  test('single production flavor name', () {
+    expect(AppFlavor.name, 'prod');
   });
 
-  test('FLAVOR name defaults to prod without dart-define', () {
-    expect(AppFlavor.name, anyOf('prod', 'dev'));
+  test('showQaTools is true in debug test runs only', () {
+    expect(kDebugMode, isTrue);
+    expect(AppFlavor.showQaTools, isTrue);
   });
 }

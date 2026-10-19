@@ -7,24 +7,28 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 
-import '../core/config/app_flavor.dart';
 import '../core/config/remote_config_keys.dart';
 import 'firebase_options.dart';
 
-/// Firebase init is optional. The game stays on local profile until the
-/// console project exists and emulators (dev) or real options (prod) work.
+/// Firebase init against the production project.
+///
+/// Optional local emulators: `--dart-define=USE_FIREBASE_EMULATORS=true`
+/// (not a separate app flavor).
 abstract final class FirebaseBootstrap {
   static var _ready = false;
   static var _attempted = false;
 
   static bool get isReady => _ready;
 
-  /// Dev flavor talks to emulators. Prod initializes when FlutterFire
-  /// options point at the real console project.
+  static bool get useEmulators => const bool.fromEnvironment(
+        'USE_FIREBASE_EMULATORS',
+        defaultValue: false,
+      );
+
   static bool get shouldInitialize {
     const projectId = String.fromEnvironment('FIREBASE_PROJECT_ID');
     if (projectId.isNotEmpty) return true;
-    if (AppFlavor.isDev) return true;
+    if (useEmulators) return true;
     return DefaultFirebaseOptions.hasProductionOptions;
   }
 
@@ -36,7 +40,7 @@ abstract final class FirebaseBootstrap {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
-      if (AppFlavor.isDev) {
+      if (useEmulators) {
         await _connectEmulators();
       }
       await _activateObservability();
@@ -61,12 +65,12 @@ abstract final class FirebaseBootstrap {
   static Future<void> _activateObservability() async {
     FlutterError.onError = (details) {
       FlutterError.presentError(details);
-      if (!AppFlavor.isDev) {
+      if (!kDebugMode) {
         FirebaseCrashlytics.instance.recordFlutterFatalError(details);
       }
     };
     PlatformDispatcher.instance.onError = (error, stack) {
-      if (!AppFlavor.isDev) {
+      if (!kDebugMode) {
         FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
       }
       return true;
@@ -74,11 +78,10 @@ abstract final class FirebaseBootstrap {
 
     try {
       await FirebaseAppCheck.instance.activate(
-        androidProvider: AppFlavor.isDev
-            ? AndroidProvider.debug
-            : AndroidProvider.playIntegrity,
+        androidProvider:
+            kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
         appleProvider:
-            AppFlavor.isDev ? AppleProvider.debug : AppleProvider.appAttest,
+            kDebugMode ? AppleProvider.debug : AppleProvider.appAttest,
       );
     } catch (error) {
       debugPrint('App Check skipped: $error');
@@ -90,7 +93,7 @@ abstract final class FirebaseBootstrap {
         RemoteConfigSettings(
           fetchTimeout: const Duration(seconds: 10),
           minimumFetchInterval:
-              AppFlavor.isDev ? Duration.zero : const Duration(hours: 1),
+              kDebugMode ? Duration.zero : const Duration(hours: 1),
         ),
       );
       await remote.setDefaults(RemoteConfigKeys.defaults);

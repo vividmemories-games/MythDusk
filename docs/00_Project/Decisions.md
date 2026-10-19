@@ -372,7 +372,7 @@ Legacy single-strip filenames (`map_ch_*.png` without `_aN`) remain **deprecated
 ## 2026-07-31 — P0 safety cut (QA gate, confirms, prepDrops)
 
 **Decision:**
-- QA tools (Unlock-all, Reset, pin edit, Weekly day override) only when `AppFlavor.showQaTools` (`FLAVOR=dev` or `kDebugMode`).
+- QA tools (Unlock-all, Reset, pin edit, Weekly day override) only when `AppFlavor.showQaTools` (`kDebugMode`).
 - Battle leave / restart require confirmation dialogs.
 - Non-empty `node.prepDrops` is authoritative for victory prep grants; empty falls back to `PrepDrops.forNonBossClear`.
 - Briefing → battle covered by widget/nav tests.
@@ -581,5 +581,22 @@ Heroes / Profile copy, Balancing Bible §5.3, economy migration tests.
 
 **Reason:** Content and combat spine are far enough; the blocker is trustworthy economy + store readiness, not more modes.
 
-**Status:** Accepted — next implementation: W1 callable client + `ensureUser` + `submitBattleRun` path
+**Status:** Accepted — W1 settlement shipped; next: W2 release hygiene
+
+---
+
+## 2026-10-19 — Single production flavor (no FLAVOR=dev)
+
+**Decision:** MythDusk does **not** use a Dot Clash-style `dev` / `prod` flavor matrix.
+
+- One production Firebase project and one app target.
+- QA tools / QA IAP claims only when `kDebugMode` is true.
+- Local emulators are opt-in via `--dart-define=USE_FIREBASE_EMULATORS=true`, not a flavor.
+- Crashlytics records in non-debug builds; App Check uses debug providers only in debug.
+
+**Reason:** Solo-dev simplicity; store builds must never ship a parallel “dev” channel that can grant currency.
+
+**Impact:** `AppFlavor`, `FirebaseBootstrap`, [V1_Launch](V1_Launch.md) W2/W3, [Firebase](../04_Technical/Firebase.md).
+
+**Status:** Accepted — W2 in progress
 

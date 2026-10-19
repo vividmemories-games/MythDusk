@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Status** | Active — execution authority for production push |
-| **Last Updated** | 2026-09-28 |
+| **Last Updated** | 2026-10-19 |
 | **Related** | [Decisions](Decisions.md) · [PHASES](../PHASES.md) · [Monetization](../01_Game_Design/Monetization.md) · [Firebase](../04_Technical/Firebase.md) · [Content Architecture](../01_Game_Design/Content_Architecture.md) |
 
 This document locks **what V1 ships**, **what it cuts**, and **the ordered workstreams** to reach production. When it conflicts with older “Phase 2 later” wording in [PHASES](../PHASES.md), **this file wins** for launch sequencing.
@@ -31,7 +31,7 @@ Already in repo and treated as **done enough for V1 content spine**:
 - Firebase packages + Auth bootstrap + Functions stubs (`ensureUser`, `tickLives`, `refillLivesWithGems`, `submitBattleRun`, `validateIapReceipt`)
 - Local monetization catalogs; battle pass **off**
 
-**Known gap:** client still settles most economy via SharedPreferences. Functions exist but are not the live client path. That is the #1 production blocker.
+**W1 status:** Server settlement is live (`ensureUser` + `submitBattleRun`, cross-device hydrate). Remaining Gate A items are release hygiene (W2).
 
 ---
 
@@ -83,10 +83,10 @@ Progress is measured by **gates**. Do not call the game “in production” unti
 
 Playable closed build for owner + testers.
 
-- [ ] Client calls `ensureUser` after auth
-- [ ] Campaign win/loss goes through `submitBattleRun` (idempotent) when Firebase ready
+- [x] Client calls `ensureUser` after auth
+- [x] Campaign win/loss goes through `submitBattleRun` (idempotent) when Firebase ready
 - [ ] Lives consume/refill match Functions behavior
-- [ ] Release flavor refuses local QA IAP/ad cheats
+- [x] Release builds refuse local QA IAP/ad cheats (`kDebugMode` only; no separate `dev` flavor)
 - [ ] Crashlytics + core analytics events fire
 - [ ] Critical journey test + store smoke on one iOS and one Android device
 - [ ] Privacy / data collection copy matches actual SDK use
@@ -131,30 +131,30 @@ Do not parallelize W1 with feature sprawl. Finish each stream’s exit criteria 
 
 **Why:** Store release without this is unsafe.
 
-1. Client `CloudFunctions` port: `ensureUser`, `tickLives`, `refillLivesWithGems`, `submitBattleRun`
-2. On auth success → `ensureUser` → hydrate profile from Firestore (or merge local→server once)
-3. Battle result path writes `battle_runs/{runId}` then calls `submitBattleRun`
-4. Mirror pure math already in `battle_run_settlement.dart`
-5. Release flavor: disable local coin/gem grant shortcuts
-6. Emulator tests for duplicate run / insufficient gems / unauthenticated
+1. [x] Client `CloudFunctions` port: `ensureUser`, `tickLives`, `refillLivesWithGems`, `submitBattleRun`
+2. [x] On auth success → `ensureUser` → hydrate profile from Firestore (or merge local→server once)
+3. [x] Battle result path writes `battle_runs/{runId}` then calls `submitBattleRun`
+4. [x] Mirror pure math already in `battle_run_settlement.dart`
+5. [x] Release builds: disable local coin/gem grant shortcuts (QA only in `kDebugMode`)
+6. [ ] Emulator tests for duplicate run / insufficient gems / unauthenticated
 
-**Exit:** With emulators up, a campaign clear only increases coins via Function response.
+**Exit:** Campaign clear increases coins via Function response (verified on device).
 
 ### W2 — Release hygiene & observability
 
-1. Flavor matrix: `dev` (emulators OK) vs `prod` (real project, no QA claims)
+1. Single production target — **no** separate `dev` / `prod` flavors (unlike Dot Clash). Optional emulators via `USE_FIREBASE_EMULATORS` only.
 2. Crashlytics + Analytics events from Monetization.md minimum table
 3. Remote Config fetch for feature flags (battle pass stays false)
-4. Remove or gate debug enemy picker / mock rail in prod
+4. Gate debug enemy picker / mock rail / QA shop claims to `kDebugMode` only
 5. Content error screens already exist — verify deep links
 
-**Exit:** Prod APK/IPA builds; crashes visible in console.
+**Exit:** Release APK/IPA builds; crashes visible in console.
 
 ### W3 — Soft IAP (starter pack)
 
 1. Add official `in_app_purchase` (or approved package) — **owner approval for dependency**
 2. Wire Shop starter pack to store purchase → `validateIapReceipt`
-3. Replace QA claim in prod; keep QA claim behind `FLAVOR=dev`
+3. Replace QA claim in release; keep QA claim behind `kDebugMode` only
 4. Restore purchases flow in Settings
 5. App Store Connect / Play Console product IDs matching `iap_catalog.dart`
 
@@ -193,11 +193,9 @@ Do not parallelize W1 with feature sprawl. Finish each stream’s exit criteria 
 
 ---
 
-## 7. Suggested immediate next PR (after this plan)
+## 7. Suggested immediate next PR
 
-**Implement W1 slice 1:** Flutter callable client + `ensureUser` on auth + feature flag `useServerSettlement`.
-
-Keep local profile as cache; server wins for coins/lives/`completedNodeIds` when Firebase ready.
+**W2:** Crashlytics/analytics wiring audit + confirm release builds hide QA tools; no flavor matrix.
 
 ---
 

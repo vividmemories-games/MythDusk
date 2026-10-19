@@ -1,12 +1,11 @@
 import 'package:flutter/foundation.dart';
 
-/// Build flavor from `--dart-define=FLAVOR=dev|prod` (default prod).
+/// Single production target (no separate `dev` / `prod` flavors).
+///
+/// QA controls appear only in debug builds. Release/profile never show them.
 abstract final class AppFlavor {
-  static const name = String.fromEnvironment('FLAVOR', defaultValue: 'prod');
+  static const name = 'prod';
 
-  static bool get isDev => name == 'dev';
-
-  /// QA controls (unlock-all, pin edit, weekly day override).
-  /// Shown in debug builds or when FLAVOR=dev.
-  static bool get showQaTools => isDev || kDebugMode;
+  /// QA controls (unlock-all, pin edit, weekly day override, QA IAP claims).
+  static bool get showQaTools => kDebugMode;
 }

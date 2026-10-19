@@ -17,10 +17,13 @@
 
 ## Run emulators
 
+MythDusk uses a **single production target** (no `FLAVOR=dev`). Point a local
+run at emulators with an explicit define:
+
 ```bash
 cd functions && npm install && cd ..
 npx -y firebase-tools@latest emulators:start
-flutter run --dart-define=FLAVOR=dev
+flutter run --dart-define=USE_FIREBASE_EMULATORS=true
 ```
 
 Do **not** run `firebase deploy` unless the project owner approves it.
