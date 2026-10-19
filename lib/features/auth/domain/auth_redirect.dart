@@ -4,7 +4,9 @@ String? authRedirect({
   required bool splashComplete,
   required bool firebaseReady,
   required bool signedIn,
+  bool suppressAuthRedirect = false,
 }) {
+  if (suppressAuthRedirect) return null;
   if (!splashComplete) {
     return location == '/splash' ? null : '/splash';
   }

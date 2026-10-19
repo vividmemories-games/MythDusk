@@ -67,4 +67,27 @@ void main() {
       '/',
     );
   });
+
+  test('suppresses redirects during silent account switch', () {
+    expect(
+      authRedirect(
+        location: '/settings',
+        splashComplete: true,
+        firebaseReady: true,
+        signedIn: false,
+        suppressAuthRedirect: true,
+      ),
+      isNull,
+    );
+    expect(
+      authRedirect(
+        location: '/login',
+        splashComplete: true,
+        firebaseReady: true,
+        signedIn: true,
+        suppressAuthRedirect: true,
+      ),
+      isNull,
+    );
+  });
 }

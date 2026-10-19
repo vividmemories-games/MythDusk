@@ -23,6 +23,10 @@ const IAP_GRANTS = {
   mythdusk_prep_box: {prep: {vanguard_tonic: 2, aegis_flask: 1}},
 };
 
+// Gen2 callables are Cloud Run services. Without public invoker, clients get
+// HTTP 401 before Firebase Auth is checked. Auth is still enforced in requireAuth.
+const CALLABLE_OPTS = {invoker: 'public'};
+
 function requireAuth(request) {
   if (!request.auth || !request.auth.uid) {
     throw new HttpsError('unauthenticated', 'Sign in first.');
@@ -51,30 +55,87 @@ function applyLifeRegen(lives, lastLifeRegenAt, now) {
   return {lives: nextLives, lastLifeRegenAt: advanced.toISOString()};
 }
 
-exports.ensureUser = onCall(async (request) => {
+/**
+ * One-time create bootstrap from local cache. Only applied when the user doc
+ * does not exist yet — never overwrites an existing cloud profile.
+ */
+function clampBootstrap(boot) {
+  const raw = boot && typeof boot === 'object' ? boot : {};
+  const completed = Array.isArray(raw.completedNodeIds)
+    ? raw.completedNodeIds
+      .filter((id) => typeof id === 'string' && id.length > 0 && id.length < 64)
+      .slice(0, 500)
+    : [];
+  const coins = Math.max(
+    0,
+    Math.min(1000000, Number.isFinite(Number(raw.coins)) ? Number(raw.coins) : STARTING_COINS),
+  );
+  const gems = Math.max(
+    0,
+    Math.min(100000, Number.isFinite(Number(raw.gems)) ? Number(raw.gems) : STARTING_GEMS),
+  );
+  const lives = Math.max(
+    0,
+    Math.min(MAX_LIVES, Number.isFinite(Number(raw.lives)) ? Number(raw.lives) : MAX_LIVES),
+  );
+  const displayName =
+    typeof raw.displayName === 'string' && raw.displayName.trim().length > 0
+      ? raw.displayName.trim().slice(0, 40)
+      : 'Wanderer';
+  const selectedHeroId =
+    typeof raw.selectedHeroId === 'string' && raw.selectedHeroId.length > 0
+      ? raw.selectedHeroId.slice(0, 63)
+      : 'mage';
+  return {completedNodeIds: completed, coins, gems, lives, displayName, selectedHeroId};
+}
+
+function publicProfile(data) {
+  return {
+    schemaVersion: data.schemaVersion ?? SCHEMA_VERSION,
+    displayName: data.displayName ?? 'Wanderer',
+    coins: data.coins ?? 0,
+    gems: data.gems ?? 0,
+    lives: data.lives ?? 0,
+    lastLifeRegenAt: data.lastLifeRegenAt ?? null,
+    gemLifeRefillDay: data.gemLifeRefillDay ?? '',
+    gemLifeRefillCount: data.gemLifeRefillCount ?? 0,
+    selectedHeroId: data.selectedHeroId ?? 'mage',
+    completedNodeIds: Array.isArray(data.completedNodeIds) ? data.completedNodeIds : [],
+    claimedStarterPackIds: Array.isArray(data.claimedStarterPackIds)
+      ? data.claimedStarterPackIds
+      : [],
+    claimedCosmeticIds: Array.isArray(data.claimedCosmeticIds)
+      ? data.claimedCosmeticIds
+      : [],
+  };
+}
+
+exports.ensureUser = onCall(CALLABLE_OPTS, async (request) => {
   const uid = requireAuth(request);
   const ref = getFirestore().doc(`users/${uid}`);
   const snap = await ref.get();
   if (snap.exists) {
-    return {created: false, uid};
+    return {created: false, uid, profile: publicProfile(snap.data())};
   }
-  await ref.set({
+  const boot = clampBootstrap(request.data && request.data.bootstrap);
+  const profile = {
     schemaVersion: SCHEMA_VERSION,
-    displayName: 'Wanderer',
-    coins: STARTING_COINS,
-    gems: STARTING_GEMS,
-    lives: MAX_LIVES,
-    selectedHeroId: 'mage',
-    completedNodeIds: [],
+    displayName: boot.displayName,
+    coins: boot.coins,
+    gems: boot.gems,
+    lives: boot.lives,
+    selectedHeroId: boot.selectedHeroId,
+    completedNodeIds: boot.completedNodeIds,
     claimedStarterPackIds: [],
     claimedCosmeticIds: [],
     createdAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),
-  });
-  return {created: true, uid};
+  };
+  await ref.set(profile);
+  return {created: true, uid, profile: publicProfile(profile)};
 });
 
-exports.tickLives = onCall(async (request) => {
+exports.tickLives = onCall(CALLABLE_OPTS, async (request) => {
   const uid = requireAuth(request);
   const ref = getFirestore().doc(`users/${uid}`);
   const result = await getFirestore().runTransaction(async (tx) => {
@@ -95,7 +156,7 @@ exports.tickLives = onCall(async (request) => {
   return result;
 });
 
-exports.refillLivesWithGems = onCall(async (request) => {
+exports.refillLivesWithGems = onCall(CALLABLE_OPTS, async (request) => {
   const uid = requireAuth(request);
   const ref = getFirestore().doc(`users/${uid}`);
   return getFirestore().runTransaction(async (tx) => {
@@ -130,7 +191,7 @@ exports.refillLivesWithGems = onCall(async (request) => {
  * Idempotent PvE settlement. Client creates battle_runs/{runId} then calls
  * this with the same runId. Duplicate calls return the original grant.
  */
-exports.submitBattleRun = onCall(async (request) => {
+exports.submitBattleRun = onCall(CALLABLE_OPTS, async (request) => {
   const uid = requireAuth(request);
   const runId = request.data && request.data.runId;
   if (!runId || typeof runId !== 'string') {
@@ -150,10 +211,17 @@ exports.submitBattleRun = onCall(async (request) => {
       throw new HttpsError('permission-denied', 'Not your run.');
     }
     if (run.processed === true) {
+      const userSnap = await tx.get(userRef);
+      const user = userSnap.exists ? userSnap.data() : {};
       return {
         alreadyProcessed: true,
         grantCoins: run.grantCoins ?? 0,
         completedNode: run.completedNode === true,
+        coins: user.coins ?? 0,
+        lives: user.lives ?? 0,
+        completedNodeIds: Array.isArray(user.completedNodeIds)
+          ? user.completedNodeIds
+          : [],
       };
     }
 
@@ -165,10 +233,12 @@ exports.submitBattleRun = onCall(async (request) => {
     const won = run.won === true;
     const coinReward = Math.max(0, Math.min(5000, run.coinReward ?? 0));
     const grantCoins = won ? coinReward : 0;
-    const nodeId = run.nodeId;
+    const nodeId = typeof run.nodeId === 'string' ? run.nodeId : '';
+    const mode = typeof run.mode === 'string' ? run.mode : 'pve';
     const completed = Array.isArray(user.completedNodeIds) ? user.completedNodeIds : [];
-    const alreadyCleared = completed.includes(nodeId);
-    const nextCompleted = won && nodeId && !alreadyCleared
+    const trackCampaignNode = mode === 'pve' && nodeId.length > 0;
+    const alreadyCleared = trackCampaignNode && completed.includes(nodeId);
+    const nextCompleted = won && trackCampaignNode && !alreadyCleared
       ? [...completed, nodeId]
       : completed;
 
@@ -184,7 +254,7 @@ exports.submitBattleRun = onCall(async (request) => {
     tx.update(runRef, {
       processed: true,
       grantCoins,
-      completedNode: won && !alreadyCleared,
+      completedNode: won && trackCampaignNode && !alreadyCleared,
       processedAt: FieldValue.serverTimestamp(),
     });
     tx.update(userRef, {
@@ -197,7 +267,10 @@ exports.submitBattleRun = onCall(async (request) => {
     return {
       alreadyProcessed: false,
       grantCoins,
-      completedNode: won && !alreadyCleared,
+      completedNode: won && trackCampaignNode && !alreadyCleared,
+      coins: (user.coins ?? 0) + grantCoins,
+      lives,
+      completedNodeIds: nextCompleted,
     };
   });
 });
@@ -206,7 +279,7 @@ exports.submitBattleRun = onCall(async (request) => {
  * Emulator / QA receipts only. Production rejects until store secrets exist.
  * Never trust client-supplied coin/gem amounts — look up productId.
  */
-exports.validateIapReceipt = onCall(async (request) => {
+exports.validateIapReceipt = onCall(CALLABLE_OPTS, async (request) => {
   const uid = requireAuth(request);
   const productId = request.data && request.data.productId;
   const receiptId = request.data && request.data.receiptId;

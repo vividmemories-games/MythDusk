@@ -50,6 +50,11 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("release")
+            // Flutter enables R8 for release; keep Firebase component registrars.
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 }

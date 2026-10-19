@@ -10,6 +10,7 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../../firebase/firebase_bootstrap.dart';
 import '../../../firebase/firebase_options.dart';
 import '../domain/auth_identity.dart';
+import '../domain/auth_session_gate.dart';
 
 class AuthService {
   AuthService({FirebaseAuth? auth}) : _injected = auth;
@@ -29,7 +30,10 @@ class AuthService {
     return _auth.authStateChanges().map(_mapUser);
   }
 
-  AuthIdentity? get current => _mapUser(_auth.currentUser);
+  AuthIdentity? get current {
+    if (!FirebaseBootstrap.isReady) return null;
+    return _mapUser(_auth.currentUser);
+  }
 
   Future<AuthIdentity?> signInAnonymously() async {
     if (!FirebaseBootstrap.isReady) return null;
@@ -101,6 +105,35 @@ class AuthService {
       debugPrint('Google sign-out skipped: $error');
     }
     await _auth.signOut();
+  }
+
+  /// Guest link hit an existing Apple/Google account. Drop the anonymous
+  /// session and sign into that cloud user with the credential Firebase
+  /// returned on the conflict (same path login uses when [currentUser] is null).
+  Future<AuthLinkResult> switchToExistingAccount(
+    AuthCredential credential,
+  ) async {
+    if (!FirebaseBootstrap.isReady) {
+      return const AuthLinkResult.unavailable();
+    }
+    AuthSessionGate.beginSilentAuthTransition();
+    try {
+      // Keep Google/Apple SDK session; we already hold a usable credential.
+      await _auth.signOut();
+      final signed = await _auth.signInWithCredential(credential);
+      final identity = _mapUser(signed.user);
+      if (identity == null) {
+        return const AuthLinkResult.failed('Signed in but user was missing.');
+      }
+      return AuthLinkResult.signedIn(identity);
+    } on FirebaseAuthException catch (error) {
+      return AuthLinkResult.fromFirebase(error);
+    } catch (error) {
+      debugPrint('Switch to existing account failed: $error');
+      return AuthLinkResult.failed(error.toString());
+    } finally {
+      AuthSessionGate.endSilentAuthTransition();
+    }
   }
 
   Future<AuthLinkResult> _linkOrSignIn(AuthCredential credential) async {

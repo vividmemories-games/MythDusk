@@ -6,6 +6,9 @@ abstract final class RemoteConfigKeys {
   static const starterPackEnabled = 'starter_pack_enabled';
   static const defeatContinueEnabled = 'defeat_continue_enabled';
   static const battlePassEnabled = 'battle_pass_enabled';
+
+  /// When true and Firebase is ready, coins/lives/clears go through Functions.
+  static const useServerSettlement = 'use_server_settlement';
   static const gemLifeRefillCost = 'gem_life_refill_cost';
   static const gemLifeRefillsPerDay = 'gem_life_refills_per_day';
   static const defeatContinueCoinCost = 'defeat_continue_coin_cost';
@@ -21,6 +24,7 @@ abstract final class RemoteConfigKeys {
     starterPackEnabled: true,
     defeatContinueEnabled: true,
     battlePassEnabled: false,
+    useServerSettlement: true,
     gemLifeRefillCost: EconomyBalance.gemLifeRefillCost,
     gemLifeRefillsPerDay: EconomyBalance.gemLifeRefillsPerDay,
     defeatContinueCoinCost: DefeatContinueBalance.paidContinueCoinCost,

@@ -8,6 +8,7 @@ import '../../../shared/widgets/challenge_art.dart';
 import '../../../core/assets/game_assets.dart';
 import '../../../core/analytics/analytics_providers.dart';
 import '../../../core/analytics/gameplay_analytics.dart';
+import '../../../firebase/server_settlement.dart';
 import '../../battle/domain/battle_objective.dart';
 import '../../campaign/data/campaign_repository.dart';
 import '../../campaign/domain/campaign_models.dart';
@@ -109,7 +110,7 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
       return;
     }
     if (!widget.args.won) {
-      await ref.read(profileProvider.notifier).applyDefeat();
+      await _applyCampaignDefeat();
       return;
     }
     if (widget.args.isWeekly) {
@@ -148,19 +149,14 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
       final chapter = await ref.read(campaignChapterProvider.future);
       final node = chapter.nodeById(widget.args.nodeId);
       final actIndex = chapter.actForNode(widget.args.nodeId)?.index ?? 0;
-      await ref.read(profileProvider.notifier).applyVictory(
-            nodeId: widget.args.nodeId,
-            coinReward: widget.args.coinReward,
-            isBoss: node.isBoss,
-            actIndex: actIndex,
-            nodePrepDrops: node.prepDrops,
-            chapterId: chapter.id,
-            progress: widget.args.progress,
-            heroHp: widget.args.heroHp,
-            heroMaxHp: widget.args.heroMaxHp,
-            bossForm: widget.args.bossForm ?? node.bossForm,
-          );
-      if (mounted) setState(() => _grantedCoins = widget.args.coinReward);
+      final granted = await _applyCampaignVictory(
+        isBoss: node.isBoss,
+        actIndex: actIndex,
+        nodePrepDrops: node.prepDrops,
+        chapterId: chapter.id,
+        bossForm: widget.args.bossForm ?? node.bossForm,
+      );
+      if (mounted) setState(() => _grantedCoins = granted);
     } on Object {
       if (!mounted) return;
       setState(() {
@@ -168,6 +164,74 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
             'The completed campaign node could not be validated. No reward was granted.';
       });
     }
+  }
+
+  Future<void> _applyCampaignDefeat() async {
+    final useServer = ref.read(useServerSettlementProvider) &&
+        !widget.args.isWeekly &&
+        !widget.args.isDaily &&
+        !widget.args.isExpedition;
+    if (useServer) {
+      try {
+        await ref.read(campaignServerSettlementProvider).settle(
+              nodeId: widget.args.nodeId,
+              heroId: ref.read(profileProvider).selectedHeroId,
+              won: false,
+              coinReward: 0,
+            );
+        return;
+      } on Object {
+        // Fall back to local life spend if Functions are unreachable.
+      }
+    }
+    await ref.read(profileProvider.notifier).applyDefeat();
+  }
+
+  Future<int> _applyCampaignVictory({
+    required bool isBoss,
+    required int actIndex,
+    required List<String> nodePrepDrops,
+    required String chapterId,
+    int? bossForm,
+  }) async {
+    final notifier = ref.read(profileProvider.notifier);
+    final useServer = ref.read(useServerSettlementProvider);
+    if (useServer) {
+      try {
+        final result = await ref.read(campaignServerSettlementProvider).settle(
+              nodeId: widget.args.nodeId,
+              heroId: ref.read(profileProvider).selectedHeroId,
+              won: true,
+              coinReward: widget.args.coinReward,
+            );
+        await notifier.applyVictorySideEffects(
+          isBoss: isBoss,
+          actIndex: actIndex,
+          nodePrepDrops: nodePrepDrops,
+          chapterId: chapterId,
+          progress: widget.args.progress,
+          heroHp: widget.args.heroHp,
+          heroMaxHp: widget.args.heroMaxHp,
+          bossForm: bossForm,
+        );
+        return result?.grantCoins ?? widget.args.coinReward;
+      } on Object {
+        // Fall back to full local settlement.
+      }
+    }
+    await notifier.applyVictory(
+      nodeId: widget.args.nodeId,
+      coinReward: widget.args.coinReward,
+      isBoss: isBoss,
+      actIndex: actIndex,
+      nodePrepDrops: nodePrepDrops,
+      chapterId: chapterId,
+      progress: widget.args.progress,
+      heroHp: widget.args.heroHp,
+      heroMaxHp: widget.args.heroMaxHp,
+      bossForm: bossForm,
+    );
+    return widget.args.coinReward;
   }
 
   @override

@@ -28,10 +28,15 @@ import '../../shared/presentation/content_error_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final refresh = ValueNotifier<int>(0);
+  void bump() => refresh.value++;
   ref.listen(authIdentityProvider, (_, __) {
-    refresh.value++;
+    bump();
   });
-  ref.onDispose(refresh.dispose);
+  AuthSessionGate.transitionTick.addListener(bump);
+  ref.onDispose(() {
+    AuthSessionGate.transitionTick.removeListener(bump);
+    refresh.dispose();
+  });
 
   return GoRouter(
     initialLocation: '/splash',
@@ -42,6 +47,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         splashComplete: AuthSessionGate.splashComplete,
         firebaseReady: FirebaseBootstrap.isReady,
         signedIn: ref.read(authServiceProvider).current != null,
+        suppressAuthRedirect: AuthSessionGate.suppressAuthRedirect,
       );
     },
     routes: [

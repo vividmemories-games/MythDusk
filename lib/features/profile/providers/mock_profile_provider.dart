@@ -850,6 +850,33 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
     int? bossForm,
   }) async {
     final completed = {...state.completedNodeIds, nodeId};
+    state = state.copyWith(
+      coins: state.coins + coinReward,
+      completedNodeIds: completed,
+    );
+    await applyVictorySideEffects(
+      isBoss: isBoss,
+      actIndex: actIndex,
+      nodePrepDrops: nodePrepDrops,
+      chapterId: chapterId,
+      progress: progress,
+      heroHp: heroHp,
+      heroMaxHp: heroMaxHp,
+      bossForm: bossForm,
+    );
+  }
+
+  /// Local-only extras after server settlement already applied coins/clears.
+  Future<void> applyVictorySideEffects({
+    bool isBoss = false,
+    int actIndex = 0,
+    List<String> nodePrepDrops = const [],
+    String? chapterId,
+    BattleProgress? progress,
+    int heroHp = 0,
+    int heroMaxHp = 1,
+    int? bossForm,
+  }) async {
     var inv = Map<PrepItemId, int>.from(state.prepInventory);
     final drops = PrepDrops.forVictory(
       isBoss: isBoss,
@@ -875,8 +902,6 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
     }
 
     state = state.copyWith(
-      coins: state.coins + coinReward,
-      completedNodeIds: completed,
       prepInventory: inv,
       chapterMedalCounters: counters,
       clearActiveEncounter: true,
@@ -1314,6 +1339,39 @@ class ProfileNotifier extends StateNotifier<PlayerProfile> {
           ? null
           : (state.lastLifeRegenAt ?? t),
       clearLastLifeRegenAt: newLives >= EconomyBalance.maxLives,
+    );
+    await _persist();
+  }
+
+  /// Overwrite authoritative economy fields from Cloud Functions / Firestore.
+  Future<void> applyServerEconomy({
+    required int coins,
+    required int gems,
+    required int lives,
+    required Set<String> completedNodeIds,
+    String? displayName,
+    String? selectedHeroId,
+    DateTime? lastLifeRegenAt,
+    bool clearLastLifeRegenAt = false,
+    String? gemLifeRefillDay,
+    int? gemLifeRefillCount,
+    Set<String>? claimedStarterPackIds,
+    Set<String>? claimedCosmeticIds,
+  }) async {
+    state = state.copyWith(
+      coins: coins,
+      gems: gems,
+      lives: lives,
+      completedNodeIds: completedNodeIds,
+      displayName: displayName ?? state.displayName,
+      selectedHeroId: selectedHeroId ?? state.selectedHeroId,
+      lastLifeRegenAt: lastLifeRegenAt,
+      clearLastLifeRegenAt: clearLastLifeRegenAt || lastLifeRegenAt == null,
+      gemLifeRefillDay: gemLifeRefillDay ?? state.gemLifeRefillDay,
+      gemLifeRefillCount: gemLifeRefillCount ?? state.gemLifeRefillCount,
+      claimedStarterPackIds:
+          claimedStarterPackIds ?? state.claimedStarterPackIds,
+      claimedCosmeticIds: claimedCosmeticIds ?? state.claimedCosmeticIds,
     );
     await _persist();
   }
