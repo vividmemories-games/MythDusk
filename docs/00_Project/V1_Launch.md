@@ -142,11 +142,11 @@ Do not parallelize W1 with feature sprawl. Finish each stream’s exit criteria 
 
 ### W2 — Release hygiene & observability
 
-1. Single production target — **no** separate `dev` / `prod` flavors (unlike Dot Clash). Optional emulators via `USE_FIREBASE_EMULATORS` only.
-2. Crashlytics + Analytics events from Monetization.md minimum table
-3. Remote Config fetch for feature flags (battle pass stays false)
-4. Gate debug enemy picker / mock rail / QA shop claims to `kDebugMode` only
-5. Content error screens already exist — verify deep links
+1. [x] Single production target — **no** separate `dev` / `prod` flavors (unlike Dot Clash). Optional emulators via `USE_FIREBASE_EMULATORS` only.
+2. [x] Crashlytics + Analytics events from Monetization.md minimum table (DebugView verify later when USB available)
+3. [x] Remote Config client reads for feature flags (battle pass stays false); console template publish optional
+4. [x] Gate debug enemy picker / mock rail / QA shop claims to `kDebugMode` only
+5. [ ] Content error screens already exist — verify deep links
 
 **Exit:** Release APK/IPA builds; crashes visible in console.
 

@@ -13,7 +13,7 @@ import '../../heroes/domain/hero_unlocks.dart';
 import '../../shop/domain/iap_catalog.dart';
 import '../../shop/domain/offer_bundle_catalog.dart';
 import '../../battle_pass/domain/battle_pass_catalog.dart';
-import '../../../core/config/remote_config_keys.dart';
+import '../../../core/config/remote_config_values.dart';
 import '../domain/economy_balance.dart';
 import '../providers/mock_profile_provider.dart';
 
@@ -57,13 +57,14 @@ class ShopScreen extends ConsumerWidget {
           const SizedBox(height: 12),
           Text('Offers', style: challengeTextStyle(18, bold: true)),
           const SizedBox(height: 8),
-          const _StarterPackCard(),
-          const SizedBox(height: 10),
+          if (RemoteConfigValues.starterPackEnabled) ...[
+            const _StarterPackCard(),
+            const SizedBox(height: 10),
+          ],
           const _ValuePackCard(),
           const SizedBox(height: 10),
           const _BundlesCard(),
-          if (RemoteConfigKeys.defaults[RemoteConfigKeys.battlePassEnabled] ==
-              true) ...[
+          if (RemoteConfigValues.battlePassEnabled) ...[
             const SizedBox(height: 10),
             const _BattlePassCard(),
           ],
@@ -321,8 +322,6 @@ class _BattlePassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final enabled =
-        RemoteConfigKeys.defaults[RemoteConfigKeys.battlePassEnabled] as bool;
     return RelicPanel(
       padding: const EdgeInsets.all(14),
       child: Column(
@@ -337,11 +336,8 @@ class _BattlePassCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            enabled
-                ? 'Season ${BattlePassCatalog.seasonId}: cosmetics, coins, gems, '
-                    'materials. No exclusive combat power.'
-                : 'Hidden until retention is proven '
-                    '(${RemoteConfigKeys.battlePassEnabled}=false).',
+            'Season ${BattlePassCatalog.seasonId}: cosmetics, coins, gems, '
+            'materials. No exclusive combat power.',
             style:
                 Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12),
           ),

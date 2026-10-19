@@ -1,7 +1,6 @@
-import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/config/remote_config_keys.dart';
+import '../core/config/remote_config_values.dart';
 import '../features/auth/domain/auth_identity.dart';
 import '../features/auth/providers/auth_provider.dart';
 import '../features/battle/domain/battle_run_settlement.dart';
@@ -16,12 +15,7 @@ final cloudFunctionsClientProvider = Provider<CloudFunctionsClient>((ref) {
 /// Gate for W1 server settlement. Remote Config default is true.
 bool useServerSettlementEnabled() {
   if (!FirebaseBootstrap.isReady) return false;
-  try {
-    return FirebaseRemoteConfig.instance
-        .getBool(RemoteConfigKeys.useServerSettlement);
-  } catch (_) {
-    return true;
-  }
+  return RemoteConfigValues.useServerSettlement;
 }
 
 final useServerSettlementProvider = Provider<bool>((ref) {

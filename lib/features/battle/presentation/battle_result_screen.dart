@@ -9,6 +9,7 @@ import '../../../core/assets/game_assets.dart';
 import '../../../core/analytics/analytics_providers.dart';
 import '../../../core/analytics/battle_analytics.dart';
 import '../../../core/analytics/gameplay_analytics.dart';
+import '../../../core/config/remote_config_values.dart';
 import '../../../firebase/server_settlement.dart';
 import '../../battle/domain/battle_objective.dart';
 import '../../campaign/data/campaign_repository.dart';
@@ -108,6 +109,7 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
   void _logContinueOffer() {
     if (_loggedContinueOffer) return;
     if (widget.args.won || widget.args.isExpedition) return;
+    if (!RemoteConfigValues.defeatContinueEnabled) return;
     _loggedContinueOffer = true;
     ref.read(gameplayAnalyticsProvider).log(
       GameplayAnalyticsEvents.defeatContinueOffered,
@@ -481,12 +483,14 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                 ),
               if (args.isExpedition) const SizedBox(height: 10),
               if (!args.won && !args.isExpedition) ...[
-                _DefeatContinuePanel(
-                  busy: _continueBusy,
-                  onAdContinue: _onAdContinue,
-                  onPaidContinue: _onPaidContinue,
-                ),
-                const SizedBox(height: 10),
+                if (RemoteConfigValues.defeatContinueEnabled) ...[
+                  _DefeatContinuePanel(
+                    busy: _continueBusy,
+                    onAdContinue: _onAdContinue,
+                    onPaidContinue: _onPaidContinue,
+                  ),
+                  const SizedBox(height: 10),
+                ],
                 FilledButton(
                   onPressed: () =>
                       _goBattle(args.nodeId, clearEncounter: false),
