@@ -7,6 +7,7 @@ import '../../../shared/widgets/myth_hub_shell.dart';
 import '../../../shared/widgets/challenge_art.dart';
 import '../../../core/assets/game_assets.dart';
 import '../../../core/analytics/analytics_providers.dart';
+import '../../../core/analytics/battle_analytics.dart';
 import '../../../core/analytics/gameplay_analytics.dart';
 import '../../../firebase/server_settlement.dart';
 import '../../battle/domain/battle_objective.dart';
@@ -73,14 +74,35 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
   String? _contentError;
   var _continueBusy = false;
   var _loggedContinueOffer = false;
+  var _loggedBattleEnded = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _logBattleEnded();
       _applyReward();
       _logContinueOffer();
     });
+  }
+
+  void _logBattleEnded() {
+    if (_loggedBattleEnded) return;
+    _loggedBattleEnded = true;
+    final args = widget.args;
+    ref.read(gameplayAnalyticsProvider).log(
+      GameplayAnalyticsEvents.battleEnded,
+      {
+        'mode': battleAnalyticsMode(
+          isDaily: args.isDaily,
+          isWeekly: args.isWeekly,
+          isExpedition: args.isExpedition,
+        ),
+        'nodeId': args.nodeId,
+        'won': args.won ? 1 : 0,
+        'coins': args.coinReward,
+      },
+    );
   }
 
   void _logContinueOffer() {
@@ -132,6 +154,16 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
             heroHp: widget.args.heroHp,
             heroMaxHp: widget.args.heroMaxHp,
           );
+      if (result.coins > 0 || result.medalIds.isNotEmpty) {
+        ref.read(gameplayAnalyticsProvider).log(
+          GameplayAnalyticsEvents.dailyClaimed,
+          {
+            'dayKey': contract.dayKey,
+            'coins': result.coins,
+            'medals': result.medalIds.length,
+          },
+        );
+      }
       if (mounted) {
         final titles = [
           for (final id in result.medalIds)

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 
 import '../features/battle/domain/battle_run_settlement.dart';
@@ -222,4 +223,11 @@ class RefillLivesResult {
 void logSettlementError(Object error, StackTrace stack) {
   debugPrint('Server settlement error: $error');
   debugPrint('$stack');
+  if (!FirebaseBootstrap.isReady || kDebugMode) return;
+  FirebaseCrashlytics.instance.recordError(
+    error,
+    stack,
+    reason: 'server_settlement',
+    fatal: false,
+  );
 }

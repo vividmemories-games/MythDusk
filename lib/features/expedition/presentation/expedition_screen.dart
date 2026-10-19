@@ -324,10 +324,6 @@ class _ActiveRun extends ConsumerWidget {
     );
     if (!ok || !context.mounted) return;
     ref.read(profileProvider.notifier).beginExpeditionBattle();
-    ref.read(gameplayAnalyticsProvider).log(
-      GameplayAnalyticsEvents.battleStarted,
-      {'mode': 'expedition', 'room': run.battleIndex},
-    );
     if (!context.mounted) return;
     context.push('/battle/${ExpeditionBalance.battleNodeId}');
   }

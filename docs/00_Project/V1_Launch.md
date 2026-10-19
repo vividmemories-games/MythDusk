@@ -87,7 +87,7 @@ Playable closed build for owner + testers.
 - [x] Campaign win/loss goes through `submitBattleRun` (idempotent) when Firebase ready
 - [ ] Lives consume/refill match Functions behavior
 - [x] Release builds refuse local QA IAP/ad cheats (`kDebugMode` only; no separate `dev` flavor)
-- [ ] Crashlytics + core analytics events fire
+- [x] Crashlytics + core analytics events fire (`session_start`, battle start/end, daily, monetization table)
 - [ ] Critical journey test + store smoke on one iOS and one Android device
 - [ ] Privacy / data collection copy matches actual SDK use
 

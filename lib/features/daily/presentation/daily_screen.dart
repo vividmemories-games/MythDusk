@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/analytics_providers.dart';
+import '../../../core/analytics/gameplay_analytics.dart';
 import '../../../core/config/app_flavor.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/challenge_art.dart';
@@ -13,11 +15,32 @@ import '../domain/daily_schedule.dart';
 import '../domain/daily_battle_medal.dart';
 import '../providers/daily_providers.dart';
 
-class DailyScreen extends ConsumerWidget {
+class DailyScreen extends ConsumerStatefulWidget {
   const DailyScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DailyScreen> createState() => _DailyScreenState();
+}
+
+class _DailyScreenState extends ConsumerState<DailyScreen> {
+  var _loggedOpened = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _loggedOpened) return;
+      _loggedOpened = true;
+      final contract = ref.read(dailyContractProvider);
+      ref.read(gameplayAnalyticsProvider).log(
+        GameplayAnalyticsEvents.dailyOpened,
+        {'dayKey': contract.dayKey},
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     ref.read(profileProvider.notifier).tickLifeRegen();
     final contract = ref.watch(dailyContractProvider);
     final profile = ref.watch(profileProvider);

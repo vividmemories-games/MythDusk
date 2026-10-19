@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/analytics_providers.dart';
+import '../../../core/analytics/battle_analytics.dart';
+import '../../../core/analytics/gameplay_analytics.dart';
 import '../../../core/assets/game_assets.dart';
 import '../../../core/config/app_flavor.dart';
 import '../../../core/theme/app_theme.dart';
@@ -45,6 +48,16 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
 
   Timer? _hintTimer;
   var _initialHintScheduled = false;
+  var _loggedBattleStarted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _logBattleStarted();
+    });
+  }
 
   @override
   void didUpdateWidget(covariant BattleScreen oldWidget) {
@@ -52,6 +65,29 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
     if (oldWidget.nodeId == widget.nodeId) return;
     _hintTimer?.cancel();
     _initialHintScheduled = false;
+    _loggedBattleStarted = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _logBattleStarted();
+    });
+  }
+
+  void _logBattleStarted() {
+    if (_loggedBattleStarted) return;
+    _loggedBattleStarted = true;
+    final battle = ref.read(battleProvider(widget.nodeId));
+    ref.read(gameplayAnalyticsProvider).log(
+      GameplayAnalyticsEvents.battleStarted,
+      {
+        'mode': battleAnalyticsMode(
+          isDaily: battle.isDaily,
+          isWeekly: battle.isWeekly,
+          isExpedition: battle.isExpedition,
+        ),
+        'nodeId': widget.nodeId,
+        'heroId': ref.read(profileProvider).selectedHeroId,
+      },
+    );
   }
 
   @override
