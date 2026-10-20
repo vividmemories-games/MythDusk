@@ -38,7 +38,11 @@ class BattleHudBar extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             _HudChip(
               iconPath: GameAssets.iconMoves,
@@ -46,14 +50,12 @@ class BattleHudBar extends ConsumerWidget {
               label: 'MOVES',
               accent: MythDuskColors.softGold,
             ),
-            const SizedBox(width: 8),
             _HudChip(
               iconPath: GameAssets.iconAp,
               value: '${battle.ap}/${battle.hero.maxAp}',
               label: 'AP',
               accent: MythDuskColors.amber,
             ),
-            const Spacer(),
             _PhaseBadge(label: _phaseLabel(battle)),
           ],
         ),

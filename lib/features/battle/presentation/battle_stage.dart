@@ -17,9 +17,11 @@ class BattleStage extends ConsumerWidget {
   const BattleStage({
     super.key,
     required this.battle,
+    this.height = stageHeight,
   });
 
   final BattleState battle;
+  final double height;
 
   /// Stage band for fighters (tall enough for crowns / horns without clipping).
   static const double stageHeight = 280;
@@ -42,51 +44,53 @@ class BattleStage extends ConsumerWidget {
     final telegraphed = battle.phase == BattlePhase.enemyTurn;
 
     return SizedBox(
-      height: stageHeight,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: _FighterSlot(
-              assetPath: GameAssets.hero(battle.hero.id),
-              name: battle.hero.name,
-              subtitle: battle.shield > 0 ? 'shield ${battle.shield}' : null,
-              hp: battle.heroHp,
-              maxHp: battle.hero.maxHp,
-              barColor: MythDuskColors.amber,
-              flash: heroHit || casting,
-              castGlow: casting,
-              shake: heroHit,
-              showHitFx: heroHit,
-              lungeTowardEnemy: casting,
-              align: Alignment.bottomLeft,
-              slotFill: 0.92,
-              cosmeticHeroId: battle.hero.id,
-              profile: profile,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _FighterSlot(
-              assetPath: GameAssets.enemy(
-                battle.enemy.id,
-                bossForm: battle.bossForm,
+      height: height,
+      child: ClipRect(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: _FighterSlot(
+                assetPath: GameAssets.hero(battle.hero.id),
+                name: battle.hero.name,
+                subtitle: battle.shield > 0 ? 'shield ${battle.shield}' : null,
+                hp: battle.heroHp,
+                maxHp: battle.hero.maxHp,
+                barColor: MythDuskColors.amber,
+                flash: heroHit || casting,
+                castGlow: casting,
+                shake: heroHit,
+                showHitFx: heroHit,
+                lungeTowardEnemy: casting,
+                align: Alignment.bottomLeft,
+                slotFill: 0.92,
+                cosmeticHeroId: battle.hero.id,
+                profile: profile,
               ),
-              name: battle.enemy.name,
-              hp: battle.enemyHp,
-              maxHp: battle.enemy.maxHp,
-              barColor: MythDuskColors.ember,
-              flash: enemyHit,
-              shake: enemyHit,
-              showHitFx: enemyHit,
-              enraged: battle.enraged,
-              telegraphPulse: telegraphed,
-              align: Alignment.bottomRight,
-              threat: intent,
-              slotFill: enemyFill,
             ),
-          ),
-        ],
+            const SizedBox(width: 8),
+            Expanded(
+              child: _FighterSlot(
+                assetPath: GameAssets.enemy(
+                  battle.enemy.id,
+                  bossForm: battle.bossForm,
+                ),
+                name: battle.enemy.name,
+                hp: battle.enemyHp,
+                maxHp: battle.enemy.maxHp,
+                barColor: MythDuskColors.ember,
+                flash: enemyHit,
+                shake: enemyHit,
+                showHitFx: enemyHit,
+                enraged: battle.enraged,
+                telegraphPulse: telegraphed,
+                align: Alignment.bottomRight,
+                threat: intent,
+                slotFill: enemyFill,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -142,6 +146,9 @@ class _FighterSlot extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final plateWidth = math.min(constraints.maxWidth, 168.0);
+        final compactText = MediaQuery.textScalerOf(context).scale(14) > 18 ||
+            constraints.maxHeight < 160;
+        final nameSize = compactText ? 10.0 : 12.0;
         return Column(
           crossAxisAlignment: cross,
           children: [
@@ -153,7 +160,8 @@ class _FighterSlot extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 textAlign: isLeft ? TextAlign.left : TextAlign.right,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontSize: 12,
+                  fontSize: nameSize,
+                  height: 1.1,
                   color: MythDuskColors.parchment.withValues(alpha: 0.92),
                   shadows: const [
                     Shadow(
@@ -164,7 +172,7 @@ class _FighterSlot extends StatelessWidget {
                 ),
               ),
             ),
-            if (threat != null) ...[
+            if (threat != null && constraints.maxHeight >= 140) ...[
               _ThreatBadge(threat: threat!, pulsing: telegraphPulse),
               const SizedBox(height: 2),
             ],
@@ -402,6 +410,7 @@ class _HpBarUnderState extends State<_HpBarUnder> {
 
   @override
   Widget build(BuildContext context) {
+    final compactText = MediaQuery.textScalerOf(context).scale(14) > 18;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -411,7 +420,8 @@ class _HpBarUnderState extends State<_HpBarUnder> {
           child: Text(
             '${widget.hp}/${widget.maxHp}',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontSize: 10,
+              fontSize: compactText ? 8 : 10,
+              height: 1.0,
               fontWeight: FontWeight.w700,
               color: MythDuskColors.parchment.withValues(alpha: 0.9),
               shadows: const [
@@ -420,7 +430,7 @@ class _HpBarUnderState extends State<_HpBarUnder> {
             ),
           ),
         ),
-        const SizedBox(height: 2),
+        SizedBox(height: compactText ? 1 : 2),
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: TweenAnimationBuilder<double>(
@@ -433,7 +443,7 @@ class _HpBarUnderState extends State<_HpBarUnder> {
             builder: (context, value, _) {
               return LinearProgressIndicator(
                 value: value,
-                minHeight: 7,
+                minHeight: compactText ? 5 : 7,
                 backgroundColor: MythDuskColors.ink.withValues(alpha: 0.55),
                 color: widget.barColor,
               );

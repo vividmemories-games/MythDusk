@@ -12,7 +12,6 @@ import '../../../core/config/app_flavor.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../campaign/data/campaign_repository.dart';
 import '../../campaign/domain/campaign_models.dart';
-import '../../heroes/domain/hero_def.dart';
 import '../../profile/providers/mock_profile_provider.dart';
 import '../../puzzle/data/board_catalog_repository.dart';
 import '../../puzzle/domain/puzzle_engine.dart';
@@ -24,7 +23,7 @@ import '../../weekly/providers/weekly_providers.dart';
 import '../../../shared/presentation/content_error_screen.dart';
 import '../domain/battle_state.dart';
 import '../domain/enemy_def.dart';
-import '../domain/skill_affordability.dart';
+import 'battle_skill_button.dart';
 import '../providers/battle_provider.dart';
 import 'animated_puzzle_board.dart';
 import 'battle_hud.dart';
@@ -74,8 +73,14 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
 
   void _logBattleStarted() {
     if (_loggedBattleStarted) return;
+    BattleState battle;
+    try {
+      battle = ref.read(battleProvider(widget.nodeId));
+    } catch (_) {
+      // Content/error gate screens must not crash analytics.
+      return;
+    }
     _loggedBattleStarted = true;
-    final battle = ref.read(battleProvider(widget.nodeId));
     ref.read(gameplayAnalyticsProvider).log(
       GameplayAnalyticsEvents.battleStarted,
       {
@@ -306,6 +311,7 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
       _scheduleHint(ref.read(battleProvider(widget.nodeId)));
     });
 
+    final separateEndTurn = MediaQuery.textScalerOf(context).scale(14) > 18;
     final bgPath = GameAssets.battleBackground(
       node?.backgroundId ?? chapter?.backgroundId,
     );
@@ -340,51 +346,58 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
           SafeArea(
             child: Stack(
               children: [
-                Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-                      child: Row(
-                        children: [
-                          _FloatingActionIcon(
-                            icon: Icons.arrow_back,
-                            semanticLabel: 'Leave battle',
-                            onTap: () => _confirmLeave(context),
-                          ),
-                          if (AppFlavor.showQaTools &&
-                              battle.phase == BattlePhase.playerTurn &&
-                              !battle.inputLocked) ...[
-                            const SizedBox(width: 8),
+                LayoutBuilder(builder: (context, constraints) {
+                  // Preserve board space on compact phones. Enlarged text can
+                  // scroll the complete battle rather than collapse the board.
+                  final textScale =
+                      MediaQuery.textScalerOf(context).scale(14) / 14;
+                  final compact =
+                      constraints.maxHeight < 640 || textScale > 1.3;
+                  final stageHeight =
+                      (constraints.maxHeight * (compact ? 0.24 : 0.28)).clamp(
+                    compact ? (textScale > 1.3 ? 160.0 : 140.0) : 160.0,
+                    compact ? 220.0 : 280.0,
+                  );
+                  final boardHeight =
+                      (constraints.maxHeight * (compact ? 0.38 : 0.42))
+                          .clamp(140.0, 420.0);
+                  final needsScroll =
+                      constraints.maxHeight < 640 || textScale > 1.3;
+
+                  Widget topBar() => Padding(
+                        padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+                        child: Row(
+                          children: [
                             _FloatingActionIcon(
-                              icon: Icons.bug_report_outlined,
-                              semanticLabel: 'QA: force enemy skill',
-                              onTap: () => _showQaEnemySkills(
-                                context,
-                                battle,
-                                notifier,
+                              icon: Icons.arrow_back,
+                              semanticLabel: 'Leave battle',
+                              onTap: () => _confirmLeave(context),
+                            ),
+                            if (AppFlavor.showQaTools &&
+                                battle.phase == BattlePhase.playerTurn &&
+                                !battle.inputLocked) ...[
+                              const SizedBox(width: 8),
+                              _FloatingActionIcon(
+                                icon: Icons.bug_report_outlined,
+                                semanticLabel: 'QA: force enemy skill',
+                                onTap: () => _showQaEnemySkills(
+                                  context,
+                                  battle,
+                                  notifier,
+                                ),
                               ),
+                            ],
+                            const Spacer(),
+                            _FloatingActionIcon(
+                              icon: Icons.refresh,
+                              semanticLabel: 'Restart battle',
+                              onTap: () => _confirmRestart(context, notifier),
                             ),
                           ],
-                          const Spacer(),
-                          _FloatingActionIcon(
-                            icon: Icons.refresh,
-                            semanticLabel: 'Restart battle',
-                            onTap: () => _confirmRestart(context, notifier),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: BattleStage(battle: battle),
-                    ),
-                    const SizedBox(height: 2),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: BattleHudBar(battle: battle),
-                    ),
-                    Expanded(
-                      child: Padding(
+                        ),
+                      );
+
+                  Widget board() => Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4),
                         child: KeyedSubtree(
                           key: ref.watch(resourceFlyTargetsProvider).boardKey,
@@ -402,54 +415,101 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
                             },
                           ),
                         ),
-                      ),
-                    ),
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: MythDuskColors.ink.withValues(alpha: 0.78),
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(16),
-                        ),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.10),
-                        ),
-                      ),
-                      padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _StatusLine(battle: battle),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              for (var i = 0;
-                                  i < battle.hero.skills.length;
-                                  i++) ...[
-                                if (i > 0) const SizedBox(width: 8),
-                                Expanded(
-                                  child: _SkillButton(
-                                    skill: battle.hero.skills[i],
-                                    battle: battle,
-                                    onTap: () => notifier
-                                        .castSkill(battle.hero.skills[i]),
-                                  ),
-                                ),
-                              ],
-                              const SizedBox(width: 8),
-                              _EndTurnButton(
-                                enabled:
-                                    battle.phase == BattlePhase.playerTurn &&
-                                        !battle.inputLocked,
-                                onTap: notifier.endPlayerTurn,
-                              ),
-                            ],
+                      );
+
+                  Widget skillDock() => Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: MythDuskColors.ink.withValues(alpha: 0.78),
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(16),
                           ),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.10),
+                          ),
+                        ),
+                        padding: EdgeInsets.fromLTRB(
+                            12, compact ? 4 : 6, 12, compact ? 6 : 8),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _StatusLine(battle: battle),
+                            SizedBox(height: compact ? 4 : 6),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                for (var i = 0;
+                                    i < battle.hero.skills.length;
+                                    i++) ...[
+                                  if (i > 0) const SizedBox(width: 8),
+                                  Expanded(
+                                    child: BattleSkillButton(
+                                      key: ValueKey(battle.hero.skills[i].id),
+                                      skill: battle.hero.skills[i],
+                                      battle: battle,
+                                      onTap: () => notifier
+                                          .castSkill(battle.hero.skills[i]),
+                                    ),
+                                  ),
+                                ],
+                                if (!separateEndTurn) ...[
+                                  const SizedBox(width: 8),
+                                  _EndTurnButton(
+                                    enabled: battle.phase ==
+                                            BattlePhase.playerTurn &&
+                                        !battle.inputLocked,
+                                    onTap: notifier.endPlayerTurn,
+                                  ),
+                                ],
+                              ],
+                            ),
+                            if (separateEndTurn) ...[
+                              const SizedBox(height: 8),
+                              Align(
+                                  alignment: Alignment.centerRight,
+                                  child: _EndTurnButton(
+                                      enabled: battle.phase ==
+                                              BattlePhase.playerTurn &&
+                                          !battle.inputLocked,
+                                      onTap: notifier.endPlayerTurn)),
+                            ],
+                          ],
+                        ),
+                      );
+
+                  final chrome = <Widget>[
+                    topBar(),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: BattleStage(battle: battle, height: stageHeight),
+                    ),
+                    const SizedBox(height: 2),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: BattleHudBar(battle: battle),
+                    ),
+                  ];
+
+                  if (needsScroll) {
+                    return SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          ...chrome,
+                          SizedBox(height: boardHeight, child: board()),
+                          skillDock(),
                         ],
                       ),
-                    ),
-                  ],
-                ),
+                    );
+                  }
+
+                  return Column(
+                    children: [
+                      ...chrome,
+                      Expanded(child: board()),
+                      skillDock(),
+                    ],
+                  );
+                }),
                 const Positioned.fill(child: MatchCollectOverlay()),
                 BattleTutorialOverlay(
                   enabled: !battle.isWeekly &&
@@ -649,177 +709,6 @@ class _EndTurnButton extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// Game-style ability card: name over current/need cost chips.
-/// Glows gold when castable; shows blocking reason when not.
-class _SkillButton extends StatelessWidget {
-  const _SkillButton({
-    required this.skill,
-    required this.battle,
-    required this.onTap,
-  });
-
-  final SkillDef skill;
-  final BattleState battle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final afford = SkillAffordability.evaluate(skill, battle);
-    final enabled = afford.canCast;
-
-    return Tooltip(
-      message: afford.blockingReason ?? 'Ready',
-      triggerMode: TooltipTriggerMode.longPress,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: enabled
-                ? [MythDuskColors.mist, MythDuskColors.deepTeal]
-                : [
-                    MythDuskColors.deepTeal.withValues(alpha: 0.55),
-                    MythDuskColors.ink.withValues(alpha: 0.55),
-                  ],
-          ),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: enabled
-                ? MythDuskColors.softGold
-                : Colors.white.withValues(alpha: 0.14),
-            width: enabled ? 1.6 : 1,
-          ),
-          boxShadow: enabled
-              ? [
-                  BoxShadow(
-                    color: MythDuskColors.softGold.withValues(alpha: 0.35),
-                    blurRadius: 10,
-                    spreadRadius: 0.5,
-                  ),
-                ]
-              : const [],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(12),
-            onTap: enabled ? onTap : null,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              child: Opacity(
-                opacity: enabled ? 1 : 0.72,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      skill.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: enabled
-                            ? MythDuskColors.softGold
-                            : MythDuskColors.parchment,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          for (final line in afford.resourceLines) ...[
-                            _CostChip(
-                              iconPath:
-                                  GameAssets.resourceIcon(line.resourceId),
-                              label: line.label,
-                              ok: line.ok,
-                            ),
-                            const SizedBox(width: 4),
-                          ],
-                          _CostChip(
-                            iconPath: GameAssets.iconAp,
-                            label: '${afford.apHave}/${afford.apNeed}',
-                            ok: afford.apOk,
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (!enabled && afford.blockingReason != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        afford.blockingReason!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 9,
-                          color: MythDuskColors.ember,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CostChip extends StatelessWidget {
-  const _CostChip({
-    required this.iconPath,
-    required this.label,
-    this.ok = true,
-  });
-
-  final String iconPath;
-  final String label;
-  final bool ok;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(3, 2, 5, 2),
-      decoration: BoxDecoration(
-        color: MythDuskColors.ink.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(9),
-        border: ok
-            ? null
-            : Border.all(color: MythDuskColors.ember.withValues(alpha: 0.7)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: 14,
-            height: 14,
-            child: Image.asset(
-              iconPath,
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Icon(Icons.circle, size: 10),
-            ),
-          ),
-          const SizedBox(width: 2),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: ok ? MythDuskColors.parchment : MythDuskColors.ember,
-            ),
-          ),
-        ],
       ),
     );
   }
