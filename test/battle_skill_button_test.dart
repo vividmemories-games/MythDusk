@@ -11,6 +11,7 @@ import 'package:mythdusk/core/widgets/skill_art.dart';
 import 'package:mythdusk/features/battle/domain/battle_state.dart';
 import 'package:mythdusk/features/battle/presentation/battle_screen.dart';
 import 'package:mythdusk/features/battle/presentation/battle_skill_button.dart';
+import 'package:mythdusk/features/battle/presentation/battle_stage.dart';
 import 'package:mythdusk/features/battle/presentation/animated_puzzle_board.dart';
 import 'package:mythdusk/features/campaign/data/campaign_repository.dart';
 import 'package:mythdusk/features/profile/providers/mock_profile_provider.dart';
@@ -30,6 +31,7 @@ void main() {
   testWidgets(
       'all 20 skills display live costs and charge exactly once per cast',
       (tester) async {
+    final semantics = tester.ensureSemantics();
     for (final hero in HeroCatalog.all) {
       for (final skill in hero.skills) {
         var battle = _ready(hero);
@@ -41,7 +43,7 @@ void main() {
             home: Scaffold(body: StatefulBuilder(builder: (context, setState) {
               update = setState;
               return SizedBox(
-                  width: 220,
+                  width: 116,
                   child: BattleSkillButton(
                       key: ValueKey(skill.id),
                       skill: skill,
@@ -56,10 +58,15 @@ void main() {
             }))));
         await tester.pumpAndSettle();
         expect(find.byType(SkillArt), findsOneWidget);
-        expect(find.text('${hero.maxAp}/${skill.apCost}'), findsOneWidget);
+        expect(
+            find.bySemanticsLabel(
+                RegExp('AP ${hero.maxAp} of ${skill.apCost} required')),
+            findsOneWidget);
+        expect(tester.getSize(find.byType(BattleSkillButton)).height,
+            lessThanOrEqualTo(64));
         await tester.tap(find.byType(BattleSkillButton));
         await tester.pump();
-        expect(find.text('Casting…'), findsOneWidget);
+        expect(find.bySemanticsLabel(RegExp('Casting…')), findsOneWidget);
         await tester.tap(find.byType(BattleSkillButton));
         expect(casts, 1);
         expect(battle.ap, hero.maxAp - skill.apCost);
@@ -68,10 +75,11 @@ void main() {
         }
         finished.complete();
         await tester.pumpAndSettle();
-        expect(find.text('Casting…'), findsNothing);
+        expect(find.bySemanticsLabel(RegExp('Casting…')), findsNothing);
         expect(tester.takeException(), isNull);
       }
     }
+    semantics.dispose();
   });
 
   testWidgets('missing AP or resources and non-player phases block input',
@@ -127,6 +135,30 @@ void main() {
   });
 
   testWidgets(
+      'long press shows exact costs without casting an unavailable skill',
+      (tester) async {
+    var casts = 0;
+    final battle = _ready(HeroCatalog.mage).copyWith(ap: 0);
+    await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+            body: Center(
+                child: SizedBox(
+                    width: 180,
+                    child: BattleSkillButton(
+                        skill: HeroCatalog.mage.skills.first,
+                        battle: battle,
+                        onTap: () async {
+                          casts++;
+                        }))))));
+    await tester.pumpAndSettle();
+    await tester.longPress(find.byType(BattleSkillButton));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('mana 20/4'), findsOneWidget);
+    expect(find.textContaining('AP 0/2'), findsOneWidget);
+    expect(casts, 0);
+  });
+
+  testWidgets(
       'full battle keeps board visible and skills reachable on compact phones',
       (tester) async {
     SharedPreferences.setMockInitialValues({
@@ -171,6 +203,13 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.byType(BattleSkillButton), findsNWidgets(2));
         expect(find.text('Meteor Shard'), findsOneWidget);
+        final compact = size.height < 640 || scale > 1.3;
+        final expectedStageHeight = (size.height * (compact ? .24 : .28)).clamp(
+          compact ? (scale > 1.3 ? 160.0 : 140.0) : 160.0,
+          compact ? 220.0 : 280.0,
+        );
+        expect(tester.getSize(find.byType(BattleStage)).height,
+            closeTo(expectedStageHeight, .1));
         expect(tester.getSize(find.byType(AnimatedPuzzleBoard)).height,
             greaterThan(120));
         await tester.ensureVisible(find.byType(BattleSkillButton).first);

@@ -428,8 +428,7 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
                             color: Colors.white.withValues(alpha: 0.10),
                           ),
                         ),
-                        padding: EdgeInsets.fromLTRB(
-                            12, compact ? 4 : 6, 12, compact ? 6 : 8),
+                        padding: const EdgeInsets.fromLTRB(8, 4, 8, 5),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -675,8 +674,9 @@ class _EndTurnButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: enabled ? onTap : null,
         child: AnimatedContainer(
+          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           decoration: BoxDecoration(
             color: enabled
                 ? MythDuskColors.deepTeal.withValues(alpha: 0.85)

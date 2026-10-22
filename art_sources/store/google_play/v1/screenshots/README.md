@@ -2,7 +2,7 @@
 
 Five English phone screenshot exports at 1080 × 1920, JPEG without alpha. Upload in numeric order. PNG capture masters, including the headline, are retained in `sources/`. The overview in `../previews/phone_screenshots.jpg` is for review only.
 
-Combat screenshots 01–03 were refreshed on 2026-10-20 with the integrated illustrated skill buttons, live current/required costs, and responsive battle layout. The previous set is retained in `archive/plain-buttons/`. Screenshots 04–05 are unchanged. The overview reflects the refreshed set.
+Combat screenshots 01–03 were refreshed on 2026-10-20 with compact illustrated skill buttons and the original board/character sizing restored. Required costs remain visible; long press reveals live current/required values. Previous sets are retained in `archive/plain-buttons/` and `archive/tall-buttons/`. Screenshots 04–05 are unchanged. The overview reflects the corrected set. See `art_sources/ui/battle_skills/v3/README.md`.
 
 | File | Heading | Suggested alt text |
 | --- | --- | --- |
@@ -39,6 +39,6 @@ The fixture serves captures on device loopback only. `?raw=1` omits the headline
 
 - Visually inspected all five PNG masters; verified all JPEG exports are 1080 × 1920 with no alpha, each below 1 MB.
 - `flutter analyze --no-pub` passes; `git diff --check` passes.
-- On refresh: 46 targeted gameplay/live-button tests and 20 artwork/prototype tests pass. The full suite has 353 passing and 7 failing tests in battle safety initialization, shop Firebase setup/layout, and the settings golden. See `art_sources/ui/battle_skills/v1/README.md` for integration details. These failures were not fixed by the screenshot refresh.
+- On compact refresh: 42 targeted gameplay/live-button/layout tests pass. The full suite has 356 passing and 5 failing tests in shop Firebase setup/layout and the settings golden. See `art_sources/ui/battle_skills/v2/README.md` for details. These failures were not fixed by the screenshot refresh.
 - Existing native build warnings: Kotlin Gradle Plugin compatibility warnings from Firebase/sign-in plugins and deprecated Android API use.
 - Play Console acceptance, promotional cropping, localization, and tablet-specific screenshots remain unverified. These are the first phone screenshot set for owner review.

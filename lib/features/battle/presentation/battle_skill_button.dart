@@ -101,14 +101,9 @@ class _BattleSkillButtonState extends State<BattleSkillButton> {
     final duration =
         reduceMotion ? Duration.zero : const Duration(milliseconds: 140);
     final enabled = !unavailable && !casting;
-    final compact = MediaQuery.sizeOf(context).height < 640 ||
-        MediaQuery.textScalerOf(context).scale(14) > 18;
-    final iconSize = compact ? 34.0 : 42.0;
-    final titleSize = compact ? 11.0 : 12.0;
-    final statusSize = compact ? 8.0 : 9.0;
-    final pad = compact
-        ? const EdgeInsets.fromLTRB(6, 5, 6, 5)
-        : const EdgeInsets.fromLTRB(8, 7, 8, 7);
+    final details = '${widget.skill.name}: $label\n'
+        '${afford.resourceLines.map((line) => '${line.resourceId} ${line.have}/${line.need}').join(' · ')}'
+        ' · AP ${afford.apHave}/${afford.apNeed}';
     return Semantics(
       button: true,
       enabled: enabled,
@@ -118,7 +113,7 @@ class _BattleSkillButtonState extends State<BattleSkillButton> {
       onTap: enabled ? _cast : null,
       excludeSemantics: true,
       child: Tooltip(
-          message: '${widget.skill.name}: $label',
+          message: details,
           triggerMode: TooltipTriggerMode.longPress,
           child: AnimatedScale(
               scale: pressed ? .97 : 1,
@@ -168,99 +163,63 @@ class _BattleSkillButtonState extends State<BattleSkillButton> {
                       },
                       splashColor: accent.withValues(alpha: .2),
                       highlightColor: accent.withValues(alpha: .1),
-                      child: Padding(
-                          padding: pad,
-                          child:
-                              Column(mainAxisSize: MainAxisSize.min, children: [
-                            Row(children: [
-                              Container(
-                                  width: iconSize,
-                                  height: iconSize,
-                                  decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      gradient: RadialGradient(colors: [
-                                        accent.withValues(
-                                            alpha: unavailable ? .08 : .25),
-                                        accent.withValues(alpha: 0)
-                                      ])),
-                                  child: Opacity(
-                                      opacity: unavailable ? .5 : 1,
-                                      child: SkillArt(
-                                          skill: widget.skill,
-                                          size: iconSize))),
-                              const SizedBox(width: 5),
-                              Expanded(
-                                  child: Text(widget.skill.name,
-                                      maxLines: compact ? 1 : 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                          fontFamily: 'DailySerif',
-                                          fontSize: titleSize,
-                                          height: 1.2,
-                                          color: unavailable
-                                              ? MythDuskColors.parchment
-                                              : MythDuskColors.softGold))),
-                            ]),
-                            SizedBox(height: compact ? 3 : 5),
-                            Container(
-                                height: 1,
-                                decoration: BoxDecoration(
-                                    gradient: LinearGradient(colors: [
-                                  accent.withValues(alpha: 0),
-                                  accent.withValues(alpha: .45),
-                                  accent.withValues(alpha: 0)
-                                ]))),
-                            SizedBox(height: compact ? 4 : 7),
-                            Align(
-                                alignment: Alignment.centerLeft,
-                                child: Wrap(
-                                    spacing: 7,
-                                    runSpacing: 2,
-                                    crossAxisAlignment:
-                                        WrapCrossAlignment.center,
-                                    children: [
-                                      for (final line in afford.resourceLines)
-                                        _SkillCost(
-                                            asset: GameAssets.resourceIcon(
-                                                line.resourceId),
-                                            label: line.label,
-                                            name: line.resourceId,
-                                            missing: !line.ok),
-                                      _SkillCost(
-                                          asset: GameAssets.iconAp,
-                                          label:
-                                              '${afford.apHave}/${afford.apNeed}',
-                                          name: 'AP',
-                                          missing: !afford.apOk),
-                                    ])),
-                            SizedBox(height: compact ? 4 : 7),
-                            Row(children: [
-                              Icon(
-                                  unavailable
-                                      ? Icons.lock_outline
-                                      : casting
-                                          ? Icons.auto_awesome
-                                          : Icons.diamond_outlined,
-                                  size: 10,
-                                  color: unavailable
-                                      ? MythDuskColors.muted
-                                      : accent),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                  child: Text(label,
-                                      maxLines: compact ? 1 : 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                          fontFamily: 'DailySerif',
-                                          fontSize: statusSize,
-                                          height: 1.15,
-                                          color: unavailable
-                                              ? MythDuskColors.muted
-                                              : accent))),
-                              if (casting)
-                                Icon(Icons.bolt, size: 12, color: accent),
-                            ]),
-                          ])),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(minHeight: 52),
+                        child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 5),
+                            child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Row(children: [
+                                    Opacity(
+                                        opacity: unavailable ? .55 : 1,
+                                        child: SkillArt(
+                                            skill: widget.skill, size: 26)),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                        child: Text(widget.skill.name,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                                fontFamily: 'DailySerif',
+                                                fontSize: 11,
+                                                color: unavailable
+                                                    ? MythDuskColors.parchment
+                                                    : MythDuskColors
+                                                        .softGold))),
+                                    if (casting)
+                                      Icon(Icons.auto_awesome,
+                                          size: 10, color: accent),
+                                  ]),
+                                  const SizedBox(height: 2),
+                                  Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Wrap(
+                                        spacing: 3,
+                                        runSpacing: 2,
+                                        crossAxisAlignment:
+                                            WrapCrossAlignment.center,
+                                        children: [
+                                          for (final line
+                                              in afford.resourceLines)
+                                            _SkillCost(
+                                                asset: GameAssets.resourceIcon(
+                                                    line.resourceId),
+                                                label: '${line.need}',
+                                                name:
+                                                    '${line.resourceId} ${line.have}/${line.need}',
+                                                missing: !line.ok),
+                                          _SkillCost(
+                                              asset: GameAssets.iconAp,
+                                              label: '${afford.apNeed}',
+                                              name:
+                                                  'AP ${afford.apHave}/${afford.apNeed}',
+                                              missing: !afford.apOk),
+                                        ],
+                                      )),
+                                ])),
+                      ),
                     )),
               ))),
     );
@@ -279,16 +238,17 @@ class _SkillCost extends StatelessWidget {
   final bool missing;
   @override
   Widget build(BuildContext context) => Tooltip(
-      message: '$name: $label',
+      message: name,
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Image.asset(asset, width: 13, height: 13, excludeFromSemantics: true),
-        const SizedBox(width: 3),
-        Text(label,
-            style: TextStyle(
-                fontFamily: 'DailySerif',
-                fontSize: 11,
-                color: missing
-                    ? const Color(0xFFF0AD91)
-                    : MythDuskColors.parchment)),
+        Image.asset(asset, width: 10, height: 10, excludeFromSemantics: true),
+        const SizedBox(width: 2),
+        Flexible(
+            child: Text(label,
+                style: TextStyle(
+                    fontFamily: 'DailySerif',
+                    fontSize: 10,
+                    color: missing
+                        ? const Color(0xFFF0AD91)
+                        : MythDuskColors.parchment))),
       ]));
 }

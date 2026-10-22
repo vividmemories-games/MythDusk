@@ -1,5 +1,7 @@
 # Battle skill button concepts — v1
 
+The tall layout documented here is superseded by `../v3/README.md`: smaller action controls with the original board and character sizing. The v1 previews remain as design history.
+
 Initial Flutter design previews for all 20 hero skills, followed by production integration on 2026-10-20. Existing illustrations come from the five skill atlases registered in `lib/core/assets/skill_artwork.dart`; no new raster assets or dependencies were added to the runtime bundle.
 
 ## Review images
