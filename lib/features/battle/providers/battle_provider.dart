@@ -514,7 +514,8 @@ class BattleNotifier extends StateNotifier<BattleState> {
         step.match,
         overlaysBrokenDelta: overlaysBroken,
       );
-      _controller.showClearing(boardWithMatches, step.clearingCells);
+      _controller.showClearing(boardWithMatches, step.clearingCells,
+          step: step);
       final powerNote = [
         if (step.match.mergeLabel != null) step.match.mergeLabel!,
         if (step.match.rocketsCreated > 0)
@@ -532,7 +533,7 @@ class BattleNotifier extends StateNotifier<BattleState> {
               '${powerNote.isEmpty ? '' : ' · $powerNote'}',
         ],
       );
-      await Future<void>.delayed(BattleController.clearDuration);
+      await Future<void>.delayed(state.boardClearDuration);
       if (!mounted || gen != _actionGen) return;
 
       _controller.state = state;

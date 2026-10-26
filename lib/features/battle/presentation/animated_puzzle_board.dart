@@ -10,6 +10,7 @@ import '../domain/battle_state.dart';
 import 'board_overlay_art.dart';
 import 'board_powerup_fx.dart';
 import 'match_collect_fx.dart';
+import 'powerup_sequence_fx.dart';
 
 /// Flat match-3 board, bottom-anchored above the skill dock.
 /// No grid chrome — gems float on the background with soft contact shadows.
@@ -93,6 +94,20 @@ class _BoardSurface extends StatelessWidget {
         final cellH =
             (constraints.maxHeight - gap * (board.height - 1)) / board.height;
 
+        final reduceMotion = MediaQuery.disableAnimationsOf(context);
+        final creations = battle.activeCascadeStep?.creationEvents ?? const [];
+        final combination = battle.activeCascadeStep?.combination;
+        Offset center((int, int) cell) => Offset(
+              cell.$2 * (cellW + gap) + cellW / 2,
+              cell.$1 * (cellH + gap) + cellH / 2,
+            );
+        final sequenceCells = <(int, int)>{
+          if (!reduceMotion) ...[
+            for (final creation in creations) ...creation.sources,
+            if (combination != null) ...[combination.at, combination.partner],
+          ],
+        };
+
         return Stack(
           clipBehavior: Clip.none,
           children: [
@@ -148,6 +163,8 @@ class _BoardSurface extends StatelessWidget {
                     selected: battle.selectedCell == (row, col),
                     hinted: battle.hintCells.contains((row, col)),
                     clearing: battle.clearingCells.contains((row, col)),
+                    hiddenForSequence: sequenceCells.contains((row, col)),
+                    clearDuration: battle.boardClearDuration,
                     bouncing: bounceCells.contains((row, col)),
                     bounceToken: bounceToken,
                     spawning:
@@ -162,9 +179,11 @@ class _BoardSurface extends StatelessWidget {
                         ? null
                         : (to) => onSwipe!((row, col), to),
                   ),
-            if (!MediaQuery.disableAnimationsOf(context))
+            if (!reduceMotion)
               for (final cell in battle.clearingCells)
-                if (board.at(cell.$1, cell.$2).hasSpecial)
+                if (board.at(cell.$1, cell.$2).hasSpecial &&
+                    cell != combination?.at &&
+                    cell != combination?.partner)
                   Positioned.fill(
                     child: BoardPowerupFx(
                       key: ValueKey(
@@ -180,9 +199,42 @@ class _BoardSurface extends StatelessWidget {
                               target.$1 * (cellH + gap) + cellH / 2)
                       ],
                       cellSize: math.min(cellW, cellH),
-                      duration: BattleController.clearDuration,
+                      duration: battle.boardClearDuration,
+                      activationDelay: combination == null ? 0.15 : 0.35,
                     ),
                   ),
+            if (!reduceMotion) ...[
+              for (final creation in creations)
+                Positioned.fill(
+                  key: ValueKey(
+                      'creation-${board.at(creation.at.$1, creation.at.$2).id}'),
+                  child: PowerupCreationFx(
+                    origin: center(creation.at),
+                    sources: {
+                      for (final source in creation.sources)
+                        if (board.at(source.$1, source.$2).color != null)
+                          center(source): GameAssets.tile(
+                              board.at(source.$1, source.$2).color!)
+                    },
+                    special: creation.special,
+                    cellSize: math.min(cellW, cellH),
+                    duration: battle.boardClearDuration,
+                  ),
+                ),
+              if (combination != null)
+                Positioned.fill(
+                  key: ValueKey(
+                      'combination-${board.at(combination.at.$1, combination.at.$2).id}'),
+                  child: PowerupCombinationFx(
+                    combination: combination,
+                    origin: center(combination.at),
+                    partner: center(combination.partner),
+                    targets: battle.clearingCells.map(center).toList(),
+                    cellSize: math.min(cellW, cellH),
+                    duration: battle.boardClearDuration,
+                  ),
+                ),
+            ],
           ],
         );
       },
@@ -468,6 +520,8 @@ class _BoardTile extends StatefulWidget {
     required this.selected,
     required this.hinted,
     required this.clearing,
+    required this.hiddenForSequence,
+    required this.clearDuration,
     required this.bouncing,
     required this.bounceToken,
     required this.spawning,
@@ -491,6 +545,8 @@ class _BoardTile extends StatefulWidget {
   final bool selected;
   final bool hinted;
   final bool clearing;
+  final bool hiddenForSequence;
+  final Duration clearDuration;
   final bool bouncing;
   final int bounceToken;
   final bool spawning;
@@ -560,7 +616,7 @@ class _BoardTileState extends State<_BoardTile> {
   Duration _moveDuration(bool reduceMotion) {
     if (reduceMotion) return Duration.zero;
     if (widget.clearing) {
-      return const Duration(milliseconds: 160);
+      return widget.clearDuration;
     }
     if (_teleport) return Duration.zero;
     if (widget.windShoving) return BattleController.windFxDuration;
@@ -611,13 +667,12 @@ class _BoardTileState extends State<_BoardTile> {
           duration: reduceMotion
               ? Duration.zero
               : (widget.clearing
-                  ? BattleController.clearDuration
+                  ? widget.clearDuration
                   : const Duration(milliseconds: 180)),
           curve: widget.clearing ? const _MatchPopCurve() : Curves.easeOutBack,
           child: AnimatedOpacity(
             opacity: widget.clearing ? 0 : 1,
-            duration:
-                reduceMotion ? Duration.zero : BattleController.clearDuration,
+            duration: reduceMotion ? Duration.zero : widget.clearDuration,
             curve: const Interval(0.28, 1, curve: Curves.easeIn),
             child: _HintPulse(
               enabled: widget.hinted && !widget.selected,
@@ -696,8 +751,7 @@ class _BoardTileState extends State<_BoardTile> {
           IgnorePointer(
             child: _MatchClearBurst(
               color: juiceColorForTile(widget.color),
-              duration:
-                  reduceMotion ? Duration.zero : BattleController.clearDuration,
+              duration: reduceMotion ? Duration.zero : widget.clearDuration,
             ),
           ),
       ],
@@ -818,7 +872,7 @@ class _BoardTileState extends State<_BoardTile> {
                 _panAccum = Offset.zero;
               }
             : null,
-        child: gem,
+        child: Opacity(opacity: widget.hiddenForSequence ? 0 : 1, child: gem),
       ),
     );
   }

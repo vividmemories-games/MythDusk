@@ -13,6 +13,7 @@ class BoardPowerupFx extends StatefulWidget {
     required this.targets,
     required this.cellSize,
     required this.duration,
+    this.activationDelay = 0.15,
   });
 
   final TileSpecial special;
@@ -20,6 +21,7 @@ class BoardPowerupFx extends StatefulWidget {
   final List<Offset> targets;
   final double cellSize;
   final Duration duration;
+  final double activationDelay;
 
   @override
   State<BoardPowerupFx> createState() => _BoardPowerupFxState();
@@ -49,6 +51,7 @@ class _BoardPowerupFxState extends State<BoardPowerupFx>
               targets: widget.targets,
               cellSize: widget.cellSize,
               progress: _controller.value,
+              activationDelay: widget.activationDelay,
             ),
           ),
         ),
@@ -62,6 +65,7 @@ class _PowerupPainter extends CustomPainter {
     required this.targets,
     required this.cellSize,
     required this.progress,
+    required this.activationDelay,
   });
 
   final TileSpecial special;
@@ -69,11 +73,13 @@ class _PowerupPainter extends CustomPainter {
   final List<Offset> targets;
   final double cellSize;
   final double progress;
+  final double activationDelay;
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (progress < 0.15) return;
-    final t = ((progress - 0.15) / 0.85).clamp(0.0, 1.0);
+    if (progress < activationDelay) return;
+    final t =
+        ((progress - activationDelay) / (1 - activationDelay)).clamp(0.0, 1.0);
     final travel = Curves.easeOutCubic.transform(t);
     final fade = 1 - t;
     final color = switch (special) {

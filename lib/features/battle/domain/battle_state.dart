@@ -59,6 +59,7 @@ class BattleState {
     this.secondWindArmed = false,
     this.selectedCell,
     this.clearingCells = const {},
+    this.activeCascadeStep,
     this.spawningIds = const {},
     this.combatFx = CombatFx.none,
     this.enemyIntent,
@@ -315,6 +316,14 @@ class BattleState {
     );
   }
 
+  /// Animation metadata for the currently displayed clear only.
+  final CascadeStep? activeCascadeStep;
+
+  Duration get boardClearDuration => activeCascadeStep?.combination != null ||
+          (activeCascadeStep?.creationEvents.isNotEmpty ?? false)
+      ? BattleController.powerupClearDuration
+      : BattleController.clearDuration;
+
   BattleState copyWith({
     PuzzleBoard? board,
     int? heroHp,
@@ -331,6 +340,8 @@ class BattleState {
     (int, int)? selectedCell,
     bool clearSelected = false,
     Set<(int, int)>? clearingCells,
+    CascadeStep? activeCascadeStep,
+    bool clearCascadeStep = false,
     Set<int>? spawningIds,
     CombatFx? combatFx,
     EnemySkill? enemyIntent,
@@ -379,6 +390,9 @@ class BattleState {
       phase: phase ?? this.phase,
       selectedCell: clearSelected ? null : (selectedCell ?? this.selectedCell),
       clearingCells: clearingCells ?? this.clearingCells,
+      activeCascadeStep: clearCascadeStep
+          ? null
+          : (activeCascadeStep ?? this.activeCascadeStep),
       spawningIds: spawningIds ?? this.spawningIds,
       combatFx: combatFx ?? this.combatFx,
       enemyIntent: enemyIntent ?? this.enemyIntent,
@@ -432,6 +446,7 @@ class BattleController {
   final TileIdGen ids;
 
   static const clearDuration = Duration(milliseconds: 220);
+  static const powerupClearDuration = Duration(milliseconds: 440);
   static const fallDuration = Duration(milliseconds: 240);
   static const spawnDuration = Duration(milliseconds: 260);
   static const swapDuration = Duration(milliseconds: 160);
@@ -727,10 +742,13 @@ class BattleController {
   }
 
   /// Highlight matches still on [board]; tiles animate out before gravity.
-  void showClearing(PuzzleBoard board, Set<(int, int)> matched) {
+  void showClearing(PuzzleBoard board, Set<(int, int)> matched,
+      {CascadeStep? step}) {
     state = state.copyWith(
       board: board,
       clearingCells: matched,
+      activeCascadeStep: step,
+      clearCascadeStep: step == null,
       spawningIds: {},
     );
   }
@@ -739,6 +757,7 @@ class BattleController {
     state = state.copyWith(
       board: boardAfterClear,
       clearingCells: {},
+      clearCascadeStep: true,
       spawningIds: {},
     );
   }
@@ -747,6 +766,7 @@ class BattleController {
     state = state.copyWith(
       board: boardAfterDrop,
       clearingCells: {},
+      clearCascadeStep: true,
       spawningIds: {},
     );
   }
@@ -755,6 +775,7 @@ class BattleController {
     state = state.copyWith(
       board: boardAfterFill,
       clearingCells: {},
+      clearCascadeStep: true,
       spawningIds: newIds,
     );
   }
@@ -764,6 +785,7 @@ class BattleController {
     state = state.copyWith(
       movesLeft: movesLeft,
       clearingCells: {},
+      clearCascadeStep: true,
       spawningIds: {},
       phase: movesLeft <= 0 ? BattlePhase.enemyTurn : BattlePhase.playerTurn,
     );
@@ -778,6 +800,7 @@ class BattleController {
       clearSelected: true,
       clearHint: true,
       clearingCells: {},
+      clearCascadeStep: true,
       spawningIds: {},
       log: [...state.log, 'Turn ended.'],
     );
