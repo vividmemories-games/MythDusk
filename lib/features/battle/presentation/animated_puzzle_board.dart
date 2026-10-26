@@ -8,6 +8,7 @@ import '../../puzzle/domain/board_cell.dart';
 import '../../puzzle/domain/tile_color.dart';
 import '../domain/battle_state.dart';
 import 'board_overlay_art.dart';
+import 'board_powerup_fx.dart';
 import 'match_collect_fx.dart';
 
 /// Flat match-3 board, bottom-anchored above the skill dock.
@@ -160,6 +161,27 @@ class _BoardSurface extends StatelessWidget {
                     onSwipe: onSwipe == null
                         ? null
                         : (to) => onSwipe!((row, col), to),
+                  ),
+            if (!MediaQuery.disableAnimationsOf(context))
+              for (final cell in battle.clearingCells)
+                if (board.at(cell.$1, cell.$2).hasSpecial)
+                  Positioned.fill(
+                    child: BoardPowerupFx(
+                      key: ValueKey(
+                          'powerup-fx-${board.at(cell.$1, cell.$2).id}'),
+                      special: board.at(cell.$1, cell.$2).special,
+                      origin: Offset(
+                        cell.$2 * (cellW + gap) + cellW / 2,
+                        cell.$1 * (cellH + gap) + cellH / 2,
+                      ),
+                      targets: [
+                        for (final target in battle.clearingCells)
+                          Offset(target.$2 * (cellW + gap) + cellW / 2,
+                              target.$1 * (cellH + gap) + cellH / 2)
+                      ],
+                      cellSize: math.min(cellW, cellH),
+                      duration: BattleController.clearDuration,
+                    ),
                   ),
           ],
         );
@@ -524,7 +546,7 @@ class _BoardTileState extends State<_BoardTile> {
     final rowDelta = (widget.row - oldWidget.row).abs();
     final colDelta = (widget.col - oldWidget.col).abs();
     // Wrap-around jumps look wrong as a long slide — snap + flash those.
-    final wrapped = rowDelta > 1 || colDelta > 1;
+    final wrapped = widget.windShoving && (rowDelta > 1 || colDelta > 1);
     _teleport = sizeChanged || wrapped;
     _wrapFlash = wrapped && widget.windShoving;
     _isFalling = !wrapped && widget.row > oldWidget.row && colDelta == 0;
@@ -552,6 +574,7 @@ class _BoardTileState extends State<_BoardTile> {
   @override
   Widget build(BuildContext context) {
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final dropping = _isFalling || widget.spawning || _spawnDropPending;
     final showCreatePop = widget.spawning && widget.special != TileSpecial.none;
     final left = _spawnDropPending ? _left : _targetLeft;
     final top = _spawnDropPending ? _top : _targetTop;
@@ -583,17 +606,19 @@ class _BoardTileState extends State<_BoardTile> {
             ),
           ),
         AnimatedScale(
+          key: const ValueKey('gem-scale'),
           scale: widget.clearing ? 0.05 : (widget.hazardPulse ? 1.1 : 1),
           duration: reduceMotion
               ? Duration.zero
               : (widget.clearing
                   ? BattleController.clearDuration
                   : const Duration(milliseconds: 180)),
-          curve: widget.clearing ? Curves.easeInBack : Curves.easeOutBack,
+          curve: widget.clearing ? const _MatchPopCurve() : Curves.easeOutBack,
           child: AnimatedOpacity(
             opacity: widget.clearing ? 0 : 1,
             duration:
                 reduceMotion ? Duration.zero : BattleController.clearDuration,
+            curve: const Interval(0.28, 1, curve: Curves.easeIn),
             child: _HintPulse(
               enabled: widget.hinted && !widget.selected,
               child: AnimatedContainer(
@@ -678,6 +703,29 @@ class _BoardTileState extends State<_BoardTile> {
       ],
     );
 
+    if (!reduceMotion) {
+      gem = TweenAnimationBuilder<double>(
+        key: ValueKey('land-${widget.id}-${widget.row}-${widget.col}'),
+        tween: Tween(begin: dropping ? 0 : 1, end: 1),
+        duration: _moveDuration(false),
+        builder: (context, t, child) {
+          final landing = !dropping || widget.clearing || t < 0.78
+              ? 0.0
+              : math.sin((t - 0.78) / 0.22 * math.pi);
+          return Transform(
+            alignment: Alignment.bottomCenter,
+            transform: Matrix4.diagonal3Values(
+              1 + landing * 0.07,
+              1 - landing * 0.09,
+              1,
+            ),
+            child: child,
+          );
+        },
+        child: gem,
+      );
+    }
+
     if (widget.bouncing && !reduceMotion) {
       gem = TweenAnimationBuilder<double>(
         key: ValueKey('bounce-${widget.id}-${widget.bounceToken}'),
@@ -740,7 +788,9 @@ class _BoardTileState extends State<_BoardTile> {
 
     return AnimatedPositioned(
       duration: _moveDuration(reduceMotion),
-      curve: Curves.easeOutCubic,
+      curve: dropping && !widget.windShoving
+          ? _GemDropCurve(widget.spawning ? (widget.col % 3) * 0.035 : 0)
+          : Curves.easeOutCubic,
       left: left,
       top: top,
       width: widget.cellW,
@@ -832,9 +882,11 @@ class _MatchClearBurstState extends State<_MatchClearBurst>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
-        final t = Curves.easeOutCubic.transform(_controller.value);
+        final t = const Interval(0.28, 1, curve: Curves.easeOutCubic)
+            .transform(_controller.value);
         final ring = 0.55 + t * 0.9;
-        final opacity = (1.0 - t).clamp(0.0, 1.0);
+        final opacity =
+            _controller.value < 0.28 ? 0.0 : (1.0 - t).clamp(0.0, 1.0);
         return Stack(
           fit: StackFit.expand,
           children: [
@@ -1008,5 +1060,30 @@ class _TileArt extends StatelessWidget {
         null => MythDuskColors.ink,
       },
     );
+  }
+}
+
+/// Gravity accelerates into a small rebound, settling within the phase budget.
+class _GemDropCurve extends Curve {
+  const _GemDropCurve(this.delay);
+  final double delay;
+
+  @override
+  double transformInternal(double t) {
+    final p = ((t - delay) / (1 - delay)).clamp(0.0, 1.0);
+    if (p < 0.78) return Curves.easeInQuad.transform(p / 0.78);
+    final landing = (p - 0.78) / 0.22;
+    return 1 - math.sin(landing * math.pi) * 0.025;
+  }
+}
+
+/// A brief expansion gives each clear anticipation before it collapses.
+class _MatchPopCurve extends Curve {
+  const _MatchPopCurve();
+
+  @override
+  double transformInternal(double t) {
+    if (t < 0.28) return -0.10 * math.sin(t / 0.28 * math.pi / 2);
+    return -0.10 + 1.10 * Curves.easeInCubic.transform((t - 0.28) / 0.72);
   }
 }

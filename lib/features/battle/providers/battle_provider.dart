@@ -538,7 +538,7 @@ class BattleNotifier extends StateNotifier<BattleState> {
       _controller.state = state;
       _controller.showHoles(step.boardAfterClear);
       state = _controller.state;
-      await Future<void>.delayed(const Duration(milliseconds: 40));
+      await Future<void>.delayed(const Duration(milliseconds: 16));
       if (!mounted || gen != _actionGen) return;
 
       _controller.state = state;
