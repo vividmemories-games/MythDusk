@@ -41,22 +41,33 @@ flutter build appbundle --release
 - Play: license testers and/or internal test track users.
 - Apple: Sandbox Apple ID; on device use Settings → App Store → Sandbox Account.
 
-## H3 — Verification secrets (Functions)
+## H3 — Verification access (Functions)
 
-Set Firebase secrets (never commit files):
+### Play (no JSON key)
+
+Play verification uses Application Default Credentials on the Cloud Functions
+runtime service account. Do **not** download a service account key.
+
+1. Enable **Google Play Android Developer API** on GCP project `mythdusk-ec0c7`.
+2. Runtime SA (pinned in `functions/index.js`):
+   `mythdusk-play-iap@mythdusk-ec0c7.iam.gserviceaccount.com`
+3. Play Console → **Users and permissions** → that email must be Active with
+   access to view app information and financial/order data for MythDusk.
+   Do not use other projects' compute SAs (e.g. Dot Clash).
+
+### Apple (Secret Manager)
+
+1. Enable **Secret Manager API** on `mythdusk-ec0c7`.
+2. Set Firebase secrets (never commit `.p8` files):
 
 ```bash
-# Play: JSON key for a service account with Android Publisher access
-firebase functions:secrets:set PLAY_SERVICE_ACCOUNT_JSON
-
-# App Store Connect API key (.p8 contents, Key ID, Issuer ID)
-firebase functions:secrets:set APPLE_IAP_KEY_P8
-firebase functions:secrets:set APPLE_IAP_KEY_ID
-firebase functions:secrets:set APPLE_IAP_ISSUER_ID
+firebase functions:secrets:set APPLE_IAP_KEY_P8 --project mythdusk-ec0c7
+firebase functions:secrets:set APPLE_IAP_KEY_ID --project mythdusk-ec0c7
+firebase functions:secrets:set APPLE_IAP_ISSUER_ID --project mythdusk-ec0c7
 ```
 
-Service account needs permission to call Android Publisher API for the Play app.  
-Apple key needs App Store Connect API access for In-App Purchase / StoreKit.
+`APPLE_IAP_KEY_ID` must be the short Key ID only (e.g. `T76N6AHL28`), not repeated.
+`validateIapReceipt` binds these secrets and verifies iOS via StoreKit API.
 
 ## H4 — Deploy Functions
 

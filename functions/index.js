@@ -11,7 +11,8 @@ const {
 
 initializeApp();
 
-const playServiceAccountJson = defineSecret('PLAY_SERVICE_ACCOUNT_JSON');
+// Play: ADC via runtime SA (mythdusk-play-iap) — no JSON key.
+// Apple: Secret Manager (APPLE_IAP_KEY_P8 / KEY_ID / ISSUER_ID).
 const appleIapKeyP8 = defineSecret('APPLE_IAP_KEY_P8');
 const appleIapKeyId = defineSecret('APPLE_IAP_KEY_ID');
 const appleIapIssuerId = defineSecret('APPLE_IAP_ISSUER_ID');
@@ -292,12 +293,9 @@ exports.submitBattleRun = onCall(CALLABLE_OPTS, async (request) => {
 exports.validateIapReceipt = onCall(
   {
     invoker: 'public',
-    secrets: [
-      playServiceAccountJson,
-      appleIapKeyP8,
-      appleIapKeyId,
-      appleIapIssuerId,
-    ],
+    // Must match the SA invited in Play Console → Users and permissions.
+    serviceAccount: 'mythdusk-play-iap@mythdusk-ec0c7.iam.gserviceaccount.com',
+    secrets: [appleIapKeyP8, appleIapKeyId, appleIapIssuerId],
   },
   async (request) => {
     const uid = requireAuth(request);
@@ -327,7 +325,6 @@ exports.validateIapReceipt = onCall(
           await verifyAndroidPurchase({
             productId,
             purchaseToken: verificationData,
-            serviceAccountJson: playServiceAccountJson.value(),
           });
           verifiedPlatform = 'android';
         } else if (platform === 'ios') {
