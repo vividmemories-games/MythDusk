@@ -11,7 +11,8 @@ const {
 
 initializeApp();
 
-// Play: ADC via runtime SA (mythdusk-play-iap) — no JSON key.
+// Play: ADC via default Functions/Cloud Run SA — invite that email in Play
+// Console (e.g. 935090044330-compute@developer.gserviceaccount.com). No JSON key.
 // Apple: Secret Manager (APPLE_IAP_KEY_P8 / KEY_ID / ISSUER_ID).
 const appleIapKeyP8 = defineSecret('APPLE_IAP_KEY_P8');
 const appleIapKeyId = defineSecret('APPLE_IAP_KEY_ID');
@@ -293,8 +294,8 @@ exports.submitBattleRun = onCall(CALLABLE_OPTS, async (request) => {
 exports.validateIapReceipt = onCall(
   {
     invoker: 'public',
-    // Must match the SA invited in Play Console → Users and permissions.
-    serviceAccount: 'mythdusk-play-iap@mythdusk-ec0c7.iam.gserviceaccount.com',
+    // Default Compute SA (Firestore + Apple secrets). That same SA must be
+    // invited in Play Console for Android Publisher verification (B1).
     secrets: [appleIapKeyP8, appleIapKeyId, appleIapIssuerId],
   },
   async (request) => {

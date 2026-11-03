@@ -49,11 +49,12 @@ Play verification uses Application Default Credentials on the Cloud Functions
 runtime service account. Do **not** download a service account key.
 
 1. Enable **Google Play Android Developer API** on GCP project `mythdusk-ec0c7`.
-2. Runtime SA (pinned in `functions/index.js`):
-   `mythdusk-play-iap@mythdusk-ec0c7.iam.gserviceaccount.com`
+2. Runtime SA is the **default** Cloud Functions / Compute SA (B1 — has Firestore):
+   `935090044330-compute@developer.gserviceaccount.com`
 3. Play Console → **Users and permissions** → that email must be Active with
    access to view app information and financial/order data for MythDusk.
-   Do not use other projects' compute SAs (e.g. Dot Clash).
+   Do not use other projects' compute SAs (e.g. Dot Clash `727…-compute@…`).
+   `mythdusk-play-iap@…` is optional leftover; not required for the function.
 
 ### Apple (Secret Manager)
 
