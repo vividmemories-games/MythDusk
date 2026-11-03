@@ -46,7 +46,8 @@ abstract final class MatchShapes {
   /// Placement: the power-up appears on the swapped tile that completed
   /// the shape — destination first, then origin. Shapes formed without a
   /// swap (cascade waves) fall back to the shape centroid.
-  static List<({(int, int) at, TileSpecial special})> pickCreations({
+  static List<({(int, int) at, TileSpecial special, Set<(int, int)> sources})>
+      pickCreations({
     required List<DetectedShape> shapes,
     (int, int)? swapDestination,
     (int, int)? swapOrigin,
@@ -67,7 +68,8 @@ abstract final class MatchShapes {
       });
     if (creating.isEmpty) return const [];
 
-    final picks = <({(int, int) at, TileSpecial special})>[];
+    final picks =
+        <({(int, int) at, TileSpecial special, Set<(int, int)> sources})>[];
     final claimed = <(int, int)>{};
     for (final shape in creating) {
       if (shape.cells.any(claimed.contains)) continue;
@@ -81,7 +83,11 @@ abstract final class MatchShapes {
       } else {
         at = _centroid(shape.cells);
       }
-      picks.add((at: at, special: shape.creates));
+      picks.add((
+        at: at,
+        special: shape.creates,
+        sources: Set.unmodifiable(shape.cells)
+      ));
     }
     return picks;
   }

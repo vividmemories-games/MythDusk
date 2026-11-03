@@ -41,7 +41,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         fit: StackFit.expand,
         children: [
           Image.asset(
-            'assets/images/backgrounds/bg_splash_dusk.png',
+            'assets/images/backgrounds/bg_splash_dusk.webp',
             fit: BoxFit.cover,
             alignment: Alignment.bottomCenter,
           ),

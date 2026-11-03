@@ -2,7 +2,7 @@
   "name": "mythdusk-functions",
   "description": "MythDusk Cloud Functions (emulator-first; no production deploy without approval)",
   "engines": {
-    "node": "20"
+    "node": "22"
   },
   "main": "index.js",
   "private": true,

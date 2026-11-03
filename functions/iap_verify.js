@@ -18,18 +18,17 @@ function decodeJwsPayload(jws) {
   }
 }
 
-async function verifyAndroidPurchase({productId, purchaseToken, serviceAccountJson}) {
-  if (!serviceAccountJson) {
-    throw new Error('PLAY_SERVICE_ACCOUNT_JSON secret is not configured.');
-  }
-  let credentials;
-  try {
-    credentials = JSON.parse(serviceAccountJson);
-  } catch (_) {
-    throw new Error('PLAY_SERVICE_ACCOUNT_JSON is not valid JSON.');
+/**
+ * Verifies a Play purchase via Android Publisher API.
+ * Uses Application Default Credentials (Cloud Functions runtime SA).
+ * Invite that SA email in Play Console → Users and permissions.
+ * No PLAY_SERVICE_ACCOUNT_JSON key download required.
+ */
+async function verifyAndroidPurchase({productId, purchaseToken}) {
+  if (!purchaseToken || typeof purchaseToken !== 'string') {
+    throw new Error('Android purchaseToken missing.');
   }
   const auth = new google.auth.GoogleAuth({
-    credentials,
     scopes: ['https://www.googleapis.com/auth/androidpublisher'],
   });
   const androidpublisher = google.androidpublisher({version: 'v3', auth});
