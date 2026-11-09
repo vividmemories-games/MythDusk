@@ -4,10 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mythdusk/features/battle/domain/battle_state.dart';
 import 'package:mythdusk/features/battle/presentation/animated_puzzle_board.dart';
+import 'package:mythdusk/features/battle/presentation/board_powerup_fx.dart';
 import 'package:mythdusk/features/battle/presentation/match_collect_fx.dart';
 import 'package:mythdusk/features/battle/presentation/match_collect_overlay.dart';
 import 'package:mythdusk/features/heroes/domain/hero_def.dart';
 import 'package:mythdusk/features/puzzle/domain/puzzle_board.dart';
+import 'package:mythdusk/features/puzzle/domain/board_cell.dart';
+import 'package:mythdusk/features/puzzle/domain/tile_color.dart';
 import 'package:mythdusk/features/puzzle/domain/tile_id_gen.dart';
 
 void main() {
@@ -86,6 +89,128 @@ void main() {
       expect(mid.dx, 50);
       expect(mid.dy, lessThan(100));
     });
+  });
+
+  for (final reduceMotion in [false, true]) {
+    testWidgets(
+        'multi-row gravity ${reduceMotion ? "snaps with reduced motion" : "animates and settles"}',
+        (tester) async {
+      PuzzleBoard boardAt(int row) => PuzzleBoard(
+            width: 1,
+            height: 4,
+            cells: [
+              for (var r = 0; r < 4; r++)
+                if (r == row)
+                  BoardCell.tile(id: 1, color: TileColor.red)
+                else
+                  BoardCell.empty()
+            ],
+          );
+      final initial = BattleState.initial(
+        hero: HeroCatalog.mage,
+        board: boardAt(0),
+      );
+      Widget frame(BattleState battle) => MaterialApp(
+            home: MediaQuery(
+              data: MediaQueryData(disableAnimations: reduceMotion),
+              child: Center(
+                  child: SizedBox(
+                      width: 320,
+                      height: 320,
+                      child: AnimatedPuzzleBoard(
+                          battle: battle, onTap: (_, __) {}))),
+            ),
+          );
+      final gem = find.byKey(const ValueKey('tile-1'));
+      await tester.pumpWidget(frame(initial));
+      await tester.pumpAndSettle();
+      final start = tester.getTopLeft(gem).dy;
+      await tester.pumpWidget(frame(initial.copyWith(board: boardAt(3))));
+      await tester.pump(const Duration(milliseconds: 100));
+      final during = tester.getTopLeft(gem).dy;
+      await tester.pumpAndSettle();
+      final end = tester.getTopLeft(gem).dy;
+      expect(end, greaterThan(start));
+      if (reduceMotion) {
+        expect(during, end);
+      } else {
+        expect(during, greaterThan(start));
+        expect(during, lessThan(end));
+      }
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  for (final special
+      in TileSpecial.values.where((s) => s != TileSpecial.none)) {
+    testWidgets('${special.name} paints during clear and is removed afterward',
+        (tester) async {
+      final board = PuzzleBoard(width: 3, height: 3, cells: [
+        for (var i = 0; i < 9; i++)
+          BoardCell.tile(
+              id: i + 1,
+              color: TileColor.red,
+              special: i == 4 ? special : TileSpecial.none),
+      ]);
+      final initial = BattleState.initial(hero: HeroCatalog.mage, board: board);
+      Widget frame(BattleState battle, {bool reduceMotion = false}) =>
+          MaterialApp(
+            home: MediaQuery(
+                data: MediaQueryData(disableAnimations: reduceMotion),
+                child: Center(
+                    child: SizedBox(
+                        width: 320,
+                        height: 320,
+                        child: AnimatedPuzzleBoard(
+                            battle: battle, onTap: (_, __) {})))),
+          );
+      final clearing = initial.copyWith(clearingCells: {
+        for (var r = 0; r < 3; r++)
+          for (var c = 0; c < 3; c++) (r, c),
+      });
+      await tester.pumpWidget(frame(initial));
+      await tester.pumpWidget(frame(clearing));
+      expect(find.byType(BoardPowerupFx), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(frame(initial));
+      expect(find.byType(BoardPowerupFx), findsNothing);
+      await tester.pumpWidget(frame(clearing, reduceMotion: true));
+      expect(find.byType(BoardPowerupFx), findsNothing);
+      await tester.pumpWidget(const SizedBox.shrink());
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('match clear expands before collapsing', (tester) async {
+    final board = PuzzleBoard(width: 1, height: 1, cells: [
+      BoardCell.tile(id: 1, color: TileColor.red),
+    ]);
+    final initial = BattleState.initial(hero: HeroCatalog.mage, board: board);
+    Widget frame(BattleState battle) => MaterialApp(
+          home: SizedBox(
+              width: 320,
+              height: 320,
+              child: AnimatedPuzzleBoard(battle: battle, onTap: (_, __) {})),
+        );
+    double scale() => tester
+        .widget<Transform>(find
+            .descendant(
+              of: find.byType(AnimatedScale),
+              matching: find.byType(Transform),
+            )
+            .first)
+        .transform
+        .storage[0];
+    await tester.pumpWidget(frame(initial));
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(frame(initial.copyWith(clearingCells: {(0, 0)})));
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(scale(), greaterThan(1));
+    await tester.pump(const Duration(milliseconds: 130));
+    expect(scale(), lessThan(1));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('leaving a board without hints does not throw on dispose',

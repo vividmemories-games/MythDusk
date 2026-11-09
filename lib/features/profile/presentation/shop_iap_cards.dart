@@ -4,10 +4,36 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/app_flavor.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../services/iap/iap_providers.dart';
+import '../../../services/iap/iap_service.dart';
 import '../../../shared/widgets/myth_hub_shell.dart';
 import '../../shop/domain/iap_catalog.dart';
 import '../domain/economy_balance.dart';
 import '../providers/mock_profile_provider.dart';
+
+/// Product id currently confirming with the server (null = idle).
+final iapConfirmingProductIdProvider = StateProvider<String?>((ref) => null);
+
+String _successMessage(IapPurchaseResult result) {
+  if (result.alreadyProcessed) {
+    return 'Already owned — balance unchanged.';
+  }
+  switch (result.productId) {
+    case 'mythdusk_starter_pack':
+      return '+${StarterPackBalance.coins} coins, +${StarterPackBalance.gems} gems, '
+          'and Dusk Sash added.';
+    case 'mythdusk_value_30d':
+      return '+${IapGrantTable.value30DayUpfrontGems} gems added. '
+          'Daily gems unlock over ${IapGrantTable.value30DayLengthDays} days.';
+    case 'mythdusk_gems_small':
+      return '+${IapGrantTable.gemsSmall} gems added.';
+    case 'mythdusk_gems_medium':
+      return '+${IapGrantTable.gemsMedium} gems added.';
+    case 'mythdusk_prep_box':
+      return 'Prep box added to inventory.';
+    default:
+      return 'Purchase complete — balance updated.';
+  }
+}
 
 Future<void> _runBuy(
   BuildContext context,
@@ -15,17 +41,60 @@ Future<void> _runBuy(
   required String productId,
 }) async {
   final messenger = ScaffoldMessenger.of(context);
-  final result = await ref.read(iapCheckoutProvider).buy(productId);
+  final confirming = ref.read(iapConfirmingProductIdProvider.notifier);
+  if (ref.read(iapConfirmingProductIdProvider) != null) return;
+
+  confirming.state = productId;
+  showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (dialogContext) {
+      return PopScope(
+        canPop: false,
+        child: AlertDialog(
+          backgroundColor: MythDuskColors.ink,
+          content: Row(
+            children: [
+              const SizedBox(
+                width: 28,
+                height: 28,
+                child: CircularProgressIndicator(strokeWidth: 2.5),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  'Confirming purchase…\nUpdating your balance.',
+                  style: Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(
+                        color: MythDuskColors.parchment,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+
+  IapPurchaseResult result;
+  try {
+    result = await ref.read(iapCheckoutProvider).buy(productId);
+  } finally {
+    confirming.state = null;
+    if (context.mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+  }
+
   if (!context.mounted) return;
   messenger.showSnackBar(
     SnackBar(
       content: Text(
         result.success
-            ? (result.alreadyProcessed
-                ? 'Already owned — no duplicate grant.'
-                : 'Purchase complete.')
+            ? _successMessage(result)
             : (result.message ?? 'Purchase failed.'),
       ),
+      duration: const Duration(seconds: 4),
     ),
   );
 }
@@ -36,13 +105,20 @@ Future<void> _runQaClaim(
   required String productId,
 }) async {
   final messenger = ScaffoldMessenger.of(context);
+  final confirming = ref.read(iapConfirmingProductIdProvider.notifier);
+  if (ref.read(iapConfirmingProductIdProvider) != null) return;
+
+  confirming.state = productId;
   final result = await ref.read(iapCheckoutProvider).qaClaim(productId);
+  confirming.state = null;
   if (!context.mounted) return;
   messenger.showSnackBar(
     SnackBar(
       content: Text(
         result.success
-            ? (result.alreadyProcessed ? 'Already claimed' : 'QA claim granted')
+            ? (result.alreadyProcessed
+                ? 'Already claimed'
+                : _successMessage(result))
             : (result.message ?? 'QA claim failed'),
       ),
     ),
@@ -56,6 +132,7 @@ class StarterPackIapCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final claimed = ref.watch(profileProvider).hasClaimedStarterPack();
     final ready = ref.watch(storeIapReadyProvider).valueOrNull ?? false;
+    final busy = ref.watch(iapConfirmingProductIdProvider) != null;
     final price = ref
         .watch(storeIapServiceProvider)
         .localizedPrice(IapCatalog.starterPack.id);
@@ -88,7 +165,7 @@ class StarterPackIapCard extends ConsumerWidget {
             runSpacing: 8,
             children: [
               FilledButton(
-                onPressed: claimed || !ready
+                onPressed: claimed || !ready || busy
                     ? null
                     : () => _runBuy(
                           context,
@@ -105,11 +182,13 @@ class StarterPackIapCard extends ConsumerWidget {
               ),
               if (AppFlavor.showQaTools && !claimed)
                 OutlinedButton(
-                  onPressed: () => _runQaClaim(
-                    context,
-                    ref,
-                    productId: IapCatalog.starterPack.id,
-                  ),
+                  onPressed: busy
+                      ? null
+                      : () => _runQaClaim(
+                            context,
+                            ref,
+                            productId: IapCatalog.starterPack.id,
+                          ),
                   child: const Text('Claim (QA)'),
                 ),
             ],
@@ -128,6 +207,7 @@ class ValuePackIapCard extends ConsumerWidget {
     final claimed =
         ref.watch(profileProvider).hasClaimedStarterPack('value_pack_30d');
     final ready = ref.watch(storeIapReadyProvider).valueOrNull ?? false;
+    final busy = ref.watch(iapConfirmingProductIdProvider) != null;
     final price = ref
         .watch(storeIapServiceProvider)
         .localizedPrice(IapCatalog.value30Day.id);
@@ -158,7 +238,7 @@ class ValuePackIapCard extends ConsumerWidget {
             runSpacing: 8,
             children: [
               FilledButton(
-                onPressed: claimed || !ready
+                onPressed: claimed || !ready || busy
                     ? null
                     : () => _runBuy(
                           context,
@@ -175,11 +255,13 @@ class ValuePackIapCard extends ConsumerWidget {
               ),
               if (AppFlavor.showQaTools && !claimed)
                 OutlinedButton(
-                  onPressed: () => _runQaClaim(
-                    context,
-                    ref,
-                    productId: IapCatalog.value30Day.id,
-                  ),
+                  onPressed: busy
+                      ? null
+                      : () => _runQaClaim(
+                            context,
+                            ref,
+                            productId: IapCatalog.value30Day.id,
+                          ),
                   child: const Text('Claim (QA)'),
                 ),
             ],
@@ -205,6 +287,7 @@ class ConsumableIapCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ready = ref.watch(storeIapReadyProvider).valueOrNull ?? false;
+    final busy = ref.watch(iapConfirmingProductIdProvider) != null;
     final price = ref.watch(storeIapServiceProvider).localizedPrice(productId);
 
     return RelicPanel(
@@ -231,7 +314,7 @@ class ConsumableIapCard extends ConsumerWidget {
             runSpacing: 8,
             children: [
               FilledButton(
-                onPressed: !ready
+                onPressed: !ready || busy
                     ? null
                     : () => _runBuy(context, ref, productId: productId),
                 child: Text(
@@ -242,8 +325,9 @@ class ConsumableIapCard extends ConsumerWidget {
               ),
               if (AppFlavor.showQaTools)
                 OutlinedButton(
-                  onPressed: () =>
-                      _runQaClaim(context, ref, productId: productId),
+                  onPressed: busy
+                      ? null
+                      : () => _runQaClaim(context, ref, productId: productId),
                   child: const Text('Claim (QA)'),
                 ),
             ],

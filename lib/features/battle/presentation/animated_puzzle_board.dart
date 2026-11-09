@@ -8,7 +8,9 @@ import '../../puzzle/domain/board_cell.dart';
 import '../../puzzle/domain/tile_color.dart';
 import '../domain/battle_state.dart';
 import 'board_overlay_art.dart';
+import 'board_powerup_fx.dart';
 import 'match_collect_fx.dart';
+import 'powerup_sequence_fx.dart';
 
 /// Flat match-3 board, bottom-anchored above the skill dock.
 /// No grid chrome — gems float on the background with soft contact shadows.
@@ -92,6 +94,20 @@ class _BoardSurface extends StatelessWidget {
         final cellH =
             (constraints.maxHeight - gap * (board.height - 1)) / board.height;
 
+        final reduceMotion = MediaQuery.disableAnimationsOf(context);
+        final creations = battle.activeCascadeStep?.creationEvents ?? const [];
+        final combination = battle.activeCascadeStep?.combination;
+        Offset center((int, int) cell) => Offset(
+              cell.$2 * (cellW + gap) + cellW / 2,
+              cell.$1 * (cellH + gap) + cellH / 2,
+            );
+        final sequenceCells = <(int, int)>{
+          if (!reduceMotion) ...[
+            for (final creation in creations) ...creation.sources,
+            if (combination != null) ...[combination.at, combination.partner],
+          ],
+        };
+
         return Stack(
           clipBehavior: Clip.none,
           children: [
@@ -147,6 +163,8 @@ class _BoardSurface extends StatelessWidget {
                     selected: battle.selectedCell == (row, col),
                     hinted: battle.hintCells.contains((row, col)),
                     clearing: battle.clearingCells.contains((row, col)),
+                    hiddenForSequence: sequenceCells.contains((row, col)),
+                    clearDuration: battle.boardClearDuration,
                     bouncing: bounceCells.contains((row, col)),
                     bounceToken: bounceToken,
                     spawning:
@@ -161,6 +179,62 @@ class _BoardSurface extends StatelessWidget {
                         ? null
                         : (to) => onSwipe!((row, col), to),
                   ),
+            if (!reduceMotion)
+              for (final cell in battle.clearingCells)
+                if (board.at(cell.$1, cell.$2).hasSpecial &&
+                    cell != combination?.at &&
+                    cell != combination?.partner)
+                  Positioned.fill(
+                    child: BoardPowerupFx(
+                      key: ValueKey(
+                          'powerup-fx-${board.at(cell.$1, cell.$2).id}'),
+                      special: board.at(cell.$1, cell.$2).special,
+                      origin: Offset(
+                        cell.$2 * (cellW + gap) + cellW / 2,
+                        cell.$1 * (cellH + gap) + cellH / 2,
+                      ),
+                      targets: [
+                        for (final target in battle.clearingCells)
+                          Offset(target.$2 * (cellW + gap) + cellW / 2,
+                              target.$1 * (cellH + gap) + cellH / 2)
+                      ],
+                      cellSize: math.min(cellW, cellH),
+                      duration: battle.boardClearDuration,
+                      activationDelay: combination == null ? 0.15 : 0.35,
+                    ),
+                  ),
+            if (!reduceMotion) ...[
+              for (final creation in creations)
+                Positioned.fill(
+                  key: ValueKey(
+                      'creation-${board.at(creation.at.$1, creation.at.$2).id}'),
+                  child: PowerupCreationFx(
+                    origin: center(creation.at),
+                    sources: {
+                      for (final source in creation.sources)
+                        if (board.at(source.$1, source.$2).color != null)
+                          center(source): GameAssets.tile(
+                              board.at(source.$1, source.$2).color!)
+                    },
+                    special: creation.special,
+                    cellSize: math.min(cellW, cellH),
+                    duration: battle.boardClearDuration,
+                  ),
+                ),
+              if (combination != null)
+                Positioned.fill(
+                  key: ValueKey(
+                      'combination-${board.at(combination.at.$1, combination.at.$2).id}'),
+                  child: PowerupCombinationFx(
+                    combination: combination,
+                    origin: center(combination.at),
+                    partner: center(combination.partner),
+                    targets: battle.clearingCells.map(center).toList(),
+                    cellSize: math.min(cellW, cellH),
+                    duration: battle.boardClearDuration,
+                  ),
+                ),
+            ],
           ],
         );
       },
@@ -446,6 +520,8 @@ class _BoardTile extends StatefulWidget {
     required this.selected,
     required this.hinted,
     required this.clearing,
+    required this.hiddenForSequence,
+    required this.clearDuration,
     required this.bouncing,
     required this.bounceToken,
     required this.spawning,
@@ -469,6 +545,8 @@ class _BoardTile extends StatefulWidget {
   final bool selected;
   final bool hinted;
   final bool clearing;
+  final bool hiddenForSequence;
+  final Duration clearDuration;
   final bool bouncing;
   final int bounceToken;
   final bool spawning;
@@ -524,7 +602,7 @@ class _BoardTileState extends State<_BoardTile> {
     final rowDelta = (widget.row - oldWidget.row).abs();
     final colDelta = (widget.col - oldWidget.col).abs();
     // Wrap-around jumps look wrong as a long slide — snap + flash those.
-    final wrapped = rowDelta > 1 || colDelta > 1;
+    final wrapped = widget.windShoving && (rowDelta > 1 || colDelta > 1);
     _teleport = sizeChanged || wrapped;
     _wrapFlash = wrapped && widget.windShoving;
     _isFalling = !wrapped && widget.row > oldWidget.row && colDelta == 0;
@@ -538,7 +616,7 @@ class _BoardTileState extends State<_BoardTile> {
   Duration _moveDuration(bool reduceMotion) {
     if (reduceMotion) return Duration.zero;
     if (widget.clearing) {
-      return const Duration(milliseconds: 160);
+      return widget.clearDuration;
     }
     if (_teleport) return Duration.zero;
     if (widget.windShoving) return BattleController.windFxDuration;
@@ -552,6 +630,7 @@ class _BoardTileState extends State<_BoardTile> {
   @override
   Widget build(BuildContext context) {
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final dropping = _isFalling || widget.spawning || _spawnDropPending;
     final showCreatePop = widget.spawning && widget.special != TileSpecial.none;
     final left = _spawnDropPending ? _left : _targetLeft;
     final top = _spawnDropPending ? _top : _targetTop;
@@ -583,17 +662,18 @@ class _BoardTileState extends State<_BoardTile> {
             ),
           ),
         AnimatedScale(
+          key: const ValueKey('gem-scale'),
           scale: widget.clearing ? 0.05 : (widget.hazardPulse ? 1.1 : 1),
           duration: reduceMotion
               ? Duration.zero
               : (widget.clearing
-                  ? BattleController.clearDuration
+                  ? widget.clearDuration
                   : const Duration(milliseconds: 180)),
-          curve: widget.clearing ? Curves.easeInBack : Curves.easeOutBack,
+          curve: widget.clearing ? const _MatchPopCurve() : Curves.easeOutBack,
           child: AnimatedOpacity(
             opacity: widget.clearing ? 0 : 1,
-            duration:
-                reduceMotion ? Duration.zero : BattleController.clearDuration,
+            duration: reduceMotion ? Duration.zero : widget.clearDuration,
+            curve: const Interval(0.28, 1, curve: Curves.easeIn),
             child: _HintPulse(
               enabled: widget.hinted && !widget.selected,
               child: AnimatedContainer(
@@ -671,12 +751,34 @@ class _BoardTileState extends State<_BoardTile> {
           IgnorePointer(
             child: _MatchClearBurst(
               color: juiceColorForTile(widget.color),
-              duration:
-                  reduceMotion ? Duration.zero : BattleController.clearDuration,
+              duration: reduceMotion ? Duration.zero : widget.clearDuration,
             ),
           ),
       ],
     );
+
+    if (!reduceMotion) {
+      gem = TweenAnimationBuilder<double>(
+        key: ValueKey('land-${widget.id}-${widget.row}-${widget.col}'),
+        tween: Tween(begin: dropping ? 0 : 1, end: 1),
+        duration: _moveDuration(false),
+        builder: (context, t, child) {
+          final landing = !dropping || widget.clearing || t < 0.78
+              ? 0.0
+              : math.sin((t - 0.78) / 0.22 * math.pi);
+          return Transform(
+            alignment: Alignment.bottomCenter,
+            transform: Matrix4.diagonal3Values(
+              1 + landing * 0.07,
+              1 - landing * 0.09,
+              1,
+            ),
+            child: child,
+          );
+        },
+        child: gem,
+      );
+    }
 
     if (widget.bouncing && !reduceMotion) {
       gem = TweenAnimationBuilder<double>(
@@ -740,7 +842,9 @@ class _BoardTileState extends State<_BoardTile> {
 
     return AnimatedPositioned(
       duration: _moveDuration(reduceMotion),
-      curve: Curves.easeOutCubic,
+      curve: dropping && !widget.windShoving
+          ? _GemDropCurve(widget.spawning ? (widget.col % 3) * 0.035 : 0)
+          : Curves.easeOutCubic,
       left: left,
       top: top,
       width: widget.cellW,
@@ -768,7 +872,7 @@ class _BoardTileState extends State<_BoardTile> {
                 _panAccum = Offset.zero;
               }
             : null,
-        child: gem,
+        child: Opacity(opacity: widget.hiddenForSequence ? 0 : 1, child: gem),
       ),
     );
   }
@@ -832,9 +936,11 @@ class _MatchClearBurstState extends State<_MatchClearBurst>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
-        final t = Curves.easeOutCubic.transform(_controller.value);
+        final t = const Interval(0.28, 1, curve: Curves.easeOutCubic)
+            .transform(_controller.value);
         final ring = 0.55 + t * 0.9;
-        final opacity = (1.0 - t).clamp(0.0, 1.0);
+        final opacity =
+            _controller.value < 0.28 ? 0.0 : (1.0 - t).clamp(0.0, 1.0);
         return Stack(
           fit: StackFit.expand,
           children: [
@@ -1008,5 +1114,30 @@ class _TileArt extends StatelessWidget {
         null => MythDuskColors.ink,
       },
     );
+  }
+}
+
+/// Gravity accelerates into a small rebound, settling within the phase budget.
+class _GemDropCurve extends Curve {
+  const _GemDropCurve(this.delay);
+  final double delay;
+
+  @override
+  double transformInternal(double t) {
+    final p = ((t - delay) / (1 - delay)).clamp(0.0, 1.0);
+    if (p < 0.78) return Curves.easeInQuad.transform(p / 0.78);
+    final landing = (p - 0.78) / 0.22;
+    return 1 - math.sin(landing * math.pi) * 0.025;
+  }
+}
+
+/// A brief expansion gives each clear anticipation before it collapses.
+class _MatchPopCurve extends Curve {
+  const _MatchPopCurve();
+
+  @override
+  double transformInternal(double t) {
+    if (t < 0.28) return -0.10 * math.sin(t / 0.28 * math.pi / 2);
+    return -0.10 + 1.10 * Curves.easeInCubic.transform((t - 0.28) / 0.72);
   }
 }

@@ -5,6 +5,7 @@ import 'match_balance.dart';
 import 'match_shapes.dart';
 import 'overlay_def.dart';
 import 'puzzle_board.dart';
+import 'powerup_event.dart';
 import 'tile_color.dart';
 import 'tile_id_gen.dart';
 import 'tile_spawn_weights.dart';
@@ -61,10 +62,14 @@ class WavePlan {
     required this.clearCells,
     required this.creations,
     required this.match,
+    this.creationEvents = const [],
+    this.combination,
   });
 
   final Set<(int, int)> clearCells;
   final Map<(int, int), TileSpecial> creations;
+  final List<PowerupCreation> creationEvents;
+  final PowerupCombination? combination;
   final MatchResult match;
 
   bool get isEmpty => clearCells.isEmpty && creations.isEmpty;
@@ -83,6 +88,8 @@ class CascadeStep {
     required this.boardAfterClear,
     required this.boardAfterDrop,
     required this.boardAfterFill,
+    this.creationEvents = const [],
+    this.combination,
   });
 
   final MatchResult match;
@@ -90,6 +97,8 @@ class CascadeStep {
   final PuzzleBoard boardAfterClear;
   final PuzzleBoard boardAfterDrop;
   final PuzzleBoard boardAfterFill;
+  final List<PowerupCreation> creationEvents;
+  final PowerupCombination? combination;
 }
 
 class CascadeResult {
@@ -475,7 +484,17 @@ abstract final class PuzzleEngine {
           creations.values.where((s) => s == TileSpecial.seeker).length,
     );
 
-    return WavePlan(clearCells: clear, creations: creations, match: match);
+    return WavePlan(
+      clearCells: clear,
+      creations: creations,
+      match: match,
+      creationEvents: [
+        for (final pick in picks)
+          if (creations.containsKey(pick.at))
+            PowerupCreation(
+                at: pick.at, special: pick.special, sources: pick.sources),
+      ],
+    );
   }
 
   static MatchResult resolveMatches(
@@ -892,6 +911,8 @@ abstract final class PuzzleEngine {
       steps: [
         CascadeStep(
           match: plan.match,
+          creationEvents: plan.creationEvents,
+          combination: plan.combination,
           clearingCells: plan.clearCells,
           boardAfterClear: collapsed.afterClear,
           boardAfterDrop: collapsed.afterDrop,
@@ -931,6 +952,8 @@ abstract final class PuzzleEngine {
       steps.add(
         CascadeStep(
           match: plan.match,
+          creationEvents: plan.creationEvents,
+          combination: plan.combination,
           clearingCells: plan.clearCells,
           boardAfterClear: collapsed.afterClear,
           boardAfterDrop: collapsed.afterDrop,
@@ -1044,7 +1067,17 @@ abstract final class PuzzleEngine {
       );
       final label = mergeLabel(atA.special, atB.special);
       final match = resolveMatches(swapped, clear, mergeLabel: label);
-      final plan = WavePlan(clearCells: clear, creations: {}, match: match);
+      final plan = WavePlan(
+        clearCells: clear,
+        creations: {},
+        match: match,
+        combination: PowerupCombination(
+          at: b,
+          partner: a,
+          first: atA.special,
+          second: atB.special,
+        ),
+      );
       return _cascadeFromPlan(
         swapped,
         plan,
