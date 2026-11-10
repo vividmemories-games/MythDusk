@@ -38,11 +38,13 @@ class MatchCollectParticle {
     required this.id,
     required this.resourceId,
     required this.startGlobal,
+    this.launchDelay = Duration.zero,
   });
 
   final int id;
   final String resourceId;
   final Offset startGlobal;
+  final Duration launchDelay;
 }
 
 /// Ephemeral flight list; UI consumes and clears.

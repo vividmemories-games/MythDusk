@@ -533,19 +533,21 @@ class BattleNotifier extends StateNotifier<BattleState> {
               '${powerNote.isEmpty ? '' : ' · $powerNote'}',
         ],
       );
-      await Future<void>.delayed(state.boardClearDuration);
-      if (!mounted || gen != _actionGen) return;
-
-      _controller.state = state;
-      _controller.showHoles(step.boardAfterClear);
-      state = _controller.state;
-      await Future<void>.delayed(const Duration(milliseconds: 16));
-      if (!mounted || gen != _actionGen) return;
-
-      _controller.state = state;
-      _controller.showDrop(step.boardAfterDrop);
-      state = _controller.state;
-      await Future<void>.delayed(BattleController.fallDuration);
+      final clearTime = state.boardClearDuration;
+      final combination = step.combination != null;
+      if (_ref != null && (identical(step, cascade.steps.first) || combination)) {
+        final pulseTime = clearTime * (combination ? 0.35 : 0.28);
+        await Future<void>.delayed(pulseTime);
+        if (!mounted || gen != _actionGen) return;
+        if (combination) {
+          HapticFeedback.mediumImpact();
+        } else {
+          HapticFeedback.lightImpact();
+        }
+        await Future<void>.delayed(clearTime - pulseTime);
+      } else {
+        await Future<void>.delayed(clearTime);
+      }
       if (!mounted || gen != _actionGen) return;
 
       final afterIds = step.boardAfterFill.tilePositions().keys.toSet();
@@ -555,7 +557,10 @@ class BattleNotifier extends StateNotifier<BattleState> {
       _controller.state = state;
       _controller.showSpawn(step.boardAfterFill, spawned);
       state = _controller.state;
-      await Future<void>.delayed(BattleController.spawnDuration);
+      // New tiles begin on the frame after the existing tiles start to fall.
+      await Future<void>.delayed(
+        BattleController.spawnDuration + const Duration(milliseconds: 17),
+      );
       if (!mounted || gen != _actionGen) return;
 
       boardWithMatches = step.boardAfterFill;
@@ -701,30 +706,58 @@ class BattleNotifier extends StateNotifier<BattleState> {
     await _runEnemyTurn(gen);
   }
 
-  Future<void> castSkill(SkillDef skill) async {
+  Future<void> castSkill(SkillDef skill, {bool reduceMotion = false}) async {
     if (state.phase != BattlePhase.playerTurn) return;
     _controller.state = state;
     if (!_controller.canCast(skill)) return;
 
     final gen = ++_actionGen;
-    final dealsDamage = skill.damage > 0;
+    final beforeCast = state;
     _controller.castSkill(skill);
-    state = _controller.state;
-
-    // Cast cue on the hero, then impact flash when the skill deals damage.
-    if (dealsDamage && state.combatFx == CombatFx.enemyHit) {
-      _controller.state = state.copyWith(combatFx: CombatFx.heroCast);
-      state = _controller.state;
-      await Future<void>.delayed(BattleController.castFxDuration);
-      if (!mounted || gen != _actionGen) return;
-      _controller.state = state.copyWith(combatFx: CombatFx.enemyHit);
-      state = _controller.state;
+    final result = _controller.state;
+    final damage = beforeCast.enemyHp - result.enemyHp;
+    final animation = SkillAnimation.forSkill(skill.id);
+    if (animation != null) {
+      if (!reduceMotion) {
+        state = beforeCast.copyWith(
+          phase: BattlePhase.resolving,
+          combatFx: CombatFx.skillCast,
+          skillAnimation: animation,
+          clearHint: true,
+        );
+        await Future<void>.delayed(animation.castDuration);
+        if (!mounted || gen != _actionGen) return;
+      }
+      state = result.copyWith(
+        phase: BattlePhase.resolving,
+        combatFx: CombatFx.skillImpact,
+        skillAnimation: animation,
+        skillDamage: damage,
+        skillSupportAmount: result.heroHp - beforeCast.heroHp,
+        skillShieldGain: result.shield - beforeCast.shield,
+        clearHint: true,
+      );
       await Future<void>.delayed(BattleController.combatFxDuration);
+      if (!mounted || gen != _actionGen) return;
+      _controller.state = result;
     } else {
-      await Future<void>.delayed(BattleController.castFxDuration);
+      state = result;
+
+      // Cast cue on the hero, then impact flash when the skill deals damage.
+      if (skill.damage > 0 && state.combatFx == CombatFx.enemyHit) {
+        _controller.state = state.copyWith(combatFx: CombatFx.heroCast);
+        state = _controller.state;
+        await Future<void>.delayed(BattleController.castFxDuration);
+        if (!mounted || gen != _actionGen) return;
+        _controller.state = state.copyWith(combatFx: CombatFx.enemyHit);
+        state = _controller.state;
+        await Future<void>.delayed(BattleController.combatFxDuration);
+      } else {
+        await Future<void>.delayed(BattleController.castFxDuration);
+      }
+      if (!mounted || gen != _actionGen) return;
+      _controller.state = state;
     }
-    if (!mounted || gen != _actionGen) return;
-    _controller.state = state;
     _controller.clearCombatFx();
     state = _controller.state;
 

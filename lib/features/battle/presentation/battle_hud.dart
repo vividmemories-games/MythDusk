@@ -108,9 +108,16 @@ class BattleHudBar extends ConsumerWidget {
   }
 
   String _phaseLabel(BattleState battle) => switch (battle.phase) {
+        BattlePhase.playerTurn when battle.combatFx == CombatFx.hazard ||
+            battle.combatFx == CombatFx.heroHit =>
+          battle.lastEnemySkillName ?? 'Your turn',
         BattlePhase.playerTurn => 'Your turn',
-        BattlePhase.resolving => 'Matching…',
-        BattlePhase.enemyTurn => 'Enemy turn',
+        BattlePhase.resolving => switch (battle.combatFx) {
+            CombatFx.skillCast || CombatFx.skillImpact =>
+              battle.skillAnimation?.label ?? 'Casting…',
+            _ => 'Matching…',
+          },
+        BattlePhase.enemyTurn => battle.enemyIntent?.name ?? 'Enemy turn',
         BattlePhase.victory => battle.bossFled ? 'Fled' : 'Victory',
         BattlePhase.defeat => 'Defeat',
       };

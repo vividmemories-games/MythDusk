@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -19,63 +21,73 @@ class _MatchCollectOverlayState extends ConsumerState<MatchCollectOverlay>
   final _overlayKey = GlobalKey(debugLabel: 'match_collect_overlay');
   final _active = <_Flight>[];
   var _seq = 0;
-  var _spawnGen = 0;
+  final _pendingLaunches = <Timer>{};
 
   @override
   void dispose() {
-    _spawnGen++;
+    for (final timer in _pendingLaunches) {
+      timer.cancel();
+    }
     for (final f in _active) {
       f.controller.dispose();
     }
     super.dispose();
   }
 
-  Future<void> _spawn(List<MatchCollectParticle> particles) async {
+  void _spawn(List<MatchCollectParticle> particles) {
     final capped = capMatchCollectParticles(particles);
     // Consume the queue immediately so cascade waves can enqueue cleanly.
     ref.read(matchCollectFlightsProvider.notifier).state = const [];
     if (capped.isEmpty) return;
 
-    final gen = ++_spawnGen;
     final targets = ref.read(resourceFlyTargetsProvider);
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
 
     for (var i = 0; i < capped.length; i++) {
-      if (!mounted || gen != _spawnGen) return;
       final p = capped[i];
       final end = targets.globalCenterOf(targets.resourceKeys[p.resourceId]!);
       if (end == null) continue;
 
-      if (!reduceMotion && i > 0) {
-        await Future<void>.delayed(const Duration(milliseconds: 22));
-        if (!mounted || gen != _spawnGen) return;
+      void launch() {
+        if (!mounted) return;
+        final controller = AnimationController(
+          vsync: this,
+          duration: reduceMotion
+              ? const Duration(milliseconds: 1)
+              : Duration(milliseconds: 440 + (i % 3) * 20),
+        );
+        final flight = _Flight(
+          id: ++_seq,
+          particle: p,
+          end: end,
+          arcLift: 28.0 + (i % 4) * 10.0,
+          controller: controller,
+        );
+        _active.add(flight);
+        if (mounted) setState(() {});
+        controller.forward().whenComplete(() {
+          if (!mounted) return;
+          final bumps =
+              Map<String, int>.from(ref.read(hudResourceBumpProvider));
+          bumps[p.resourceId] = (bumps[p.resourceId] ?? 0) + 1;
+          ref.read(hudResourceBumpProvider.notifier).state = bumps;
+          setState(() {
+            _active.remove(flight);
+            flight.controller.dispose();
+          });
+        });
       }
 
-      final controller = AnimationController(
-        vsync: this,
-        duration: reduceMotion
-            ? const Duration(milliseconds: 1)
-            : Duration(milliseconds: 440 + (i % 3) * 20),
-      );
-      final flight = _Flight(
-        id: ++_seq,
-        particle: p,
-        end: end,
-        arcLift: 28.0 + (i % 4) * 10.0,
-        controller: controller,
-      );
-      _active.add(flight);
-      if (mounted) setState(() {});
-      controller.forward().whenComplete(() {
-        if (!mounted) return;
-        final bumps = Map<String, int>.from(ref.read(hudResourceBumpProvider));
-        bumps[p.resourceId] = (bumps[p.resourceId] ?? 0) + 1;
-        ref.read(hudResourceBumpProvider.notifier).state = bumps;
-        setState(() {
-          _active.remove(flight);
-          flight.controller.dispose();
+      if (reduceMotion || p.launchDelay == Duration.zero) {
+        launch();
+      } else {
+        late final Timer timer;
+        timer = Timer(p.launchDelay, () {
+          _pendingLaunches.remove(timer);
+          launch();
         });
-      });
+        _pendingLaunches.add(timer);
+      }
     }
   }
 

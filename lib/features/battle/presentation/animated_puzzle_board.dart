@@ -20,10 +20,12 @@ class AnimatedPuzzleBoard extends StatelessWidget {
     required this.battle,
     required this.onTap,
     this.onSwipe,
+    this.surfaceKey,
     this.bounceCells = const {},
     this.bounceToken = 0,
   });
 
+  final Key? surfaceKey;
   final BattleState battle;
   final void Function(int row, int col) onTap;
 
@@ -54,6 +56,7 @@ class AnimatedPuzzleBoard extends StatelessWidget {
               width: boardSize,
               height: boardSize,
               child: _BoardSurface(
+                key: surfaceKey,
                 battle: battle,
                 onTap: onTap,
                 onSwipe: onSwipe,
@@ -70,6 +73,7 @@ class AnimatedPuzzleBoard extends StatelessWidget {
 
 class _BoardSurface extends StatelessWidget {
   const _BoardSurface({
+    super.key,
     required this.battle,
     required this.onTap,
     this.onSwipe,
@@ -88,19 +92,14 @@ class _BoardSurface extends StatelessWidget {
     final board = battle.board;
     return LayoutBuilder(
       builder: (context, constraints) {
-        const gap = 3.0;
-        final cellW =
-            (constraints.maxWidth - gap * (board.width - 1)) / board.width;
-        final cellH =
-            (constraints.maxHeight - gap * (board.height - 1)) / board.height;
+        const gap = boardCellGap;
+        final timing = BoardClearTiming(battle, constraints.biggest);
+        final cellW = timing.cellWidth;
+        final cellH = timing.cellHeight;
 
         final reduceMotion = MediaQuery.disableAnimationsOf(context);
         final creations = battle.activeCascadeStep?.creationEvents ?? const [];
         final combination = battle.activeCascadeStep?.combination;
-        Offset center((int, int) cell) => Offset(
-              cell.$2 * (cellW + gap) + cellW / 2,
-              cell.$1 * (cellH + gap) + cellH / 2,
-            );
         final sequenceCells = <(int, int)>{
           if (!reduceMotion) ...[
             for (final creation in creations) ...creation.sources,
@@ -108,134 +107,174 @@ class _BoardSurface extends StatelessWidget {
           ],
         };
 
-        return Stack(
-          clipBehavior: Clip.none,
-          children: [
-            for (var row = 0; row < board.height; row++)
-              for (var col = 0; col < board.width; col++)
-                _BoardSlotBackdrop(
-                  row: row,
-                  col: col,
-                  cell: board.at(row, col),
-                  cellW: cellW,
-                  cellH: cellH,
-                  gap: gap,
-                ),
-            for (final mover in battle.movers)
-              if (mover.type == 'row_shove')
-                for (final row in mover.rows)
-                  if (row >= 0 && row < board.height)
-                    _WindLane(
-                      row: row,
-                      direction: mover.direction,
-                      boardWidth: board.width,
-                      cellW: cellW,
-                      cellH: cellH,
-                      gap: gap,
-                      pulsing: battle.combatFx == CombatFx.wind &&
-                          battle.windRows.contains(row),
-                    ),
-            if (battle.combatFx == CombatFx.wind)
-              _WindGustOverlay(
-                direction: battle.windDirection ?? 'left',
-                windRows: battle.windRows,
-                boardHeight: board.height,
-                cellW: cellW,
-                cellH: cellH,
-                gap: gap,
-                boardWidth: board.width,
-              ),
-            for (var row = 0; row < board.height; row++)
-              for (var col = 0; col < board.width; col++)
-                if (board.at(row, col).isPlayable &&
-                    board.at(row, col).id != null)
-                  _BoardTile(
-                    key: ValueKey('tile-${board.at(row, col).id}'),
-                    id: board.at(row, col).id!,
+        final spawnRows = <int, int>{};
+        for (var row = 0; row < board.height; row++) {
+          for (var col = 0; col < board.width; col++) {
+            if (battle.spawningIds.contains(board.at(row, col).id)) {
+              spawnRows[col] = row + 1;
+            }
+          }
+        }
+        return ClipRect(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              for (var row = 0; row < board.height; row++)
+                for (var col = 0; col < board.width; col++)
+                  _BoardSlotBackdrop(
                     row: row,
                     col: col,
-                    color: board.at(row, col).color,
-                    special: board.at(row, col).special,
-                    overlayId: board.at(row, col).overlayId,
+                    cell: board.at(row, col),
                     cellW: cellW,
                     cellH: cellH,
                     gap: gap,
-                    selected: battle.selectedCell == (row, col),
-                    hinted: battle.hintCells.contains((row, col)),
-                    clearing: battle.clearingCells.contains((row, col)),
-                    hiddenForSequence: sequenceCells.contains((row, col)),
-                    clearDuration: battle.boardClearDuration,
-                    bouncing: bounceCells.contains((row, col)),
-                    bounceToken: bounceToken,
-                    spawning:
-                        battle.spawningIds.contains(board.at(row, col).id),
-                    windShoving: battle.combatFx == CombatFx.wind &&
-                        battle.windRows.contains(row),
-                    windDirection: battle.windDirection,
-                    hazardPulse: battle.hazardPulseCells.contains((row, col)),
-                    interactive: !battle.inputLocked,
-                    onTap: () => onTap(row, col),
-                    onSwipe: onSwipe == null
-                        ? null
-                        : (to) => onSwipe!((row, col), to),
                   ),
-            if (!reduceMotion)
-              for (final cell in battle.clearingCells)
-                if (board.at(cell.$1, cell.$2).hasSpecial &&
-                    cell != combination?.at &&
-                    cell != combination?.partner)
-                  Positioned.fill(
-                    child: BoardPowerupFx(
-                      key: ValueKey(
-                          'powerup-fx-${board.at(cell.$1, cell.$2).id}'),
-                      special: board.at(cell.$1, cell.$2).special,
-                      origin: Offset(
-                        cell.$2 * (cellW + gap) + cellW / 2,
-                        cell.$1 * (cellH + gap) + cellH / 2,
+              for (final mover in battle.movers)
+                if (mover.type == 'row_shove')
+                  for (final row in mover.rows)
+                    if (row >= 0 && row < board.height)
+                      _WindLane(
+                        row: row,
+                        direction: mover.direction,
+                        boardWidth: board.width,
+                        cellW: cellW,
+                        cellH: cellH,
+                        gap: gap,
+                        pulsing: battle.combatFx == CombatFx.wind &&
+                            battle.windRows.contains(row),
                       ),
-                      targets: [
-                        for (final target in battle.clearingCells)
-                          Offset(target.$2 * (cellW + gap) + cellW / 2,
-                              target.$1 * (cellH + gap) + cellH / 2)
-                      ],
+              if (battle.combatFx == CombatFx.wind)
+                _WindGustOverlay(
+                  direction: battle.windDirection ?? 'left',
+                  windRows: battle.windRows,
+                  boardHeight: board.height,
+                  cellW: cellW,
+                  cellH: cellH,
+                  gap: gap,
+                  boardWidth: board.width,
+                ),
+              for (var row = 0; row < board.height; row++)
+                for (var col = 0; col < board.width; col++)
+                  if (board.at(row, col).isPlayable &&
+                      board.at(row, col).id != null)
+                    _BoardTile(
+                      key: ValueKey('tile-${board.at(row, col).id}'),
+                      id: board.at(row, col).id!,
+                      row: row,
+                      col: col,
+                      color: board.at(row, col).color,
+                      special: board.at(row, col).special,
+                      overlayId: board.at(row, col).overlayId,
+                      cellW: cellW,
+                      cellH: cellH,
+                      gap: gap,
+                      selected: battle.selectedCell == (row, col),
+                      hinted: battle.hintCells.contains((row, col)),
+                      clearing: battle.clearingCells.contains((row, col)),
+                      hiddenForSequence: sequenceCells.contains((row, col)),
+                      clearDuration: battle.boardClearDuration,
+                      clearDelay: !reduceMotion &&
+                              battle.clearingCells.contains((row, col))
+                          ? timing.delayFor((row, col))
+                          : 0,
+                      spawnRows: spawnRows[col] ?? 0,
+                      bouncing: bounceCells.contains((row, col)),
+                      bounceToken: bounceToken,
+                      spawning:
+                          battle.spawningIds.contains(board.at(row, col).id),
+                      windShoving: battle.combatFx == CombatFx.wind &&
+                          battle.windRows.contains(row),
+                      windDirection: battle.windDirection,
+                      hazardPulse: battle.hazardPulseCells.contains((row, col)),
+                      interactive: !battle.inputLocked,
+                      onTap: () => onTap(row, col),
+                      onSwipe: onSwipe == null
+                          ? null
+                          : (to) => onSwipe!((row, col), to),
+                    ),
+              if (!reduceMotion)
+                for (final cell in battle.clearingCells)
+                  if (board.at(cell.$1, cell.$2).hasSpecial &&
+                      cell != combination?.at &&
+                      cell != combination?.partner)
+                    Positioned.fill(
+                      child: BoardPowerupFx(
+                        key: ValueKey(
+                            'powerup-fx-${board.at(cell.$1, cell.$2).id}'),
+                        special: board.at(cell.$1, cell.$2).special,
+                        origin: Offset(
+                          cell.$2 * (cellW + gap) + cellW / 2,
+                          cell.$1 * (cellH + gap) + cellH / 2,
+                        ),
+                        targets: [
+                          for (final target in battle.clearingCells)
+                            Offset(target.$2 * (cellW + gap) + cellW / 2,
+                                target.$1 * (cellH + gap) + cellH / 2)
+                        ],
+                        cellSize: math.min(cellW, cellH),
+                        duration: battle.boardClearDuration,
+                        activationDelay:
+                            combination == null ? powerupActivation : 0.35,
+                      ),
+                    ),
+              if (!reduceMotion) ...[
+                for (final creation in creations)
+                  Positioned.fill(
+                    key: ValueKey(
+                        'creation-${board.at(creation.at.$1, creation.at.$2).id}'),
+                    child: PowerupCreationFx(
+                      origin: timing.center(creation.at),
+                      sources: {
+                        for (final source in creation.sources)
+                          if (board.at(source.$1, source.$2).color != null)
+                            timing.center(source): GameAssets.tile(
+                                board.at(source.$1, source.$2).color!)
+                      },
+                      special: creation.special,
                       cellSize: math.min(cellW, cellH),
                       duration: battle.boardClearDuration,
-                      activationDelay: combination == null ? 0.15 : 0.35,
                     ),
                   ),
-            if (!reduceMotion) ...[
-              for (final creation in creations)
-                Positioned.fill(
-                  key: ValueKey(
-                      'creation-${board.at(creation.at.$1, creation.at.$2).id}'),
-                  child: PowerupCreationFx(
-                    origin: center(creation.at),
-                    sources: {
-                      for (final source in creation.sources)
-                        if (board.at(source.$1, source.$2).color != null)
-                          center(source): GameAssets.tile(
-                              board.at(source.$1, source.$2).color!)
-                    },
-                    special: creation.special,
-                    cellSize: math.min(cellW, cellH),
-                    duration: battle.boardClearDuration,
+                if (combination != null)
+                  Positioned.fill(
+                    key: ValueKey(
+                        'combination-${board.at(combination.at.$1, combination.at.$2).id}'),
+                    child: PowerupCombinationFx(
+                      combination: combination,
+                      rocketLaneCenters: isBombRocketCombo(combination)
+                          ? [
+                              for (final offset in [-1, 0, 1]) ...[
+                                if (combination.at.$1 + offset >= 0 &&
+                                    combination.at.$1 + offset < board.height)
+                                  (
+                                    true,
+                                    timing.center((
+                                      combination.at.$1 + offset,
+                                      combination.at.$2
+                                    ))
+                                  ),
+                                if (combination.at.$2 + offset >= 0 &&
+                                    combination.at.$2 + offset < board.width)
+                                  (
+                                    false,
+                                    timing.center((
+                                      combination.at.$1,
+                                      combination.at.$2 + offset
+                                    ))
+                                  ),
+                              ],
+                            ]
+                          : const [],
+                      origin: timing.center(combination.at),
+                      partner: timing.center(combination.partner),
+                      targets: battle.clearingCells.map(timing.center).toList(),
+                      cellSize: math.min(cellW, cellH),
+                      duration: battle.boardClearDuration,
+                    ),
                   ),
-                ),
-              if (combination != null)
-                Positioned.fill(
-                  key: ValueKey(
-                      'combination-${board.at(combination.at.$1, combination.at.$2).id}'),
-                  child: PowerupCombinationFx(
-                    combination: combination,
-                    origin: center(combination.at),
-                    partner: center(combination.partner),
-                    targets: battle.clearingCells.map(center).toList(),
-                    cellSize: math.min(cellW, cellH),
-                    duration: battle.boardClearDuration,
-                  ),
-                ),
+              ],
             ],
-          ],
+          ),
         );
       },
     );
@@ -522,6 +561,8 @@ class _BoardTile extends StatefulWidget {
     required this.clearing,
     required this.hiddenForSequence,
     required this.clearDuration,
+    required this.clearDelay,
+    required this.spawnRows,
     required this.bouncing,
     required this.bounceToken,
     required this.spawning,
@@ -547,6 +588,8 @@ class _BoardTile extends StatefulWidget {
   final bool clearing;
   final bool hiddenForSequence;
   final Duration clearDuration;
+  final double clearDelay;
+  final int spawnRows;
   final bool bouncing;
   final int bounceToken;
   final bool spawning;
@@ -579,7 +622,7 @@ class _BoardTileState extends State<_BoardTile> {
     super.initState();
     _left = _targetLeft;
     if (widget.spawning) {
-      _top = _targetTop - (widget.cellH + widget.gap) * (widget.row + 3);
+      _top = _targetTop - (widget.cellH + widget.gap) * widget.spawnRows;
       _spawnDropPending = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || !_spawnDropPending) return;
@@ -669,11 +712,17 @@ class _BoardTileState extends State<_BoardTile> {
               : (widget.clearing
                   ? widget.clearDuration
                   : const Duration(milliseconds: 180)),
-          curve: widget.clearing ? const _MatchPopCurve() : Curves.easeOutBack,
+          curve: widget.clearing
+              ? Interval(widget.clearDelay, 1, curve: const _MatchPopCurve())
+              : Curves.easeOutBack,
           child: AnimatedOpacity(
             opacity: widget.clearing ? 0 : 1,
             duration: reduceMotion ? Duration.zero : widget.clearDuration,
-            curve: const Interval(0.28, 1, curve: Curves.easeIn),
+            curve: Interval(
+              gemPopProgress(widget.clearDelay),
+              1,
+              curve: Curves.easeOut,
+            ),
             child: _HintPulse(
               enabled: widget.hinted && !widget.selected,
               child: AnimatedContainer(
@@ -747,10 +796,11 @@ class _BoardTileState extends State<_BoardTile> {
             ),
           ),
         ),
-        if (widget.clearing)
+        if (widget.clearing && !reduceMotion)
           IgnorePointer(
             child: _MatchClearBurst(
               color: juiceColorForTile(widget.color),
+              delay: widget.clearDelay,
               duration: reduceMotion ? Duration.zero : widget.clearDuration,
             ),
           ),
@@ -901,10 +951,12 @@ class _MatchClearBurst extends StatefulWidget {
   const _MatchClearBurst({
     required this.color,
     required this.duration,
+    required this.delay,
   });
 
   final Color color;
   final Duration duration;
+  final double delay;
 
   @override
   State<_MatchClearBurst> createState() => _MatchClearBurstState();
@@ -936,11 +988,12 @@ class _MatchClearBurstState extends State<_MatchClearBurst>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
-        final t = const Interval(0.28, 1, curve: Curves.easeOutCubic)
+        final pop = gemPopProgress(widget.delay);
+        final t = Interval(pop, 1, curve: Curves.easeOutCubic)
             .transform(_controller.value);
         final ring = 0.55 + t * 0.9;
         final opacity =
-            _controller.value < 0.28 ? 0.0 : (1.0 - t).clamp(0.0, 1.0);
+            _controller.value < pop ? 0.0 : (1.0 - t).clamp(0.0, 1.0);
         return Stack(
           fit: StackFit.expand,
           children: [
@@ -1000,6 +1053,18 @@ class _ClearRingPainter extends CustomPainter {
       ..style = PaintingStyle.fill
       ..color = color.withValues(alpha: color.a * 0.35 * (1 - progress));
     canvas.drawCircle(center, radius * 0.35, glow);
+    for (var i = 0; i < 5; i++) {
+      final direction = Offset.fromDirection(i * math.pi * 0.4 + 0.3);
+      final head = center + direction * radius * (0.6 + progress * 0.48);
+      final side = Offset(-direction.dy, direction.dx) * stroke * 0.45;
+      final chip = Path()
+        ..moveTo(head.dx + side.dx, head.dy + side.dy)
+        ..lineTo(
+            head.dx + direction.dx * stroke, head.dy + direction.dy * stroke)
+        ..lineTo(head.dx - side.dx, head.dy - side.dy)
+        ..close();
+      canvas.drawPath(chip, Paint()..color = color);
+    }
   }
 
   @override
@@ -1078,13 +1143,8 @@ class _TileArt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final powerupPath = GameAssets.powerup(special);
-    if (powerupPath != null) {
-      return Image.asset(
-        powerupPath,
-        fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => _gemFallback(),
-      );
+    if (special != TileSpecial.none) {
+      return PowerupTileArt(special: special);
     }
 
     if (color == null) {
@@ -1138,6 +1198,6 @@ class _MatchPopCurve extends Curve {
   @override
   double transformInternal(double t) {
     if (t < 0.28) return -0.10 * math.sin(t / 0.28 * math.pi / 2);
-    return -0.10 + 1.10 * Curves.easeInCubic.transform((t - 0.28) / 0.72);
+    return -0.10 + 1.10 * Curves.easeOutCubic.transform((t - 0.28) / 0.72);
   }
 }

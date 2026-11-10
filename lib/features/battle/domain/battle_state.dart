@@ -25,7 +25,62 @@ enum BattlePhase {
 }
 
 /// Visual feedback flags for combat juice.
-enum CombatFx { none, heroHit, enemyHit, heroCast, wind, hazard }
+enum CombatFx {
+  none,
+  heroHit,
+  enemyHit,
+  heroCast,
+  skillCast,
+  skillImpact,
+  wind,
+  hazard,
+}
+
+enum SkillMotion { fire, bolt, arrow, melee, burst, heal, ward, healAndWard }
+
+/// Timing and identity for skills with a staged cast and impact.
+enum SkillAnimation {
+  fireball('fireball', 'Fireball', 420, SkillMotion.fire),
+  arcaneBolt('arcane_bolt', 'Arcane Bolt', 300, SkillMotion.bolt),
+  basicSlash('basic_slash', 'Basic Slash', 340, SkillMotion.melee),
+  smite('smite', 'Smite', 320, SkillMotion.burst),
+  mend('mend', 'Mend', 260, SkillMotion.heal),
+  shieldWall('shield_wall', 'Shield Wall', 300, SkillMotion.ward),
+  frostWard('frost_ward', 'Frost Ward', 300, SkillMotion.ward),
+  meteorShard('meteor_shard', 'Meteor Shard', 460, SkillMotion.burst),
+  rallyingCry('rallying_cry', 'Rallying Cry', 300, SkillMotion.heal),
+  bulwarkSlam('bulwark_slam', 'Bulwark Slam', 390, SkillMotion.melee),
+  arrowShot('arrow_shot', 'Arrow Shot', 300, SkillMotion.arrow),
+  markedShot('marked_shot', 'Marked Shot', 380, SkillMotion.arrow),
+  naturesSalve('natures_salve', 'Nature’s Salve', 280, SkillMotion.heal),
+  volleyRain('volley_rain', 'Volley Rain', 410, SkillMotion.burst),
+  holyBarrier('holy_barrier', 'Holy Barrier', 320, SkillMotion.ward),
+  sanctuary('sanctuary', 'Sanctuary', 410, SkillMotion.healAndWard),
+  daggerFlurry('dagger_flurry', 'Dagger Flurry', 290, SkillMotion.melee),
+  shadowStrike('shadow_strike', 'Shadow Strike', 340, SkillMotion.melee),
+  smokeBomb('smoke_bomb', 'Smoke Bomb', 310, SkillMotion.ward),
+  shadowBind('shadow_bind', 'Shadow Bind', 360, SkillMotion.burst);
+
+  const SkillAnimation(this.skillId, this.label, this.castMilliseconds, this.motion);
+
+  final String skillId;
+  final String label;
+  final int castMilliseconds;
+  final SkillMotion motion;
+
+  Duration get castDuration => Duration(milliseconds: castMilliseconds);
+  bool get targetsSelf =>
+      motion == SkillMotion.heal ||
+      motion == SkillMotion.ward ||
+      motion == SkillMotion.healAndWard;
+
+  static SkillAnimation? forSkill(String id) {
+    for (final animation in values) {
+      if (animation.skillId == id) return animation;
+    }
+    return null;
+  }
+}
 
 /// Stub knobs until Balancing Bible owns boss combat math.
 abstract final class BossCombatBalance {
@@ -62,6 +117,10 @@ class BattleState {
     this.activeCascadeStep,
     this.spawningIds = const {},
     this.combatFx = CombatFx.none,
+    this.skillAnimation,
+    this.skillDamage = 0,
+    this.skillSupportAmount = 0,
+    this.skillShieldGain = 0,
     this.enemyIntent,
     this.hintCells = const {},
     this.lastEnemySkillName,
@@ -130,6 +189,10 @@ class BattleState {
   final Set<int> spawningIds;
 
   final CombatFx combatFx;
+  final SkillAnimation? skillAnimation;
+  final int skillDamage;
+  final int skillSupportAmount;
+  final int skillShieldGain;
 
   /// Telegraphed enemy action for the upcoming enemy turn. Rolled at the
   /// start of each player turn and executed exactly, so the threat badge
@@ -320,7 +383,8 @@ class BattleState {
   final CascadeStep? activeCascadeStep;
 
   Duration get boardClearDuration => activeCascadeStep?.combination != null ||
-          (activeCascadeStep?.creationEvents.isNotEmpty ?? false)
+          (activeCascadeStep?.creationEvents.isNotEmpty ?? false) ||
+          clearingCells.any((cell) => board.at(cell.$1, cell.$2).hasSpecial)
       ? BattleController.powerupClearDuration
       : BattleController.clearDuration;
 
@@ -344,6 +408,10 @@ class BattleState {
     bool clearCascadeStep = false,
     Set<int>? spawningIds,
     CombatFx? combatFx,
+    SkillAnimation? skillAnimation,
+    int? skillDamage,
+    int? skillSupportAmount,
+    int? skillShieldGain,
     EnemySkill? enemyIntent,
     Set<(int, int)>? hintCells,
     bool clearHint = false,
@@ -395,6 +463,10 @@ class BattleState {
           : (activeCascadeStep ?? this.activeCascadeStep),
       spawningIds: spawningIds ?? this.spawningIds,
       combatFx: combatFx ?? this.combatFx,
+      skillAnimation: skillAnimation ?? this.skillAnimation,
+      skillDamage: skillDamage ?? this.skillDamage,
+      skillSupportAmount: skillSupportAmount ?? this.skillSupportAmount,
+      skillShieldGain: skillShieldGain ?? this.skillShieldGain,
       enemyIntent: enemyIntent ?? this.enemyIntent,
       hintCells: clearHint ? const {} : (hintCells ?? this.hintCells),
       lastEnemySkillName: clearEnemySkill
@@ -446,7 +518,7 @@ class BattleController {
   final TileIdGen ids;
 
   static const clearDuration = Duration(milliseconds: 220);
-  static const powerupClearDuration = Duration(milliseconds: 440);
+  static const powerupClearDuration = Duration(milliseconds: 600);
   static const fallDuration = Duration(milliseconds: 240);
   static const spawnDuration = Duration(milliseconds: 260);
   static const swapDuration = Duration(milliseconds: 160);

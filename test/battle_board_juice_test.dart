@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mythdusk/features/battle/domain/battle_state.dart';
 import 'package:mythdusk/features/battle/presentation/animated_puzzle_board.dart';
 import 'package:mythdusk/features/battle/presentation/board_powerup_fx.dart';
@@ -34,6 +35,50 @@ void main() {
       expect(capped.last.id, lessThan(24));
       expect(capped.map((e) => e.id).toSet(), hasLength(12));
     });
+  });
+
+  testWidgets('resource shards wait for their individual pop times',
+      (tester) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final targets = container.read(resourceFlyTargetsProvider);
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: container,
+      child: MaterialApp(
+        home: Stack(
+          fit: StackFit.expand,
+          children: [
+            Center(
+                child: SizedBox(
+                    key: targets.resourceKeys['mana'], width: 20, height: 20)),
+            const MatchCollectOverlay(),
+          ],
+        ),
+      ),
+    ));
+
+    container.read(matchCollectFlightsProvider.notifier).state = const [
+      MatchCollectParticle(
+        id: 1,
+        resourceId: 'mana',
+        startGlobal: Offset(100, 200),
+        launchDelay: Duration(milliseconds: 100),
+      ),
+      MatchCollectParticle(
+        id: 2,
+        resourceId: 'mana',
+        startGlobal: Offset(200, 200),
+        launchDelay: Duration(milliseconds: 300),
+      ),
+    ];
+
+    await tester.pump(const Duration(milliseconds: 99));
+    expect(find.byType(Image), findsNothing);
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(find.byType(Image), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(find.byType(Image), findsNWidgets(2));
+    await tester.pumpAndSettle();
   });
 
   group('BattleController juice timings', () {
@@ -181,6 +226,48 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+
+  testWidgets('refill tiles and existing gems descend in the same beat',
+      (tester) async {
+    final existing = BoardCell.tile(id: 1, color: TileColor.red);
+    final newGem = BoardCell.tile(id: 2, color: TileColor.blue);
+    PuzzleBoard column(List<BoardCell> cells) =>
+        PuzzleBoard(width: 1, height: 4, cells: cells);
+    final empty = BoardCell.empty();
+    final initial = BattleState.initial(
+      hero: HeroCatalog.mage,
+      board: column([existing, empty, empty, empty]),
+    );
+    Widget frame(BattleState battle) => MaterialApp(
+          home: Center(
+            child: SizedBox(
+              width: 320,
+              height: 320,
+              child: AnimatedPuzzleBoard(battle: battle, onTap: (_, __) {}),
+            ),
+          ),
+        );
+
+    final falling = find.byKey(const ValueKey('tile-1'));
+    final spawning = find.byKey(const ValueKey('tile-2'));
+    await tester.pumpWidget(frame(initial));
+    final oldStart = tester.getTopLeft(falling).dy;
+    await tester.pumpWidget(frame(initial.copyWith(
+      board: column([newGem, empty, empty, existing]),
+      spawningIds: {2},
+    )));
+    final spawnStart = tester.getTopLeft(spawning).dy;
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 110));
+    final oldMid = tester.getTopLeft(falling).dy;
+    final spawnMid = tester.getTopLeft(spawning).dy;
+    await tester.pumpAndSettle();
+    expect(oldMid, greaterThan(oldStart));
+    expect(oldMid, lessThan(tester.getTopLeft(falling).dy));
+    expect(spawnMid, greaterThan(spawnStart));
+    expect(spawnMid, lessThan(tester.getTopLeft(spawning).dy));
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('match clear expands before collapsing', (tester) async {
     final board = PuzzleBoard(width: 1, height: 1, cells: [

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../core/assets/game_assets.dart';
 import '../../puzzle/domain/board_cell.dart';
 import '../../puzzle/domain/powerup_event.dart';
+import 'board_powerup_fx.dart';
 
 /// A short convergence followed by a reveal at the engine's creation cell.
 class PowerupCreationFx extends StatelessWidget {
@@ -30,11 +31,11 @@ class PowerupCreationFx extends StatelessWidget {
           duration: duration,
           builder: (context, t, _) {
             final pull =
-                const Interval(0, 0.55, curve: Curves.easeInCubic).transform(t);
-            final reveal = const Interval(0.55, 1).transform(t);
+                const Interval(0, 0.46, curve: Curves.easeInCubic).transform(t);
+            final reveal = const Interval(0.46, 1).transform(t);
             final flash = math.sin(reveal * math.pi);
             return Stack(clipBehavior: Clip.none, children: [
-              if (t < 0.55)
+              if (t < 0.46)
                 for (final source in sources.entries)
                   Positioned(
                     left: Offset.lerp(source.key, origin, pull)!.dx -
@@ -51,14 +52,14 @@ class PowerupCreationFx extends StatelessWidget {
                       ),
                     ),
                   ),
-              if (t >= 0.55)
+              if (t >= 0.46)
                 Positioned(
                   left: origin.dx - cellSize / 2,
                   top: origin.dy - cellSize / 2,
                   width: cellSize,
                   height: cellSize,
                   child: Transform.scale(
-                    scale: Curves.easeOutBack.transform(reveal),
+                    scale: 0.58 + 0.42 * Curves.easeOutBack.transform(reveal),
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
@@ -71,8 +72,7 @@ class PowerupCreationFx extends StatelessWidget {
                           )
                         ],
                       ),
-                      child: Image.asset(GameAssets.powerup(special)!,
-                          fit: BoxFit.contain),
+                      child: PowerupTileArt(special: special),
                     ),
                   ),
                 ),
@@ -90,6 +90,7 @@ class PowerupCombinationFx extends StatelessWidget {
     required this.origin,
     required this.partner,
     required this.targets,
+    required this.rocketLaneCenters,
     required this.cellSize,
     required this.duration,
   });
@@ -98,6 +99,7 @@ class PowerupCombinationFx extends StatelessWidget {
   final Offset origin;
   final Offset partner;
   final List<Offset> targets;
+  final List<(bool, Offset)> rocketLaneCenters;
   final double cellSize;
   final Duration duration;
 
@@ -107,8 +109,9 @@ class PowerupCombinationFx extends StatelessWidget {
           tween: Tween(begin: 0, end: 1),
           duration: duration,
           builder: (context, t, _) {
-            final charge = const Interval(0, 0.35, curve: Curves.easeInOutCubic)
-                .transform(t);
+            final charge =
+                const Interval(0, comboRelease, curve: Curves.easeInOutCubic)
+                    .transform(t);
             return Stack(children: [
               Positioned.fill(
                   child: CustomPaint(
@@ -116,10 +119,11 @@ class PowerupCombinationFx extends StatelessWidget {
                 combination: combination,
                 origin: origin,
                 targets: targets,
+                rocketLaneCenters: rocketLaneCenters,
                 cellSize: cellSize,
                 progress: t,
               ))),
-              if (t < 0.35)
+              if (t < comboRelease)
                 for (final (special, start) in [
                   (combination.first, partner),
                   (combination.second, origin),
@@ -131,8 +135,7 @@ class PowerupCombinationFx extends StatelessWidget {
                     height: cellSize,
                     child: Transform.scale(
                       scale: 1 + charge * 0.18,
-                      child: Image.asset(GameAssets.powerup(special)!,
-                          fit: BoxFit.contain),
+                      child: PowerupTileArt(special: special),
                     ),
                   ),
             ]);
@@ -146,6 +149,7 @@ class _CombinationPainter extends CustomPainter {
     required this.combination,
     required this.origin,
     required this.targets,
+    required this.rocketLaneCenters,
     required this.cellSize,
     required this.progress,
   });
@@ -153,6 +157,7 @@ class _CombinationPainter extends CustomPainter {
   final PowerupCombination combination;
   final Offset origin;
   final List<Offset> targets;
+  final List<(bool, Offset)> rocketLaneCenters;
   final double cellSize;
   final double progress;
 
@@ -172,17 +177,35 @@ class _CombinationPainter extends CustomPainter {
       ..strokeWidth = cellSize * 0.05;
     canvas.save();
     canvas.clipRect(Offset.zero & size);
-    if (progress < 0.35) {
-      final charge = progress / 0.35;
+    if (progress < comboRelease) {
+      final charge = progress / comboRelease;
       paint.color = color.withValues(alpha: charge * 0.85);
       canvas.drawCircle(origin, cellSize * (0.8 - charge * 0.45), paint);
     } else {
-      final t = (progress - 0.35) / 0.65;
+      final t = (progress - comboRelease) / (1 - comboRelease);
       final travel = Curves.easeOutCubic.transform(t);
       final fade = 1 - t;
       paint.color = color.withValues(alpha: fade * 0.85);
       final reach = targets.fold<double>(cellSize,
           (value, point) => math.max(value, (point - origin).distance));
+      if (rocketLaneCenters.isNotEmpty) {
+        final sweep = const Interval(comboRelease, comboRocketTravelEnd)
+            .transform(progress);
+        final ignition = (1 - t * 4).clamp(0.0, 1.0);
+        canvas.drawCircle(origin, cellSize * (0.45 + t),
+            Paint()..color = Colors.white.withValues(alpha: ignition * 0.85));
+        for (final (horizontal, center) in rocketLaneCenters) {
+          final ends = horizontal
+              ? [Offset(0, center.dy), Offset(size.width, center.dy)]
+              : [Offset(center.dx, 0), Offset(center.dx, size.height)];
+          for (final end in ends) {
+            paintFlyingRocket(canvas, Offset.lerp(center, end, sweep)!,
+                (end - center).direction, cellSize * 1.2, fade);
+          }
+        }
+        canvas.restore();
+        return;
+      }
       if (bomb || (fire && combination.first == combination.second)) {
         final radius =
             (bomb && !fire ? math.min(reach, cellSize * 2.7) : reach) * travel;
@@ -247,8 +270,10 @@ class _CombinationPainter extends CustomPainter {
         final center = horizontal
             ? Offset(origin.dx, lane.first.dy)
             : Offset(lane.first.dx, origin.dy);
-        canvas.drawLine(Offset.lerp(center, start, travel)!,
-            Offset.lerp(center, end, travel)!, paint);
+        for (final destination in [start, end]) {
+          paintFlyingRocket(canvas, Offset.lerp(center, destination, travel)!,
+              (destination - center).direction, cellSize, paint.color.a);
+        }
       }
     }
   }
@@ -259,5 +284,57 @@ class _CombinationPainter extends CustomPainter {
       origin != oldDelegate.origin ||
       cellSize != oldDelegate.cellSize ||
       targets != oldDelegate.targets ||
-      combination != oldDelegate.combination;
+      combination != oldDelegate.combination ||
+      rocketLaneCenters != oldDelegate.rocketLaneCenters;
+}
+
+/// A shared frame keeps the power-up silhouette visible on bright boards.
+class PowerupTileArt extends StatelessWidget {
+  const PowerupTileArt({super.key, required this.special});
+
+  final TileSpecial special;
+
+  @override
+  Widget build(BuildContext context) {
+    final asset = GameAssets.powerup(special);
+    if (asset == null) return const SizedBox.shrink();
+    return LayoutBuilder(builder: (context, bounds) {
+      final size = math.min(bounds.maxWidth, bounds.maxHeight);
+      final accent = switch (special) {
+        TileSpecial.bomb => const Color(0xFFFFB75B),
+        TileSpecial.fireball => const Color(0xFFFF7851),
+        TileSpecial.seeker => const Color(0xFF8CE9E0),
+        _ => const Color(0xFFFFE8AB),
+      };
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          Center(
+            child: Container(
+              width: size * 0.76,
+              height: size * 0.76,
+              decoration: BoxDecoration(
+                color: const Color(0xD9142131),
+                shape: BoxShape.circle,
+                border: Border.all(color: accent.withValues(alpha: 0.7)),
+              ),
+            ),
+          ),
+          Image.asset(asset, fit: BoxFit.contain),
+          if (special.isRocket)
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Icon(
+                special == TileSpecial.rocketHorizontal
+                    ? Icons.swap_horiz
+                    : Icons.swap_vert,
+                color: accent,
+                size: size * 0.35,
+                shadows: const [Shadow(color: Colors.black, blurRadius: 4)],
+              ),
+            ),
+        ],
+      );
+    });
+  }
 }
