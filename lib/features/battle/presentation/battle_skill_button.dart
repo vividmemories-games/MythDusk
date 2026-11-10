@@ -1,4 +1,6 @@
 // Illustrated battle controls; gameplay affordability remains domain-owned.
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:mythdusk/core/assets/game_assets.dart';
 import 'package:mythdusk/core/theme/app_theme.dart';
@@ -50,6 +52,22 @@ class BattleSkillButton extends StatefulWidget {
 class _BattleSkillButtonState extends State<BattleSkillButton> {
   bool _pressed = false;
   bool _casting = false;
+  var _readyPulse = 0;
+
+  @override
+  void didUpdateWidget(covariant BattleSkillButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final oldAfford =
+        SkillAffordability.evaluate(oldWidget.skill, oldWidget.battle);
+    final afford = SkillAffordability.evaluate(widget.skill, widget.battle);
+    final couldAfford =
+        oldAfford.apOk && oldAfford.resourceLines.every((line) => line.ok);
+    final canAfford =
+        afford.apOk && afford.resourceLines.every((line) => line.ok);
+    if (!couldAfford && canAfford && widget.battle.clearingCells.isNotEmpty) {
+      _readyPulse++;
+    }
+  }
 
   Future<void> _cast() async {
     if (_casting ||
@@ -104,7 +122,7 @@ class _BattleSkillButtonState extends State<BattleSkillButton> {
     final details = '${widget.skill.name}: $label\n'
         '${afford.resourceLines.map((line) => '${line.resourceId} ${line.have}/${line.need}').join(' · ')}'
         ' · AP ${afford.apHave}/${afford.apNeed}';
-    return Semantics(
+    final control = Semantics(
       button: true,
       enabled: enabled,
       label:
@@ -222,6 +240,32 @@ class _BattleSkillButtonState extends State<BattleSkillButton> {
                       ),
                     )),
               ))),
+    );
+    if (reduceMotion || _readyPulse == 0) return control;
+    return Stack(
+      children: [
+        control,
+        Positioned.fill(
+          child: IgnorePointer(
+            child: TweenAnimationBuilder<double>(
+              key: ValueKey(_readyPulse),
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 650),
+              curve: const Interval(0.45, 1),
+              builder: (context, progress, _) => DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color:
+                        accent.withValues(alpha: math.sin(progress * math.pi)),
+                    width: 2,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

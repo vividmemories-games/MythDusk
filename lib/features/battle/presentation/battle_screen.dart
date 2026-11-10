@@ -26,6 +26,7 @@ import '../domain/enemy_def.dart';
 import 'battle_skill_button.dart';
 import '../providers/battle_provider.dart';
 import 'animated_puzzle_board.dart';
+import 'board_powerup_fx.dart';
 import 'battle_hud.dart';
 import 'battle_result_screen.dart';
 import 'battle_stage.dart';
@@ -133,11 +134,8 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
         targets.boardKey.currentContext?.findRenderObject() as RenderBox?;
     if (boardBox == null || !boardBox.hasSize) return;
 
-    const gap = 3.0;
     final board = battle.board;
-    final cellW = (boardBox.size.width - gap * (board.width - 1)) / board.width;
-    final cellH =
-        (boardBox.size.height - gap * (board.height - 1)) / board.height;
+    final timing = BoardClearTiming(battle, boardBox.size);
 
     final particles = <MatchCollectParticle>[];
     var i = 0;
@@ -145,16 +143,14 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
       final color = board.at(cell.$1, cell.$2).color;
       final resourceId = resourceIdForTileColor(color);
       if (resourceId == null) continue;
-      final local = Offset(
-        cell.$2 * (cellW + gap) + cellW / 2,
-        cell.$1 * (cellH + gap) + cellH / 2,
-      );
-      final global = boardBox.localToGlobal(local);
+      final global = boardBox.localToGlobal(timing.center(cell));
       particles.add(
         MatchCollectParticle(
           id: i++,
           resourceId: resourceId,
           startGlobal: global,
+          launchDelay:
+              battle.boardClearDuration * gemPopProgress(timing.delayFor(cell)),
         ),
       );
     }
@@ -399,21 +395,20 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
 
                   Widget board() => Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: KeyedSubtree(
-                          key: ref.watch(resourceFlyTargetsProvider).boardKey,
-                          child: Builder(
-                            builder: (context) {
-                              final bounce =
-                                  ref.watch(boardBouncePulseProvider);
-                              return AnimatedPuzzleBoard(
-                                battle: battle,
-                                bounceCells: bounce?.cells ?? const {},
-                                bounceToken: bounce?.token ?? 0,
-                                onTap: notifier.tapCell,
-                                onSwipe: notifier.swipeCell,
-                              );
-                            },
-                          ),
+                        child: Builder(
+                          builder: (context) {
+                            final bounce = ref.watch(boardBouncePulseProvider);
+                            return AnimatedPuzzleBoard(
+                              surfaceKey: ref
+                                  .watch(resourceFlyTargetsProvider)
+                                  .boardKey,
+                              battle: battle,
+                              bounceCells: bounce?.cells ?? const {},
+                              bounceToken: bounce?.token ?? 0,
+                              onTap: notifier.tapCell,
+                              onSwipe: notifier.swipeCell,
+                            );
+                          },
                         ),
                       );
 
@@ -446,8 +441,12 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
                                       key: ValueKey(battle.hero.skills[i].id),
                                       skill: battle.hero.skills[i],
                                       battle: battle,
-                                      onTap: () => notifier
-                                          .castSkill(battle.hero.skills[i]),
+                                      onTap: () => notifier.castSkill(
+                                        battle.hero.skills[i],
+                                        reduceMotion:
+                                            MediaQuery.disableAnimationsOf(
+                                                context),
+                                      ),
                                     ),
                                   ),
                                 ],

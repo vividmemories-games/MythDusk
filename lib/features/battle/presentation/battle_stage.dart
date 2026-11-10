@@ -11,6 +11,8 @@ import '../../profile/providers/mock_profile_provider.dart';
 import '../domain/battle_state.dart';
 import '../domain/enemy_def.dart';
 
+part 'battle_skill_fx.dart';
+
 /// Chibi hero (left) + enemy (right). Name floats lightly; HP bar sits under
 /// each sprite so top chrome never overlaps health.
 class BattleStage extends ConsumerWidget {
@@ -38,57 +40,104 @@ class BattleStage extends ConsumerWidget {
             ? 1.0
             : 0.96;
 
+    final skillCast = battle.combatFx == CombatFx.skillCast;
+    final skillImpact = battle.combatFx == CombatFx.skillImpact;
+    final animation = battle.skillAnimation;
+    final targetsSelf = animation?.targetsSelf ?? false;
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
     final casting = battle.combatFx == CombatFx.heroCast;
-    final heroHit = battle.combatFx == CombatFx.heroHit;
+    final enemyAction = battle.lastEnemySkillName;
+    final heroHit = battle.combatFx == CombatFx.heroHit &&
+        (enemyAction == null ||
+            battle.enemy.skills.any(
+              (skill) => skill.name == enemyAction && skill.damage > 0,
+            ));
     final enemyHit = battle.combatFx == CombatFx.enemyHit;
     final telegraphed = battle.phase == BattlePhase.enemyTurn;
 
     return SizedBox(
       height: height,
       child: ClipRect(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Stack(
+          fit: StackFit.expand,
           children: [
-            Expanded(
-              child: _FighterSlot(
-                assetPath: GameAssets.hero(battle.hero.id),
-                name: battle.hero.name,
-                subtitle: battle.shield > 0 ? 'shield ${battle.shield}' : null,
-                hp: battle.heroHp,
-                maxHp: battle.hero.maxHp,
-                barColor: MythDuskColors.amber,
-                flash: heroHit || casting,
-                castGlow: casting,
-                shake: heroHit,
-                showHitFx: heroHit,
-                lungeTowardEnemy: casting,
-                align: Alignment.bottomLeft,
-                slotFill: 0.92,
-                cosmeticHeroId: battle.hero.id,
-                profile: profile,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _FighterSlot(
-                assetPath: GameAssets.enemy(
-                  battle.enemy.id,
-                  bossForm: battle.bossForm,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: _FighterSlot(
+                    assetPath: GameAssets.hero(battle.hero.id),
+                    name: battle.hero.name,
+                    subtitle:
+                        battle.shield > 0 ? 'shield ${battle.shield}' : null,
+                    hp: battle.heroHp,
+                    maxHp: battle.hero.maxHp,
+                    barColor: MythDuskColors.amber,
+                    flash: heroHit || casting,
+                    castGlow: casting,
+                    shake: heroHit,
+                    showHitFx: heroHit,
+                    lungeTowardEnemy: casting,
+                    skillCast: skillCast && !targetsSelf,
+                    skillAnimation: animation,
+                    retreatAfterSlash:
+                        skillImpact && animation?.motion == SkillMotion.melee,
+                    align: Alignment.bottomLeft,
+                    slotFill: 0.92,
+                    cosmeticHeroId: battle.hero.id,
+                    profile: profile,
+                  ),
                 ),
-                name: battle.enemy.name,
-                hp: battle.enemyHp,
-                maxHp: battle.enemy.maxHp,
-                barColor: MythDuskColors.ember,
-                flash: enemyHit,
-                shake: enemyHit,
-                showHitFx: enemyHit,
-                enraged: battle.enraged,
-                telegraphPulse: telegraphed,
-                align: Alignment.bottomRight,
-                threat: intent,
-                slotFill: enemyFill,
-              ),
+                const SizedBox(width: _fighterGap),
+                Expanded(
+                  child: _FighterSlot(
+                    assetPath: GameAssets.enemy(
+                      battle.enemy.id,
+                      bossForm: battle.bossForm,
+                    ),
+                    name: battle.enemy.name,
+                    hp: battle.enemyHp,
+                    maxHp: battle.enemy.maxHp,
+                    barColor: MythDuskColors.ember,
+                    flash: enemyHit || (skillImpact && !targetsSelf),
+                    skillImpact: skillImpact && !targetsSelf,
+                    shake: enemyHit,
+                    showHitFx: enemyHit,
+                    enraged: battle.enraged,
+                    telegraphPulse: telegraphed,
+                    enemyAttack: telegraphed && (intent?.damage ?? 0) > 0,
+                    enemyHex:
+                        telegraphed && (intent?.effects.isNotEmpty ?? false),
+                    align: Alignment.bottomRight,
+                    threat: intent,
+                    slotFill: enemyFill,
+                  ),
+                ),
+              ],
             ),
+            if (animation != null &&
+                (skillImpact || (skillCast && !reduceMotion)))
+              IgnorePointer(
+                child: TweenAnimationBuilder<double>(
+                  key: ValueKey(battle.combatFx),
+                  tween: Tween(begin: 0, end: 1),
+                  duration: skillCast
+                      ? animation.castDuration
+                      : BattleController.combatFxDuration,
+                  builder: (context, progress, _) => CustomPaint(
+                    painter: _SkillPainter(
+                      animation: animation,
+                      progress: progress,
+                      impact: skillImpact,
+                      amount: targetsSelf
+                          ? battle.skillSupportAmount
+                          : battle.skillDamage,
+                      shieldGain: battle.skillShieldGain,
+                      reduceMotion: reduceMotion,
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -110,8 +159,14 @@ class _FighterSlot extends StatelessWidget {
     this.shake = false,
     this.showHitFx = false,
     this.lungeTowardEnemy = false,
+    this.skillCast = false,
+    this.skillAnimation,
+    this.retreatAfterSlash = false,
+    this.skillImpact = false,
     this.enraged = false,
     this.telegraphPulse = false,
+    this.enemyAttack = false,
+    this.enemyHex = false,
     this.threat,
     this.slotFill = 1.0,
     this.cosmeticHeroId,
@@ -130,8 +185,14 @@ class _FighterSlot extends StatelessWidget {
   final bool shake;
   final bool showHitFx;
   final bool lungeTowardEnemy;
+  final bool skillCast;
+  final SkillAnimation? skillAnimation;
+  final bool retreatAfterSlash;
+  final bool skillImpact;
   final bool enraged;
   final bool telegraphPulse;
+  final bool enemyAttack;
+  final bool enemyHex;
   final EnemySkill? threat;
   final double slotFill;
   final String? cosmeticHeroId;
@@ -213,7 +274,7 @@ class _FighterSlot extends StatelessWidget {
                     );
                   }
 
-                  if (flash) {
+                  if (flash && !skillImpact) {
                     final tint = castGlow
                         ? MythDuskColors.softGold.withValues(alpha: 0.45)
                         : barColor.withValues(alpha: 0.35);
@@ -277,6 +338,51 @@ class _FighterSlot extends StatelessWidget {
                     ),
                   );
 
+                  if ((skillCast || skillImpact || retreatAfterSlash) &&
+                      !reduceMotion) {
+                    sprite = TweenAnimationBuilder<double>(
+                      key: ValueKey(
+                        skillCast ? 'skill-cast' : 'skill-impact',
+                      ),
+                      tween: Tween(begin: 0, end: 1),
+                      duration: skillCast
+                          ? skillAnimation!.castDuration
+                          : BattleController.combatFxDuration,
+                      builder: (context, t, child) {
+                        if (skillAnimation?.motion == SkillMotion.melee) {
+                          final distance = _slashAdvance(
+                            slot.maxWidth,
+                            t,
+                            impact: retreatAfterSlash,
+                          );
+                          return Transform.translate(
+                            offset: Offset(distance, 0),
+                            child: child,
+                          );
+                        }
+                        final motion = skillCast
+                            ? (t < _fireballRelease
+                                ? -math.sin(t / _fireballRelease * math.pi) *
+                                    0.55
+                                : math.sin(
+                                    (t - _fireballRelease) /
+                                        (1 - _fireballRelease) *
+                                        math.pi,
+                                  ))
+                            : math.sin(math.pi * math.pow(t, 0.52)) * (1 - t);
+                        return Transform.translate(
+                          offset: Offset(motion * (skillCast ? 9 : 18), 0),
+                          child: Transform.rotate(
+                            alignment: Alignment.bottomCenter,
+                            angle: motion * 0.10,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: sprite,
+                    );
+                  }
+
                   if (lungeTowardEnemy && !reduceMotion) {
                     sprite = TweenAnimationBuilder<double>(
                       key: ValueKey('cast-$name-$hp'),
@@ -323,21 +429,29 @@ class _FighterSlot extends StatelessWidget {
                         final wave = math.sin(value * math.pi);
                         final scale = 1 + wave * 0.09;
                         final glow = 0.25 + wave * 0.45;
-                        return Transform.scale(
-                          scale: scale,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: MythDuskColors.ember
-                                      .withValues(alpha: glow),
-                                  blurRadius: 18,
-                                  spreadRadius: 1,
-                                ),
-                              ],
+                        return Transform.translate(
+                          offset: Offset(
+                            enemyAttack ? -slot.maxWidth * 0.26 * wave : 0,
+                            0,
+                          ),
+                          child: Transform.scale(
+                            scale: scale,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: (enemyHex
+                                            ? const Color(0xFFAA77E8)
+                                            : MythDuskColors.ember)
+                                        .withValues(alpha: glow),
+                                    blurRadius: 18,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                              child: child,
                             ),
-                            child: child,
                           ),
                         );
                       },
@@ -483,4 +597,15 @@ class _ThreatBadge extends StatelessWidget {
       ),
     );
   }
+}
+
+const _fireballRelease = 0.40;
+const _fighterGap = 8.0;
+
+double _slashAdvance(double slotWidth, double progress,
+    {required bool impact}) {
+  final travel = impact
+      ? 1 - Curves.easeInOut.transform(progress)
+      : Curves.easeInCubic.transform(progress);
+  return slotWidth * 0.68 * travel;
 }
