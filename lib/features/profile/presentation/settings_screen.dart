@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/config/legal_urls.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/open_external_url.dart';
 import '../../../services/iap/iap_providers.dart';
 import '../../../shared/widgets/myth_hub_shell.dart';
 import '../../../shared/widgets/challenge_art.dart';
@@ -12,6 +14,15 @@ import '../providers/mock_profile_provider.dart';
 /// Player preferences and account shortcuts.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
+
+  Future<void> _openLegalUrl(BuildContext context, String url) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final opened = await openExternalUrl(url);
+    if (!context.mounted || opened) return;
+    messenger.showSnackBar(
+      const SnackBar(content: Text('Could not open link. Try again later.')),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -64,6 +75,84 @@ class SettingsScreen extends ConsumerWidget {
               },
             ),
           ])),
+          const SizedBox(height: 16),
+          Text('Legal', style: challengeTextStyle(18, bold: true)),
+          const SizedBox(height: 8),
+          RelicPanel(
+            child: Column(
+              children: [
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(
+                    Icons.privacy_tip_outlined,
+                    color: MythDuskColors.softGold,
+                  ),
+                  title: const Text('Privacy Policy'),
+                  subtitle: const Text('How MythDusk handles your data'),
+                  trailing: const Icon(
+                    Icons.open_in_new,
+                    color: MythDuskColors.muted,
+                    size: 20,
+                  ),
+                  onTap: () => _openLegalUrl(context, LegalUrls.privacyPolicy),
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(
+                    Icons.description_outlined,
+                    color: MythDuskColors.softGold,
+                  ),
+                  title: const Text('Terms and Conditions'),
+                  subtitle: const Text('Rules of use and in-app purchases'),
+                  trailing: const Icon(
+                    Icons.open_in_new,
+                    color: MythDuskColors.muted,
+                    size: 20,
+                  ),
+                  onTap: () =>
+                      _openLegalUrl(context, LegalUrls.termsAndConditions),
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(
+                    Icons.mail_outline,
+                    color: MythDuskColors.softGold,
+                  ),
+                  title: const Text('Contact us'),
+                  subtitle: const Text('Email ${LegalUrls.supportEmail}'),
+                  trailing: const Icon(
+                    Icons.open_in_new,
+                    color: MythDuskColors.muted,
+                    size: 20,
+                  ),
+                  onTap: () async {
+                    final opened =
+                        await openExternalUri(LegalUrls.supportMailto);
+                    if (!context.mounted) return;
+                    if (opened) return;
+                    await _openLegalUrl(context, LegalUrls.contact);
+                  },
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(
+                    Icons.delete_outline,
+                    color: MythDuskColors.softGold,
+                  ),
+                  title: const Text('Delete your data'),
+                  subtitle: const Text(
+                    'How to request account and cloud data deletion',
+                  ),
+                  trailing: const Icon(
+                    Icons.open_in_new,
+                    color: MythDuskColors.muted,
+                    size: 20,
+                  ),
+                  onTap: () => _openLegalUrl(context, LegalUrls.deleteData),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 16),
           Text('Preferences', style: challengeTextStyle(18, bold: true)),
           const SizedBox(height: 8),
