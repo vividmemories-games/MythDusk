@@ -99,6 +99,11 @@ Future<void> _runBuy(
   );
 }
 
+String? _localizedPrice(WidgetRef ref, bool ready, String productId) {
+  if (!ready) return null;
+  return ref.watch(storeIapServiceProvider).localizedPrice(productId);
+}
+
 Future<void> _runQaClaim(
   BuildContext context,
   WidgetRef ref, {
@@ -133,9 +138,7 @@ class StarterPackIapCard extends ConsumerWidget {
     final claimed = ref.watch(profileProvider).hasClaimedStarterPack();
     final ready = ref.watch(storeIapReadyProvider).valueOrNull ?? false;
     final busy = ref.watch(iapConfirmingProductIdProvider) != null;
-    final price = ref
-        .watch(storeIapServiceProvider)
-        .localizedPrice(IapCatalog.starterPack.id);
+    final price = _localizedPrice(ref, ready, IapCatalog.starterPack.id);
 
     return RelicPanel(
       padding: const EdgeInsets.all(14),
@@ -208,9 +211,7 @@ class ValuePackIapCard extends ConsumerWidget {
         ref.watch(profileProvider).hasClaimedStarterPack('value_pack_30d');
     final ready = ref.watch(storeIapReadyProvider).valueOrNull ?? false;
     final busy = ref.watch(iapConfirmingProductIdProvider) != null;
-    final price = ref
-        .watch(storeIapServiceProvider)
-        .localizedPrice(IapCatalog.value30Day.id);
+    final price = _localizedPrice(ref, ready, IapCatalog.value30Day.id);
 
     return RelicPanel(
       padding: const EdgeInsets.all(14),
@@ -288,7 +289,7 @@ class ConsumableIapCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ready = ref.watch(storeIapReadyProvider).valueOrNull ?? false;
     final busy = ref.watch(iapConfirmingProductIdProvider) != null;
-    final price = ref.watch(storeIapServiceProvider).localizedPrice(productId);
+    final price = _localizedPrice(ref, ready, productId);
 
     return RelicPanel(
       padding: const EdgeInsets.all(14),

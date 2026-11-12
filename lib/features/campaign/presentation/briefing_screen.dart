@@ -201,8 +201,9 @@ class _BriefingScreenState extends ConsumerState<BriefingScreen> {
                     style: challengeTextStyle(12, color: MythDuskColors.muted)),
                 const SizedBox(height: 8),
                 LayoutBuilder(builder: (context, constraints) {
-                  final stacked = constraints.maxWidth < 330 ||
-                      MediaQuery.textScalerOf(context).scale(14) > 21;
+                  // Narrow or large text: stack cards to avoid Row overflow.
+                  final stacked = constraints.maxWidth < 380 ||
+                      MediaQuery.textScalerOf(context).scale(14) > 18;
                   final cards = [
                     for (final id in PrepItemId.values)
                       BriefingPrepCard(

@@ -34,6 +34,16 @@ bool _consumeContinueRevive(Ref ref, String nodeId) {
   return pending;
 }
 
+/// Snapshot and clear prep loadout without mutating during provider create.
+List<PrepItemId> _takePendingPrep(Ref ref) {
+  final equipped = List<PrepItemId>.from(ref.read(pendingBossPrepProvider));
+  if (equipped.isEmpty) return equipped;
+  Future.microtask(() {
+    ref.read(pendingBossPrepProvider.notifier).state = const [];
+  });
+  return equipped;
+}
+
 final battleProvider = StateNotifierProvider.autoDispose
     .family<BattleNotifier, BattleState, String>((ref, nodeId) {
   // Watch hero id + upgrades so prep inventory updates do not reset the battle.
@@ -71,10 +81,7 @@ final battleProvider = StateNotifierProvider.autoDispose
   final isWeekly = nodeId == WeeklyBalance.battleNodeId;
   if (isWeekly) {
     final challenge = ref.watch(weeklyChallengeProvider);
-    final equipped = List<PrepItemId>.from(ref.read(pendingBossPrepProvider));
-    if (equipped.isNotEmpty) {
-      ref.read(pendingBossPrepProvider.notifier).state = const [];
-    }
+    final equipped = _takePendingPrep(ref);
     final enemy = EnemyCatalog.byId(challenge.enemyId).scaled(
       hpMult: WeeklyBalance.enemyStatMultiplier,
       damageMult: WeeklyBalance.enemyStatMultiplier,
@@ -102,10 +109,7 @@ final battleProvider = StateNotifierProvider.autoDispose
   final isDaily = nodeId == DailyBalance.battleNodeId;
   if (isDaily) {
     final contract = ref.watch(dailyContractProvider);
-    final equipped = List<PrepItemId>.from(ref.read(pendingBossPrepProvider));
-    if (equipped.isNotEmpty) {
-      ref.read(pendingBossPrepProvider.notifier).state = const [];
-    }
+    final equipped = _takePendingPrep(ref);
     return BattleNotifier(
       ref: ref,
       hero: hero,
@@ -132,10 +136,7 @@ final battleProvider = StateNotifierProvider.autoDispose
       throw StateError('No active expedition for battle');
     }
     final encounter = run.encounter;
-    final equipped = List<PrepItemId>.from(ref.read(pendingBossPrepProvider));
-    if (equipped.isNotEmpty) {
-      ref.read(pendingBossPrepProvider.notifier).state = const [];
-    }
+    final equipped = _takePendingPrep(ref);
     return BattleNotifier(
       ref: ref,
       hero: hero,
@@ -187,10 +188,7 @@ final battleProvider = StateNotifierProvider.autoDispose
   }
 
   // Inventory already consumed by prep picker; apply modifiers then clear.
-  final equipped = List<PrepItemId>.from(ref.read(pendingBossPrepProvider));
-  if (equipped.isNotEmpty) {
-    ref.read(pendingBossPrepProvider.notifier).state = const [];
-  }
+  final equipped = _takePendingPrep(ref);
 
   return BattleNotifier(
     ref: ref,
@@ -535,7 +533,8 @@ class BattleNotifier extends StateNotifier<BattleState> {
       );
       final clearTime = state.boardClearDuration;
       final combination = step.combination != null;
-      if (_ref != null && (identical(step, cascade.steps.first) || combination)) {
+      if (_ref != null &&
+          (identical(step, cascade.steps.first) || combination)) {
         final pulseTime = clearTime * (combination ? 0.35 : 0.28);
         await Future<void>.delayed(pulseTime);
         if (!mounted || gen != _actionGen) return;

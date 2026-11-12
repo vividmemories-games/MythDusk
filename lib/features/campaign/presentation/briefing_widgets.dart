@@ -78,9 +78,13 @@ class BriefingLoadout extends StatelessWidget {
                       const SizedBox(height: 5),
                       Text(skill.name,
                           textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: challengeTextStyle(12)),
                       const SizedBox(height: 3),
                       Text('${skill.apCost} AP',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                               fontSize: 12, color: MythDuskColors.muted)),
                     ]))),
@@ -126,7 +130,7 @@ class BriefingPrepCard extends StatelessWidget {
                             ]
                           : []),
                   child: ChallengePanel(
-                      child: Column(children: [
+                      child: Column(mainAxisSize: MainAxisSize.min, children: [
                     Align(
                         alignment: Alignment.topRight,
                         child: Icon(
@@ -142,14 +146,20 @@ class BriefingPrepCard extends StatelessWidget {
                     const SizedBox(height: 5),
                     Text(id.displayName,
                         textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: challengeTextStyle(12, bold: true)),
                     const SizedBox(height: 5),
                     Text(blocked ? 'Already used today' : id.blurb,
                         textAlign: TextAlign.center,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                             fontSize: 11, color: MythDuskColors.muted)),
                     const SizedBox(height: 6),
                     Text('Own $count',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: challengeTextStyle(12,
                             color: MythDuskColors.softGold)),
                   ])),
